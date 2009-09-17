@@ -1,0 +1,23 @@
+Javascript "Bubbling" Library - YUI Extension Source
+
+* Documentation: http://bubbling-library.com/api/
+* License: http://bubbling-library.com/eng/licence
+* Latest Stable Release: http://bubbling-library.com/eng/releases
+
+Welcome to Bubbling Library 2.x.
+
+Javascript Bubbling Library is a set of components, behaviors and widgets, 
+for building event-driven web applications using the bubble-up technique. 
+The Bubbling Library also includes several plugins that can be used to 
+extend the YUI Library to manage dynamic areas which are closely related 
+with the event-driven philosophy. All components in the Bubbling Library 
+have been released as open source under a BSD license and are free for 
+all uses.
+
+The YUI Library is a set of utilities and controls, written in JavaScript,
+for building richly interactive web applications using techniques such 
+as DOM scripting, DHTML and AJAX. YUI is available under a BSD license 
+and is free for all uses.
+
+Code found in the development head is always a work in progress and
+should be treated as experimental. 
