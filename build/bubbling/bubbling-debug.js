@@ -1,10 +1,13 @@
-/*
-Copyright (c) 2008, Bubbling Library Team. All rights reserved.
-Portions Copyright (c) 2008, Yahoo!, Inc. All rights reserved.
-Code licensed under the BSD License:
-http://www.bubbling-library.com/eng/licence
-version: 2.2
-*/
+/**
+ * Bubbling Core Definition.
+ *
+ * @namespace YAHOO
+ * @module bubbling
+ * @requires yahoo
+ * @requires event
+ * @requires dom
+ */
+
 YAHOO.namespace("plugin","behavior");
 (function() {
   var $Y = YAHOO.util,
@@ -540,5 +543,4 @@ YAHOO.namespace("plugin","behavior");
 	return obj;
   }();
 })();
-YAHOO.register("bubbling", YAHOO.Bubbling, {version: "2.2", build: "238"});
 YAHOO.register("bubbling", YAHOO.Bubbling, {version: "@VERSION@", build: "@BUILD@"});
