@@ -1,5 +1,5 @@
 /**
- * Bubbling Core Definition.
+ * Bubbling Core Definition: The bubbling core basically define a mechanism (communication pipes) to easily interact between the browser, server and the components in a web app, defining a programming pattern based on messages and listeners at the highest level.
  *
  * @namespace YAHOO
  * @module bubbling
@@ -17,8 +17,10 @@ YAHOO.namespace("plugin","behavior");
 	  $  = YAHOO.util.Dom.get;
 	  
   /**
-  * @class Bubbling
-  */
+   * The Bubbling Core Object
+   * @class Bubbling
+   * @static
+   */
   YAHOO.Bubbling = function () {
   	var obj = {},
 	    _config = {
@@ -138,10 +140,26 @@ YAHOO.namespace("plugin","behavior");
 	obj.bubble = {}; // CustomEvent Handles
     
 	// mapping external methods...
+	/**
+	* @method getOwnerByClassName
+	* @description Analyzing the element and the ancestor path to find a node with a certain classname
+	* @public
+	* @param {Node} node    		 DOM element that should be analyzed
+	* @param {String} tagName        DOM event
+	* @return {Node} DOM Element or null
+	*/
 	obj.getOwnerByClassName = function(node, className) {
 		return ($D.hasClass(node, className)?node:$D.getAncestorByClassName (node, className));
     };
-    obj.getOwnerByTagName = function(node, tagName) {
+    /**
+	* @method getOwnerByTagName
+	* @description Analyzing the element and the ancestor path to find a node with a certain tag name
+	* @public
+	* @param {Node} node    		 DOM element that should be analyzed
+	* @param {String} tagName        DOM event
+	* @return {Node} DOM Element or null
+	*/
+	obj.getOwnerByTagName = function(node, tagName) {
 		node = $D.get(node);
 		if (!node) {
 			return null;
@@ -149,10 +167,31 @@ YAHOO.namespace("plugin","behavior");
 		return (node.tagName && node.tagName.toUpperCase() == tagName.toUpperCase()?node:$D.getAncestorByTagName (node, tagName));
 	};
 	// Deprecated in favor of getOwnerByClassName and getOwnerByTagName
-	obj.getAncestorByClassName = obj.getOwnerByClassName;
+	/**
+     * YAHOO.Bubbling.getAncestorByClassName is an alias for getOwnerByClassName
+     * @method getAncestorByClassName
+     * @see getOwnerByClassName
+     * @static
+     */
+    obj.getAncestorByClassName = obj.getOwnerByClassName;
+    /**
+     * YAHOO.Bubbling.getAncestorByTagName is an alias for getOwnerByTagName
+     * @method getAncestorByTagName
+     * @see getOwnerByTagName
+     * @static
+     */
     obj.getAncestorByTagName = obj.getOwnerByTagName;
 
 	// public methods
+    /**
+	* @method onKeyPressedTrigger
+	* @description Pipeline method to analyze key strokes events and trigger the corresponding actions
+	* @public
+	* @param {String} args     Literal object with the event information (target, char, etc). Useful if you want to fake this event.
+	* @param {Event} e         DOM event
+	* @param {Object} m        Default arguments that should be shipped with the action execution
+	* @return {boolean} true if one of the listeners stopped the event
+	*/
 	obj.onKeyPressedTrigger = function(args, e, m){
 	  var b = 'key';
 	  e = e || $E.getEvent();
@@ -177,6 +216,15 @@ YAHOO.namespace("plugin","behavior");
 	  }
 	  return m.stop;
 	};
+	/**
+	* @method onEventTrigger
+	* @description Pipeline method to analyze the events and trigger the corresponding actions
+	* @public
+	* @param {String} b        Layer that should be analyzed (navigate, repaint, property, etc)
+	* @param {Event} e         DOM event
+	* @param {Object} m        Default arguments that should be shipped with the action execution
+	* @return {boolean} true if one of the listeners stopped the event
+	*/
 	obj.onEventTrigger = function(b, e, m){
 	  e = e || $E.getEvent();
 	  m = m || {};
@@ -196,6 +244,13 @@ YAHOO.namespace("plugin","behavior");
 	  }
 	  return m.stop;
 	};
+	/**
+	* @method onNavigate
+	* @description Callback method for click events
+	* @private
+	* @param {Event} e        DOM event
+	* @return void
+	*/
 	obj.onNavigate = function(e){
 	  var conf = {
 	  	anchor: this.getOwnerByTagName( $E.getTarget(e), 'A' ),
@@ -221,6 +276,13 @@ YAHOO.namespace("plugin","behavior");
 	    this.onEventTrigger ('god', e, conf); // if nobody claim the event, god can handle it...
 	  }
 	};
+	/**
+	* @method onProperty
+	* @description Callback method for right click events
+	* @private
+	* @param {Event} e        DOM event
+	* @return void
+	*/
 	obj.onProperty = function(e){
 	  this.onEventTrigger ('property', e, {
 	  	anchor: this.getOwnerByTagName( $E.getTarget(e), 'A' ),
@@ -228,6 +290,13 @@ YAHOO.namespace("plugin","behavior");
 	  });
 	};
 	obj._timeoutId = 0;
+	/**
+	* @method onRepaint
+	* @description Callback method for repaint and resize events
+	* @private
+	* @param {Event} e        DOM event
+	* @return void
+	*/
 	obj.onRepaint = function(e){
 	  // Downshift Your Code (can't let something happen multiple times in a second)
 	  // http://yuiblog.com/blog/2007/07/09/downshift-your-code/
@@ -249,25 +318,47 @@ YAHOO.namespace("plugin","behavior");
         	}
       }, 150);
 	};
+	/**
+	* @method onRollOver
+	* @description Callback method for mouseover events
+	* @private
+	* @param {Event} e        DOM event
+	* @return void
+	*/
 	obj.onRollOver = function(e){
 	  this.onEventTrigger ('rollover', e, {
 	  	anchor: this.getOwnerByTagName( $E.getTarget(e), 'A' )
 	  });
 	};
+	/**
+	* @method onRollOut
+	* @description Callback method for mouseout events
+	* @private
+	* @param {Event} e        DOM Event
+	* @return void
+	*/
 	obj.onRollOut = function(e){
 	  this.onEventTrigger ('rollout', e, {
 	  	anchor: this.getOwnerByTagName( $E.getTarget(e), 'A' )
 	  });
 	};
-	obj.onKeyPressed = function(args){
-	  this.onKeyPressedTrigger(args);
+	/**
+	* @method onKeyPressed
+	* @description Callback method for key strokes
+	* @private
+	* @param {Event} e			DOM Event
+	* @return void
+	*/
+	obj.onKeyPressed = function(e){
+	  this.onKeyPressedTrigger(e);
 	};
 	/**
-	* * This method will try to match the classname of the DOM element with the list of actions (literal object)
+	* @method getActionName
+	* @description This method will try to match the classname of the DOM element with the list of actions (literal object) 
 	* @public
 	* @param {object} el        element reference
-	* @param {object} actions   object with the list of possibles actions
-	* @return void
+	* @param {object} depot     list of actions that should be analyzed
+	* @return {string} first matching action
 	*/
 	obj.getActionName = function (el, depot) {
 	  depot = depot || {};
@@ -286,11 +377,12 @@ YAHOO.namespace("plugin","behavior");
 	  return null;
 	};
 	/**
-	* * This method will try to match the classnames of the DOM element with the list of actions (literal object)
+	* @method getAllActions
+	* @description This method will try to match the classnames of the DOM element with the list of actions (literal object)
 	* @public
-	* @param {object} el        element reference
-	* @param {object} actions   object with the list of possibles actions
-	* @return void
+	* @param {Node} el        element reference
+	* @param {object} depot   object with the list of possibles actions
+	* @return {array} a collection of strings with the name of the matching actions
 	*/
 	obj.getAllActions = function (el, depot) {
 	  depot = depot || {};
@@ -309,11 +401,12 @@ YAHOO.namespace("plugin","behavior");
 	  return actions;
 	};
 	/**
-	* * Getting the first child element based on the tagName
+	* @method getFirstChildByTagName
+	* @description Getting the first child element based on the tagName
 	* @public
-	* @param {object} el Child element reference
-	* @param {object} c  ClassName of the Ancestor
-	* @return void
+	* @param {Node} el 		Child element reference
+	* @param {object} t  	ClassName of the Ancestor
+	* @return {Node}
 	*/
 	obj.getFirstChildByTagName = function (el, t) {
 	  if (el && ($L.isObject(el) || (el = $( el ))) && t) {
@@ -325,11 +418,12 @@ YAHOO.namespace("plugin","behavior");
 	  return null;
 	};
 	/**
-	* * Analyzing the target and the related target elements to see if the action was within a certain element
+	* @method virtualTarget
+	* @description Analyzing the target and the related target elements to see if the action was within a certain element
 	* @public
-	* @param {object} e  event reference
-	* @param {object} el DOM element reference
-	* @return bool
+	* @param {Event} e  event reference
+	* @param {Node} el 	DOM element reference
+	* @return {boolean}
 	*/
 	obj.virtualTarget = function (e, el) {
 	  if (el && ($L.isObject(el) || (el = $( el ))) && $L.isObject(e)) {
@@ -346,10 +440,11 @@ YAHOO.namespace("plugin","behavior");
 	  return false;
 	};
 	/**
-	* * getting the real YUI Button reference from a dom element, usually the target for a certain event
+	* @method getYUIButton
+	* @description getting the real YUI Button reference from a dom element, usually the target for a certain event
 	* @public
-	* @param {object} t      dom element reference
-	* @return void
+	* @param {Node} t      dom element reference
+	* @return {Object}
 	*/
 	obj.getYUIButton = function (t) {
 		var el = this.getOwnerByClassName( t, 'yui-button' ), bt = null;
@@ -359,7 +454,8 @@ YAHOO.namespace("plugin","behavior");
 		return bt;
 	};
 	/**
-	* * Creating a new behaviors layer...
+	* @method addLayer
+	* @description Creating a new behaviors layer...
 	* @public
 	* @param {string||array} layers  Behaviors layers GUID
 	* @param {object} scope  Custom  Event default execution scope
@@ -378,7 +474,8 @@ YAHOO.namespace("plugin","behavior");
 		return result;
     };
 	/**
-	* * Subscribing an behavior to certain behaviors layer...
+	* @method subscribe
+	* @description Subscribing an behavior to certain behaviors layer...
 	* @public
 	* @param {string} layer  Behavior layer GUID
 	* @param {object} bh     The function that represent the behavior
@@ -395,9 +492,16 @@ YAHOO.namespace("plugin","behavior");
         }
         return first;
     };
+    /**
+     * YAHOO.Bubbling.on is an alias for subscribe
+     * @method on
+     * @see subscribe
+     * @static
+     */
     obj.on = obj.subscribe; // defining an alias...
 	/**
-	* * Broadcasting the message in the corresponding behavior layer...
+	* @method fire
+	* @description Broadcasting the message in the corresponding behavior layer...
 	* @public
 	* @param {string} layer  Behavior layer GUID
 	* @param {object} obj    The function that represent the behavior
@@ -414,7 +518,8 @@ YAHOO.namespace("plugin","behavior");
 	    return obj.stop;
     };
 	/**
-	* * Processing an action based on the classname of the target element...
+	* @method processingAction
+	* @description Processing an action based on the classname of the target element...
 	* @public
 	* @param {string} layer     Behavior layer GUID
 	* @param {object} args      Event object (extended)
@@ -440,6 +545,15 @@ YAHOO.namespace("plugin","behavior");
 	  }
 	};
 	obj.defaultActions = {};
+	/**
+	* @method addDefaultAction
+	* @description adding a new action to the application layer
+	* @public
+	* @param {string} n     	Name of the action
+	* @param {function} f      	Listener
+	* @param {boolean} force    Process the actions without worry about the flagged value...
+	* @return void
+	*/
     obj.addDefaultAction = function (n, f, force) {
 		if (n && f && (!this.defaultActions.hasOwnProperty(n) || force)) {
 		  	this.defaultActions[n] = f;
@@ -451,7 +565,13 @@ YAHOO.namespace("plugin","behavior");
 	obj.on('navigate', defaultActionsControl);
 	
 	// initialization of the font and scroll monitors
-	obj.initMonitors = function () {
+	/**
+	* @method initMonitors
+	* @description Activation process for optional listeners (resize, repaint)
+	* @public
+	* @return void
+	*/
+    obj.initMonitors = function () {
 	    var fMonitors = function () {
             var oMonitors = new YAHOO.widget.Module('yui-cms-font-monitor', {
                 monitorresize:true,
@@ -467,7 +587,12 @@ YAHOO.namespace("plugin","behavior");
 	      $E.onDOMReady (fMonitors, obj, true);
 	    }
     };
-	// initialization inside the selfconstructor
+    /**
+	* @method init
+	* @description Initialization process (optional)
+	* @public
+	* @return void
+	*/
 	obj.init = function () {
 	  var el = document.body; /* the top of the DOM */
 	  clearInterval(_handle); /* there is not need to keep waiting for the timer to execute this function */

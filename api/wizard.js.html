@@ -1,0 +1,610 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html xmlns:yui="http://yuilibrary.com/rdf/1.0/yui.rdf#">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+	<title>API: tooltipmanager   wizard.js  (YRegion Utility)</title>
+
+	<link rel="stylesheet" type="text/css" href="assets/reset-fonts-grids-min.css?stamp=" />
+	<link rel="stylesheet" type="text/css" href="assets/api.css?stamp=" />
+
+    <script type="text/javascript" src="assets/api-js?stamp="></script>
+    <script type="text/javascript" src="assets/ac-js?stamp="></script>
+</head>
+
+<body id="yahoo-com">
+
+<div id="doc3" class="yui-t2">
+	<div id="hd">
+        <h1><a href="http://www.bubbling-library.com/" title="JavaScript Bubbling Library - YUI Extension">JavaScript Bubbling Library - YUI Extension</a></h1>
+        <h3>tooltipmanager&nbsp; <span class="subtitle">2.2</span></h3>
+        <a href="./index.html" title="JavaScript Bubbling Library">Bubbling</a> 
+            &gt; <a href="./module_tooltipmanager.html" title="tooltipmanager">tooltipmanager</a>
+                
+                 &gt; wizard.js (source view) 
+        <form onsubmit="return false">
+            <div id="propertysearch">
+                Search: <input autocomplete="off" id="searchinput" />
+                <div id="searchresults">
+                    &nbsp;
+                </div>
+            </div>
+        </form>
+	</div>
+
+	<div id="bd">
+		<div id="yui-main">
+			<div class="yui-b">
+            <form action="#" name="yui-classopts-form" method="get" id="yui-classopts-form">
+                <fieldset>
+                    <legend>Filters</legend>
+                <span class="classopts"><input type="checkbox" name="show_private" id="show_private" /> <label for="show_private">Show Private</label></span>
+                <span class="classopts"><input type="checkbox" name="show_protected" id="show_protected" /> <label for="show_protected">Show Protected</label></span>
+                <span class="classopts"><input type="checkbox" name="show_deprecated" id="show_deprecated" /> <label for="show_deprecated">Show Deprecated</label></span>
+                </fieldset>
+            </form>
+
+                    <div id="srcout">
+                        <style>
+                            #doc3 .classopts { display:none; }
+                        </style>
+<div class="highlight"><pre><span class="c">/**</span>
+<span class="c"> * Wizard Manager Definition.</span>
+<span class="c"> * Use this plugin to management your dynamic areas.</span>
+<span class="c"> *</span>
+<span class="c"> * @namespace YAHOO.plugin</span>
+<span class="c"> * @module wizard</span>
+<span class="c"> * @requires yahoo</span>
+<span class="c"> * @requires event</span>
+<span class="c"> * @requires dom</span>
+<span class="c"> * @requires connection</span>
+<span class="c"> * @requires dispatcher</span>
+<span class="c"> */</span>
+<span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">$L</span> <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">lang</span><span class="o">,</span>
+	  <span class="nx">$C</span> <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">Connect</span><span class="o">,</span>
+	  <span class="nx">$E</span> <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">Event</span><span class="o">,</span>
+	  <span class="nx">$D</span> <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">Dom</span><span class="o">,</span>
+	  <span class="nx">$</span> <span class="o">=</span>  <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">Dom</span><span class="p">.</span><span class="nx">get</span><span class="o">,</span>
+	  <span class="nx">$DP</span> <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">plugin</span><span class="p">.</span><span class="nx">Dispatcher</span><span class="o">;</span>
+
+	<span class="c">/**</span>
+<span class="c">	 * The Wizard Manager Plugin</span>
+<span class="c">	 * @class WizardManager</span>
+<span class="c">	 * @static</span>
+<span class="c">	 */</span>
+    <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">plugin</span><span class="p">.</span><span class="nx">WizardManager</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+		<span class="kd">var</span> <span class="nx">obj</span> <span class="o">=</span> <span class="p">{}</span><span class="o">,</span>
+			<span class="nx">_area</span> <span class="o">=</span> <span class="kc">null</span><span class="o">,</span>
+			<span class="nx">_areas</span> <span class="o">=</span> <span class="p">{}</span><span class="o">,</span>
+			<span class="nx">_className</span> <span class="o">=</span> <span class="s1">&#39;yui-cms-wizard&#39;</span><span class="o">,</span>
+			<span class="nx">_formClass</span> <span class="o">=</span> <span class="s1">&#39;yui-cms-form&#39;</span><span class="o">,</span>
+			<span class="nx">_dynamic</span>   <span class="o">=</span> <span class="s1">&#39;dynamic&#39;</span><span class="o">,</span>
+			<span class="nx">_loadingClass</span> <span class="o">=</span> <span class="s1">&#39;loading&#39;</span><span class="o">,</span>
+			<span class="nx">_form_control</span> <span class="o">=</span> <span class="s1">&#39;yuicmswizard&#39;</span><span class="o">,</span>
+			<span class="nx">_defConf</span>   <span class="o">=</span> <span class="p">{</span>
+							<span class="nx">status</span><span class="o">:</span> <span class="kc">false</span><span class="o">,</span>
+							<span class="nx">handle</span><span class="o">:</span> <span class="kc">null</span><span class="o">,</span>
+							<span class="nx">done</span><span class="o">:</span> <span class="kc">false</span><span class="o">,</span>
+							<span class="nx">uri</span><span class="o">:</span> <span class="kc">null</span><span class="o">,</span>
+							<span class="nx">moreGetData</span><span class="o">:</span> <span class="p">{}</span><span class="o">,</span>
+							<span class="nx">morePostData</span><span class="o">:</span> <span class="p">{}</span><span class="o">,</span>
+							<span class="nx">onCancel</span><span class="o">:</span> <span class="kc">null</span><span class="o">,</span>
+							<span class="nx">onReady</span><span class="o">:</span> <span class="kc">null</span><span class="o">,</span>
+							<span class="nx">onFinish</span><span class="o">:</span> <span class="kc">null</span><span class="o">,</span>
+							<span class="nx">onSubmit</span><span class="o">:</span> <span class="kc">null</span><span class="o">,</span>
+							<span class="nx">values</span><span class="o">:</span> <span class="p">{}</span>
+						 <span class="p">};</span>
+
+		<span class="kd">var</span> <span class="nx">callback</span> <span class="o">=</span> <span class="p">{</span>
+			<span class="nx">success</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">o</span><span class="p">)</span> <span class="p">{</span>
+				<span class="kd">var</span> <span class="nx">area</span> <span class="o">=</span> <span class="p">(</span><span class="nx">obj</span><span class="p">.</span><span class="nx">_area</span> <span class="o">=</span> <span class="nx">o</span><span class="p">.</span><span class="nx">argument</span><span class="p">.</span><span class="nx">area</span><span class="p">);</span>
+				<span class="c">// process the response here &amp; compiling the result using the dispatcher...</span>
+				<span class="nx">$DP</span><span class="p">.</span><span class="nx">process</span> <span class="p">(</span> <span class="nx">area</span><span class="p">.</span><span class="nx">element</span><span class="o">,</span> <span class="nx">o</span><span class="p">.</span><span class="nx">responseText</span><span class="o">,</span> <span class="p">{</span>
+					<span class="nx">onStart</span><span class="o">:</span> <span class="kd">function</span><span class="p">(){</span>
+					<span class="p">}</span><span class="o">,</span>
+					<span class="nx">error</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+						<span class="nx">onError</span> <span class="p">(</span> <span class="nx">area</span> <span class="p">);</span>
+				    <span class="p">}</span><span class="o">,</span>
+					<span class="nx">onLoad</span><span class="o">:</span> <span class="kd">function</span><span class="p">(){</span>
+						<span class="c">// process the area</span>
+						<span class="nx">$D</span><span class="p">.</span><span class="nx">removeClass</span><span class="p">(</span><span class="nx">area</span><span class="p">.</span><span class="nx">element</span><span class="o">,</span> <span class="nx">_loadingClass</span><span class="p">);</span>
+						<span class="c">// looking for important moments in the execution thread</span>
+						<span class="k">if</span> <span class="p">(</span><span class="nx">area</span><span class="p">.</span><span class="nx">values</span><span class="p">.</span><span class="nx">_wizardfinish</span> <span class="o">||</span> <span class="nx">area</span><span class="p">.</span><span class="nx">done</span><span class="p">)</span> <span class="p">{</span>
+							<span class="nx">onFinish</span><span class="p">(</span><span class="nx">area</span><span class="p">);</span>
+						<span class="p">}</span>
+						<span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="nx">area</span><span class="p">.</span><span class="nx">values</span><span class="p">.</span><span class="nx">_wizardcancel</span><span class="p">)</span> <span class="p">{</span>
+							<span class="nx">onCancel</span><span class="p">(</span><span class="nx">area</span><span class="p">);</span>
+						<span class="p">}</span>
+						<span class="nx">check</span> <span class="p">(</span> <span class="nx">area</span> <span class="p">);</span>
+					<span class="p">}</span><span class="o">,</span>
+					<span class="nx">firewall</span><span class="o">:</span> <span class="nx">area</span><span class="p">.</span><span class="nx">firewall</span>
+				<span class="p">}</span><span class="o">,</span> <span class="kc">true</span><span class="p">);</span>
+				<span class="nx">obj</span><span class="p">.</span><span class="nx">_area</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+			<span class="p">}</span><span class="o">,</span>
+			<span class="nx">failure</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">o</span><span class="p">)</span> <span class="p">{</span>
+				<span class="nx">onError</span> <span class="p">(</span> <span class="nx">o</span><span class="p">.</span><span class="nx">argument</span><span class="p">.</span><span class="nx">area</span> <span class="p">);</span>
+			<span class="p">}</span>
+		<span class="p">};</span>
+		<span class="kd">function</span> <span class="nx">fetch</span><span class="p">(</span> <span class="nx">config</span><span class="o">,</span> <span class="nx">m</span><span class="o">,</span> <span class="nx">uri</span><span class="o">,</span> <span class="nx">c</span><span class="o">,</span> <span class="nx">data</span> <span class="p">)</span> <span class="p">{</span>
+			<span class="c">// set the loading class to the config...</span>
+			<span class="nx">$D</span><span class="p">.</span><span class="nx">addClass</span><span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">element</span><span class="o">,</span> <span class="nx">_loadingClass</span><span class="p">);</span>
+			<span class="nx">uri</span> <span class="o">=</span> <span class="nx">$DP</span><span class="p">.</span><span class="nx">firewall</span> <span class="p">(</span><span class="nx">uri</span><span class="o">,</span> <span class="nx">config</span><span class="p">);</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isFunction</span><span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">onStart</span><span class="p">))</span> <span class="p">{</span>
+				<span class="nx">config</span><span class="p">.</span><span class="nx">onStart</span><span class="p">.</span><span class="nx">apply</span> <span class="p">(</span> <span class="nx">config</span><span class="o">,</span> <span class="p">[</span><span class="nx">config</span><span class="p">.</span><span class="nx">values</span><span class="p">]</span> <span class="p">);</span>
+			    <span class="nx">config</span><span class="p">.</span><span class="nx">onStart</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span> <span class="c">// because the process method will try to executed again...</span>
+			<span class="p">}</span>
+			<span class="c">// broadcasting the message</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">YAHOO</span><span class="p">.</span><span class="nx">Bubbling</span><span class="p">)</span> <span class="p">{</span>
+				 <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">Bubbling</span><span class="p">.</span><span class="nx">fire</span> <span class="p">(</span><span class="s1">&#39;onAsyncRequestStart&#39;</span><span class="o">,</span> <span class="p">{</span>
+					<span class="nx">element</span><span class="o">:</span> <span class="nx">config</span><span class="p">.</span><span class="nx">element</span>
+				 <span class="p">});</span>
+			<span class="p">}</span>
+			<span class="nx">config</span><span class="p">.</span><span class="nx">handle</span> <span class="o">=</span> <span class="nx">$C</span><span class="p">.</span><span class="nx">asyncRequest</span><span class="p">(</span><span class="nx">m</span><span class="o">,</span> <span class="nx">uri</span><span class="o">,</span> <span class="nx">c</span><span class="o">,</span> <span class="nx">data</span><span class="p">);</span>
+		<span class="p">}</span>
+		<span class="kd">function</span> <span class="nx">_getFormElements</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="nx">type</span><span class="p">)</span> <span class="p">{</span>
+			<span class="kd">var</span> <span class="nx">items</span> <span class="o">=</span> <span class="p">[]</span><span class="o">,</span>
+				<span class="nx">els</span> <span class="o">=</span> <span class="nx">el</span><span class="p">.</span><span class="nx">getElementsByTagName</span><span class="p">(</span><span class="nx">type</span><span class="p">);</span>
+			<span class="k">for</span><span class="p">(</span><span class="kd">var</span> <span class="nx">k</span> <span class="o">=</span> <span class="mi">0</span><span class="o">,</span> <span class="nx">len</span> <span class="o">=</span> <span class="nx">els</span><span class="p">.</span><span class="nx">length</span><span class="o">;</span> <span class="nx">k</span> <span class="o">&lt;</span> <span class="nx">len</span><span class="o">;</span> <span class="nx">k</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+				<span class="nx">items</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">els</span><span class="p">[</span><span class="nx">k</span><span class="p">]);</span>
+			<span class="p">}</span>
+			<span class="k">return</span> <span class="nx">items</span><span class="o">;</span>
+		<span class="p">}</span>
+		<span class="kd">function</span> <span class="nx">check</span> <span class="p">(</span><span class="nx">area</span><span class="p">)</span> <span class="p">{</span>
+			<span class="kd">var</span> <span class="nx">items</span> <span class="o">=</span> <span class="p">[]</span><span class="o">,</span> <span class="nx">sName</span><span class="o">,</span> <span class="nx">bt</span><span class="o">,</span> <span class="kd">label</span><span class="o">,</span> <span class="nx">oForm</span><span class="o">,</span> <span class="nx">c</span><span class="o">;</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">area</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">area</span><span class="p">.</span><span class="nx">element</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">YAHOO</span><span class="p">.</span><span class="nx">widget</span><span class="p">.</span><span class="nx">Button</span><span class="p">))</span> <span class="p">{</span>
+			    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">area</span><span class="p">.</span><span class="nx">overheat</span><span class="p">)</span> <span class="p">{</span>
+				  <span class="c">// analysing the content of the area...</span>
+			  	  <span class="c">// searching for buttons elements</span>
+				  <span class="nx">items</span> <span class="o">=</span> <span class="nx">_getFormElements</span><span class="p">(</span><span class="nx">area</span><span class="p">.</span><span class="nx">element</span><span class="o">,</span> <span class="s1">&#39;button&#39;</span><span class="p">);</span>
+				  <span class="c">// Loop through each result</span>
+				  <span class="k">for</span><span class="p">(</span><span class="kd">var</span> <span class="nx">k</span> <span class="o">=</span> <span class="mi">0</span><span class="o">,</span> <span class="nx">len</span> <span class="o">=</span> <span class="nx">items</span><span class="p">.</span><span class="nx">length</span><span class="o">;</span> <span class="nx">k</span> <span class="o">&lt;</span> <span class="nx">len</span><span class="o">;</span> <span class="nx">k</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+					<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">$D</span><span class="p">.</span><span class="nx">getAncestorByClassName</span><span class="p">(</span><span class="nx">items</span><span class="p">[</span><span class="nx">k</span><span class="p">]</span><span class="o">,</span> <span class="s1">&#39;yui-button&#39;</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="nx">$D</span><span class="p">.</span><span class="nx">getAncestorByClassName</span><span class="p">(</span><span class="nx">items</span><span class="p">[</span><span class="nx">k</span><span class="p">]</span><span class="o">,</span> <span class="s1">&#39;yui-cms-preserve&#39;</span><span class="p">))</span> <span class="p">{</span>
+	                    <span class="c">// YUI buttons are incompletes, that&#39;s why I introduce a new level with class=&quot;i&quot; to include icons in radios and checkbox</span>
+	                    <span class="c">// Create a Button using an existing &lt;input&gt; element as a data source</span>
+						<span class="nx">bt</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">widget</span><span class="p">.</span><span class="nx">Button</span><span class="p">(</span><span class="nx">items</span><span class="p">[</span><span class="nx">k</span><span class="p">]</span><span class="o">,</span> <span class="p">{</span><span class="nx">className</span><span class="o">:</span> <span class="nx">items</span><span class="p">[</span><span class="nx">k</span><span class="p">].</span><span class="nx">className</span><span class="p">});</span>
+					<span class="p">}</span>
+				  <span class="p">}</span>
+				  <span class="c">// searching submit buttons</span>
+				  <span class="nx">items</span> <span class="o">=</span> <span class="nx">_getFormElements</span><span class="p">(</span><span class="nx">area</span><span class="p">.</span><span class="nx">element</span><span class="o">,</span> <span class="s1">&#39;input&#39;</span><span class="p">);</span>
+				  <span class="c">// Loop through each result</span>
+				  <span class="k">for</span><span class="p">(</span><span class="kd">var</span> <span class="nx">k</span> <span class="o">=</span> <span class="mi">0</span><span class="o">,</span> <span class="nx">len</span> <span class="o">=</span> <span class="nx">items</span><span class="p">.</span><span class="nx">length</span><span class="o">;</span> <span class="nx">k</span> <span class="o">&lt;</span> <span class="nx">len</span><span class="o">;</span> <span class="nx">k</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+					<span class="nx">bt</span> <span class="o">=</span> <span class="nx">items</span><span class="p">[</span><span class="nx">k</span><span class="p">].</span><span class="nx">getAttribute</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">).</span><span class="nx">toLowerCase</span><span class="p">();</span>
+	                <span class="kd">label</span> <span class="o">=</span> <span class="nx">items</span><span class="p">[</span><span class="nx">k</span><span class="p">].</span><span class="nx">getAttribute</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">);</span>
+					<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">$D</span><span class="p">.</span><span class="nx">getAncestorByClassName</span><span class="p">(</span><span class="nx">items</span><span class="p">[</span><span class="nx">k</span><span class="p">]</span><span class="o">,</span> <span class="s1">&#39;yui-cms-preserve&#39;</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">((</span><span class="nx">bt</span> <span class="o">==</span> <span class="s1">&#39;submit&#39;</span><span class="p">)</span> <span class="o">||</span> <span class="p">(</span><span class="nx">bt</span> <span class="o">==</span> <span class="s1">&#39;reset&#39;</span><span class="p">)</span> <span class="o">||</span> <span class="p">(</span><span class="nx">bt</span> <span class="o">==</span> <span class="s1">&#39;button&#39;</span><span class="p">)))</span> <span class="p">{</span>
+	                    <span class="c">// YUI buttons are incompletes, that&#39;s why I introduce a new level with class=&quot;i&quot; to include icons in radios and checkbox</span>
+		                <span class="kd">label</span> <span class="o">=</span> <span class="s1">&#39;&lt;div class=&quot;i&quot;&gt;&#39;</span><span class="o">+</span><span class="kd">label</span><span class="o">+</span><span class="s1">&#39;&lt;/div&gt;&#39;</span><span class="o">;</span>
+	                    <span class="c">// Create a Button using an existing &lt;input&gt; element as a data source</span>
+						<span class="nx">bt</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">widget</span><span class="p">.</span><span class="nx">Button</span><span class="p">(</span><span class="nx">items</span><span class="p">[</span><span class="nx">k</span><span class="p">]</span><span class="o">,</span> <span class="p">{</span><span class="kd">label</span><span class="o">:</span> <span class="kd">label</span><span class="o">,</span> <span class="nx">className</span><span class="o">:</span> <span class="nx">items</span><span class="p">[</span><span class="nx">k</span><span class="p">].</span><span class="nx">className</span><span class="p">});</span>
+					<span class="p">}</span>
+				  <span class="p">}</span>
+				<span class="p">}</span>
+			  	<span class="c">// searching forms</span>
+				<span class="nx">items</span> <span class="o">=</span> <span class="nx">_getFormElements</span><span class="p">(</span><span class="nx">area</span><span class="p">.</span><span class="nx">element</span><span class="o">,</span> <span class="s1">&#39;form&#39;</span><span class="p">);</span>
+	            <span class="c">// Loop through each result</span>
+				<span class="k">for</span><span class="p">(</span><span class="kd">var</span> <span class="nx">k</span> <span class="o">=</span> <span class="mi">0</span><span class="o">,</span> <span class="nx">len</span> <span class="o">=</span> <span class="nx">items</span><span class="p">.</span><span class="nx">length</span><span class="o">;</span> <span class="nx">k</span> <span class="o">&lt;</span> <span class="nx">len</span><span class="o">;</span> <span class="nx">k</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+					<span class="nx">oForm</span> <span class="o">=</span> <span class="nx">items</span><span class="p">[</span><span class="nx">k</span><span class="p">];</span>
+					<span class="c">// if the form was already manipulated, just let it pass</span>
+					<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">$D</span><span class="p">.</span><span class="nx">hasClass</span><span class="p">(</span><span class="nx">oForm</span><span class="o">,</span> <span class="nx">_formClass</span><span class="p">))</span> <span class="p">{</span>
+						<span class="nx">$D</span><span class="p">.</span><span class="nx">addClass</span><span class="p">(</span><span class="nx">oForm</span><span class="o">,</span> <span class="nx">_formClass</span><span class="p">);</span> <span class="c">// flagging the form...</span>
+						<span class="nx">area</span><span class="p">.</span><span class="nx">morePostData</span><span class="p">[</span><span class="nx">_form_control</span><span class="p">]</span> <span class="o">=</span> <span class="nx">area</span><span class="p">.</span><span class="nx">id</span><span class="o">;</span>
+						<span class="kd">var</span> <span class="nx">cc</span> <span class="o">=</span> <span class="p">{</span>
+							<span class="nx">upload</span><span class="o">:</span> <span class="nx">callback</span><span class="p">.</span><span class="nx">success</span><span class="o">,</span>
+							<span class="nx">success</span><span class="o">:</span> <span class="nx">callback</span><span class="p">.</span><span class="nx">success</span><span class="o">,</span>
+							<span class="nx">failure</span><span class="o">:</span> <span class="nx">callback</span><span class="p">.</span><span class="nx">failure</span><span class="o">,</span>
+							<span class="nx">argument</span><span class="o">:</span> <span class="p">{</span> <span class="nx">area</span><span class="o">:</span><span class="nx">area</span> <span class="p">}</span>
+						<span class="p">};</span>
+						<span class="c">// applying the correct event for each form...</span>
+						<span class="nx">$E</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="nx">oForm</span><span class="o">,</span> <span class="s2">&quot;submit&quot;</span><span class="o">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+							<span class="kd">var</span> <span class="nx">f</span> <span class="o">=</span> <span class="k">this</span><span class="o">,</span>
+								<span class="nx">sName</span> <span class="o">=</span> <span class="kc">null</span><span class="o">,</span> <span class="nx">uri</span> <span class="o">=</span> <span class="nx">f</span><span class="p">.</span><span class="nx">getAttribute</span><span class="p">(</span><span class="s2">&quot;action&quot;</span><span class="o">,</span><span class="mi">2</span><span class="p">)</span> <span class="o">||</span> <span class="nx">area</span><span class="p">.</span><span class="nx">uri</span><span class="o">,</span>
+								<span class="nx">m</span> <span class="o">=</span> <span class="p">(</span><span class="nx">f</span><span class="p">.</span><span class="nx">getAttribute</span><span class="p">(</span><span class="s1">&#39;method&#39;</span><span class="p">).</span><span class="nx">toLowerCase</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;post&#39;</span><span class="o">?</span><span class="s1">&#39;POST&#39;</span><span class="o">:</span><span class="s1">&#39;GET&#39;</span><span class="p">);</span>
+							<span class="c">// preparing the form...</span>
+							<span class="nx">$C</span><span class="p">.</span><span class="nx">_formNode</span> <span class="o">=</span> <span class="nx">f</span><span class="o">;</span>
+							<span class="c">// adding the post params</span>
+							<span class="k">for</span> <span class="p">(</span><span class="nx">sName</span> <span class="k">in</span> <span class="nx">area</span><span class="p">.</span><span class="nx">morePostData</span><span class="p">)</span> <span class="p">{</span>
+								<span class="k">if</span> <span class="p">(</span><span class="nx">area</span><span class="p">.</span><span class="nx">morePostData</span><span class="p">.</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="nx">sName</span><span class="p">))</span> <span class="p">{</span>
+									<span class="nx">$C</span><span class="p">.</span><span class="nx">appendPostData</span> <span class="p">(</span><span class="nx">sName</span><span class="o">+</span><span class="s1">&#39;=&#39;</span><span class="o">+</span><span class="nx">area</span><span class="p">.</span><span class="nx">morePostData</span><span class="p">[</span><span class="nx">sName</span><span class="p">]);</span>
+								<span class="p">}</span>
+							<span class="p">}</span>
+							<span class="nx">onSubmit</span> <span class="p">(</span><span class="nx">area</span><span class="p">);</span>
+							<span class="c">// hacking the YUI Button Submit - To include the submit button values (deprecated after the 2.3.1)</span>
+							<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">YAHOO</span><span class="p">.</span><span class="nx">widget</span><span class="p">.</span><span class="nx">Button</span><span class="p">))</span> <span class="p">{</span>
+							  <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">widget</span><span class="p">.</span><span class="nx">Button</span><span class="p">.</span><span class="nx">addHiddenFieldsToForm</span><span class="p">(</span><span class="nx">f</span><span class="p">);</span>
+							<span class="p">}</span>
+							<span class="c">// workaround to save the editor instances before the submit process</span>
+							<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">YAHOO</span><span class="p">.</span><span class="nx">widget</span><span class="p">.</span><span class="nx">EditorInfo</span><span class="p">))</span> <span class="p">{</span>
+								<span class="nx">YAHOO</span><span class="p">.</span><span class="nx">widget</span><span class="p">.</span><span class="nx">EditorInfo</span><span class="p">.</span><span class="nx">saveAll</span><span class="p">();</span>
+							<span class="p">}</span>
+							
+							<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">$D</span><span class="p">.</span><span class="nx">hasClass</span><span class="p">(</span><span class="nx">f</span><span class="o">,</span> <span class="s1">&#39;yui-cms-simpleform&#39;</span><span class="p">))</span> <span class="p">{</span>
+								<span class="c">// adding the get params...</span>
+								<span class="nx">uri</span> <span class="o">=</span> <span class="nx">$DP</span><span class="p">.</span><span class="nx">augmentURI</span> <span class="p">(</span><span class="nx">uri</span><span class="o">,</span> <span class="nx">area</span><span class="p">.</span><span class="nx">moreGetData</span><span class="p">);</span>
+								<span class="c">// adding the form params</span>
+								<span class="nx">$C</span><span class="p">.</span><span class="nx">setForm</span><span class="p">(</span><span class="nx">f</span><span class="o">,</span> <span class="nx">$D</span><span class="p">.</span><span class="nx">hasClass</span><span class="p">(</span><span class="nx">f</span><span class="o">,</span> <span class="s1">&#39;yui-cms-upload&#39;</span><span class="p">));</span>
+								<span class="nx">fetch</span> <span class="p">(</span><span class="nx">area</span><span class="o">,</span> <span class="nx">m</span><span class="o">,</span> <span class="nx">uri</span><span class="o">,</span> <span class="nx">cc</span><span class="p">);</span>
+								<span class="c">// Hack: clear the YUI Connection Manager...</span>
+								<span class="c">// if we leave the form linked to the connection manager object, all the futher call will have all this values...</span>
+								<span class="nx">$C</span><span class="p">.</span><span class="nx">resetFormState</span><span class="p">();</span>
+								<span class="nx">$E</span><span class="p">.</span><span class="nx">stopEvent</span><span class="p">(</span><span class="nx">e</span><span class="p">);</span>
+							<span class="p">}</span>
+						<span class="p">});</span>
+					<span class="p">}</span>
+				<span class="p">}</span>
+				<span class="c">// everything was fine here...</span>
+				<span class="nx">area</span><span class="p">.</span><span class="nx">status</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+	            <span class="nx">onReady</span><span class="p">(</span><span class="nx">area</span><span class="p">);</span>
+			<span class="p">}</span>
+		<span class="p">}</span>
+		<span class="kd">function</span> <span class="nx">reset</span> <span class="p">(</span><span class="nx">area</span><span class="o">,</span> <span class="nx">uri</span><span class="p">)</span> <span class="p">{</span>
+			<span class="kd">var</span> <span class="nx">i</span><span class="o">,</span> <span class="nx">m</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">,</span> <span class="nx">data</span><span class="o">;</span>
+			<span class="nx">uri</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">String</span><span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isString</span><span class="p">(</span><span class="nx">uri</span><span class="p">)</span><span class="o">?</span><span class="nx">uri</span><span class="o">:</span><span class="nx">area</span><span class="p">.</span><span class="nx">uri</span><span class="p">);</span>
+			<span class="nx">uri</span> <span class="o">+=</span> <span class="p">((</span><span class="nx">uri</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="s1">&#39;?&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">?</span><span class="s1">&#39;?&#39;</span><span class="o">:</span><span class="s1">&#39;&amp;&#39;</span><span class="p">)</span><span class="o">+</span><span class="nx">_form_control</span><span class="o">+</span><span class="s1">&#39;=&#39;</span><span class="o">+</span><span class="nx">area</span><span class="p">.</span><span class="nx">id</span><span class="o">;</span>
+			<span class="nx">uri</span> <span class="o">=</span> <span class="nx">$DP</span><span class="p">.</span><span class="nx">augmentURI</span> <span class="p">(</span><span class="nx">uri</span><span class="o">,</span> <span class="nx">area</span><span class="p">.</span><span class="nx">moreGetData</span><span class="p">);</span>
+			<span class="nx">data</span> <span class="o">=</span> <span class="nx">$DP</span><span class="p">.</span><span class="nx">obj2query</span> <span class="p">(</span><span class="nx">area</span><span class="p">.</span><span class="nx">morePostData</span><span class="p">);</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">area</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">area</span><span class="p">.</span><span class="nx">element</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="nx">area</span><span class="p">.</span><span class="nx">id</span><span class="p">))</span> <span class="o">&amp;&amp;</span> <span class="nx">uri</span><span class="p">)</span> <span class="p">{</span>
+			  <span class="c">// fetching the remote uri...</span>
+			  <span class="kd">var</span> <span class="nx">cc</span> <span class="o">=</span> <span class="p">{</span>
+				<span class="nx">success</span><span class="o">:</span> <span class="nx">callback</span><span class="p">.</span><span class="nx">success</span><span class="o">,</span>
+				<span class="nx">failure</span><span class="o">:</span> <span class="nx">callback</span><span class="p">.</span><span class="nx">failure</span><span class="o">,</span>
+				<span class="nx">argument</span><span class="o">:</span> <span class="p">{</span> <span class="nx">area</span><span class="o">:</span><span class="nx">area</span> <span class="p">}</span>
+			  <span class="p">};</span>
+			  <span class="nx">fetch</span> <span class="p">(</span><span class="nx">area</span><span class="o">,</span> <span class="nx">area</span><span class="p">.</span><span class="nx">loadMethod</span><span class="o">,</span> <span class="nx">uri</span><span class="o">,</span> <span class="nx">cc</span><span class="o">,</span> <span class="nx">data</span><span class="p">);</span>
+			  <span class="c">// broadcasting the message to log the navigation action into the history manager</span>
+			  <span class="k">if</span> <span class="p">(</span><span class="nx">YAHOO</span><span class="p">.</span><span class="nx">Bubbling</span><span class="p">)</span> <span class="p">{</span>
+				<span class="nx">YAHOO</span><span class="p">.</span><span class="nx">Bubbling</span><span class="p">.</span><span class="nx">fire</span> <span class="p">(</span><span class="s1">&#39;onNavigate&#39;</span><span class="o">,</span> <span class="p">{</span>
+					<span class="nx">state</span><span class="o">:</span> <span class="nx">area</span><span class="p">.</span><span class="nx">id</span><span class="o">+</span><span class="nx">escape</span><span class="p">(</span><span class="nx">uri</span><span class="p">)</span><span class="o">,</span>
+					<span class="nx">control</span><span class="o">:</span> <span class="s1">&#39;wizard&#39;</span><span class="o">,</span>
+					<span class="nx">uri</span><span class="o">:</span> <span class="nx">uri</span><span class="o">,</span>
+					<span class="nx">area</span><span class="o">:</span> <span class="nx">area</span><span class="o">,</span>
+					<span class="nx">restore</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span> 
+					   <span class="nx">reset</span> <span class="p">(</span><span class="nx">area</span><span class="o">,</span> <span class="nx">uri</span><span class="p">);</span>
+					<span class="p">}</span>
+				<span class="p">});</span>
+			  <span class="p">}</span>			  
+			<span class="p">}</span>
+		<span class="p">}</span>
+
+	    <span class="kd">var</span> <span class="nx">onSubmit</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">area</span> <span class="p">)</span> <span class="p">{</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isFunction</span><span class="p">(</span><span class="nx">area</span><span class="p">.</span><span class="nx">onSubmit</span><span class="p">))</span> <span class="p">{</span>
+				<span class="nx">area</span><span class="p">.</span><span class="nx">onSubmit</span><span class="p">.</span><span class="nx">apply</span> <span class="p">(</span> <span class="nx">area</span><span class="o">,</span> <span class="p">[</span><span class="nx">area</span><span class="p">.</span><span class="nx">values</span><span class="p">]</span> <span class="p">);</span>
+			<span class="p">}</span>
+	    <span class="p">};</span>
+	    <span class="kd">var</span> <span class="nx">onFinish</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">area</span> <span class="p">)</span> <span class="p">{</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isFunction</span><span class="p">(</span><span class="nx">area</span><span class="p">.</span><span class="nx">onFinish</span><span class="p">))</span> <span class="p">{</span>
+				<span class="nx">area</span><span class="p">.</span><span class="nx">onFinish</span><span class="p">.</span><span class="nx">apply</span> <span class="p">(</span> <span class="nx">area</span><span class="o">,</span> <span class="p">[</span><span class="nx">area</span><span class="p">.</span><span class="nx">values</span><span class="p">]</span> <span class="p">);</span>
+			<span class="p">}</span>
+	    <span class="p">};</span>
+		<span class="kd">var</span> <span class="nx">onCancel</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">area</span> <span class="p">)</span> <span class="p">{</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isFunction</span><span class="p">(</span><span class="nx">area</span><span class="p">.</span><span class="nx">onCancel</span><span class="p">))</span> <span class="p">{</span>
+				<span class="nx">area</span><span class="p">.</span><span class="nx">onCancel</span><span class="p">.</span><span class="nx">apply</span> <span class="p">(</span> <span class="nx">area</span><span class="o">,</span> <span class="p">[</span><span class="nx">area</span><span class="p">.</span><span class="nx">values</span><span class="p">]</span> <span class="p">);</span>
+			<span class="p">}</span>
+		<span class="p">};</span>
+		<span class="kd">var</span> <span class="nx">onError</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">area</span> <span class="p">)</span> <span class="p">{</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isFunction</span><span class="p">(</span><span class="nx">area</span><span class="p">.</span><span class="nx">onError</span><span class="p">))</span> <span class="p">{</span>
+				<span class="nx">area</span><span class="p">.</span><span class="nx">onError</span><span class="p">.</span><span class="nx">apply</span> <span class="p">(</span> <span class="nx">area</span><span class="o">,</span> <span class="p">[</span><span class="nx">area</span><span class="p">.</span><span class="nx">values</span><span class="p">]</span> <span class="p">);</span>
+			<span class="p">}</span>
+		<span class="p">};</span>
+		<span class="kd">var</span> <span class="nx">onReady</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">area</span> <span class="p">)</span> <span class="p">{</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isFunction</span><span class="p">(</span><span class="nx">area</span><span class="p">.</span><span class="nx">onReady</span><span class="p">))</span> <span class="p">{</span>
+				<span class="nx">area</span><span class="p">.</span><span class="nx">onReady</span><span class="p">.</span><span class="nx">apply</span> <span class="p">(</span> <span class="nx">area</span><span class="o">,</span> <span class="p">[</span><span class="nx">area</span><span class="p">.</span><span class="nx">values</span><span class="p">]</span> <span class="p">);</span>
+			<span class="p">}</span>
+		<span class="p">};</span>
+		<span class="c">/**</span>
+<span class="c">		* @method getStatus</span>
+<span class="c">		* @description get the current status of the wizard</span>
+<span class="c">		* @public</span>
+<span class="c">		* @param {string} id   Unique Id for the area</span>
+<span class="c">		* @return string</span>
+<span class="c">		*/</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">getStatus</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">id</span> <span class="p">)</span> <span class="p">{</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">_areas</span><span class="p">[</span><span class="nx">id</span><span class="p">]))</span> <span class="p">{</span>
+				<span class="k">return</span> <span class="nx">_areas</span><span class="p">[</span><span class="nx">id</span><span class="p">].</span><span class="nx">status</span><span class="o">;</span>
+			<span class="p">}</span>
+			<span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+		<span class="p">};</span>
+		<span class="c">/**</span>
+<span class="c">		* @method getValues</span>
+<span class="c">		* @description get the values for the current wizard</span>
+<span class="c">		* @public</span>
+<span class="c">		* @param {string} id   Unique Id for the area</span>
+<span class="c">		* @return boolean</span>
+<span class="c">		*/</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">getValues</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">id</span> <span class="p">)</span> <span class="p">{</span>
+			<span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">getStatus</span><span class="p">(</span><span class="nx">id</span><span class="p">))</span> <span class="p">{</span>
+				<span class="k">return</span> <span class="nx">_areas</span><span class="p">[</span><span class="nx">id</span><span class="p">].</span><span class="nx">values</span><span class="o">;</span>
+			<span class="p">}</span>
+			<span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+		<span class="p">};</span>
+		<span class="c">/**</span>
+<span class="c">		* @method setValues</span>
+<span class="c">		* @description set the values for the current wizard</span>
+<span class="c">		* @public</span>
+<span class="c">		* @param {string} id   Unique Id for the area</span>
+<span class="c">		* @param {string} enc  json encoded string</span>
+<span class="c">		* @return Object</span>
+<span class="c">		*/</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">setValues</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">id</span><span class="o">,</span> <span class="nx">enc</span> <span class="p">)</span> <span class="p">{</span>
+			<span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">getStatus</span><span class="p">(</span><span class="nx">id</span><span class="p">))</span> <span class="p">{</span>
+				<span class="kd">var</span> <span class="nx">area</span> <span class="o">=</span> <span class="nx">_areas</span><span class="p">[</span><span class="nx">id</span><span class="p">];</span>
+				<span class="k">try</span> <span class="p">{</span>
+                  <span class="nx">area</span><span class="p">.</span><span class="nx">values</span> <span class="o">=</span> <span class="nx">$L</span><span class="p">.</span><span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">enc</span><span class="p">);</span>
+                <span class="p">}</span>
+                <span class="k">catch</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+                  <span class="nx">onError</span> <span class="p">(</span> <span class="nx">area</span> <span class="p">);</span>
+                <span class="p">}</span>
+				<span class="k">return</span> <span class="nx">area</span><span class="p">.</span><span class="nx">values</span><span class="o">;</span>
+			<span class="p">}</span>
+			<span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+		<span class="p">};</span>
+		<span class="c">/**</span>
+<span class="c">		* @method valuer</span>
+<span class="c">		* @description add more values for the current area</span>
+<span class="c">		* @public</span>
+<span class="c">		* @param {string|object} values  json encoded string or a literal object</span>
+<span class="c">		* @return Object</span>
+<span class="c">		*/</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">valuer</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">values</span><span class="p">)</span> <span class="p">{</span>
+			<span class="kd">var</span> <span class="nx">area</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">_area</span><span class="o">;</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isString</span><span class="p">(</span><span class="nx">values</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nx">$L</span><span class="p">.</span><span class="nx">JSON</span><span class="p">)</span> <span class="p">{</span>
+				<span class="k">try</span> <span class="p">{</span>
+                  <span class="nx">values</span> <span class="o">=</span> <span class="nx">$L</span><span class="p">.</span><span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">values</span><span class="p">);</span>
+                <span class="p">}</span>
+                <span class="k">catch</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+				  <span class="nx">values</span> <span class="o">=</span> <span class="p">{};</span>
+                  <span class="nx">onError</span> <span class="p">(</span> <span class="nx">area</span> <span class="p">);</span>
+                <span class="p">}</span>
+			<span class="p">}</span>
+			<span class="nx">values</span> <span class="o">=</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isString</span><span class="p">(</span><span class="nx">values</span><span class="p">)</span><span class="o">||!</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">values</span><span class="p">)</span><span class="o">?</span><span class="p">{}</span><span class="o">:</span><span class="nx">values</span><span class="p">);</span>
+			<span class="nx">$L</span><span class="p">.</span><span class="nx">augmentObject</span><span class="p">(</span><span class="nx">area</span><span class="p">.</span><span class="nx">values</span><span class="o">,</span> <span class="nx">values</span><span class="o">,</span> <span class="kc">true</span><span class="p">);</span>
+			<span class="k">return</span> <span class="nx">area</span><span class="p">.</span><span class="nx">values</span><span class="o">;</span>
+		<span class="p">};</span>
+		<span class="c">/**</span>
+<span class="c">		* @method finisher</span>
+<span class="c">		* @description mark the current wizard as finished</span>
+<span class="c">		* @public</span>
+<span class="c">		* @return void</span>
+<span class="c">		*/</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">finisher</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+			<span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">_area</span><span class="p">)</span> <span class="p">{</span>
+				<span class="k">this</span><span class="p">.</span><span class="nx">_area</span><span class="p">.</span><span class="nx">done</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span> <span class="c">/* marking the area as DONE */</span>
+			<span class="p">}</span>
+		<span class="p">};</span>
+		<span class="c">/**</span>
+<span class="c">		* @method jump</span>
+<span class="c">		* @description use the jump method to manually jump to new uri</span>
+<span class="c">		* @public</span>
+<span class="c">		* @param {string} id   area Id</span>
+<span class="c">		* @param {string} uri  url for the next step</span>
+<span class="c">		* @return boolean</span>
+<span class="c">		*/</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">jump</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">id</span><span class="o">,</span> <span class="nx">uri</span> <span class="p">)</span> <span class="p">{</span>
+			<span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">getStatus</span><span class="p">(</span><span class="nx">id</span><span class="p">))</span> <span class="p">{</span>
+				<span class="nx">reset</span><span class="p">(</span> <span class="nx">_areas</span><span class="p">[</span><span class="nx">id</span><span class="p">]</span><span class="o">,</span> <span class="nx">uri</span> <span class="p">);</span>
+				<span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
+			<span class="p">}</span>
+			<span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+		<span class="p">};</span>
+		<span class="c">/**</span>
+<span class="c">		* @method init</span>
+<span class="c">		* @description configure the area properties</span>
+<span class="c">		* @public</span>
+<span class="c">		* @param {string} id</span>
+<span class="c">		* @param {object} userConfig</span>
+<span class="c">		* @return Object</span>
+<span class="c">		*/</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">init</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">id</span><span class="o">,</span> <span class="nx">userConfig</span><span class="p">)</span> <span class="p">{</span>
+			<span class="kd">var</span> <span class="nx">c</span> <span class="o">=</span> <span class="nx">userConfig</span> <span class="o">||</span> <span class="nx">_defConf</span><span class="o">;</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">id</span><span class="p">))</span> <span class="p">{</span>
+				<span class="nx">id</span> <span class="o">=</span> <span class="nx">$E</span><span class="p">.</span><span class="nx">generateId</span><span class="p">(</span><span class="nx">id</span><span class="p">);</span>
+			<span class="p">}</span>
+			<span class="c">// recompiling the properties of the current area...</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">_areas</span><span class="p">[</span><span class="nx">id</span><span class="p">]))</span> <span class="p">{</span>
+				<span class="nx">$L</span><span class="p">.</span><span class="nx">augmentObject</span><span class="p">(</span><span class="nx">c</span><span class="o">,</span> <span class="nx">_areas</span><span class="p">[</span><span class="nx">id</span><span class="p">]</span><span class="o">,</span> <span class="kc">true</span><span class="p">);</span>
+			<span class="p">}</span>
+			<span class="c">// filtering the masking parameters...</span>
+			<span class="nx">c</span><span class="p">.</span><span class="nx">morePostData</span> <span class="o">=</span> <span class="nx">c</span><span class="p">.</span><span class="nx">morePostData</span> <span class="o">||</span> <span class="p">{};</span>
+			<span class="nx">c</span><span class="p">.</span><span class="nx">moreGetData</span> <span class="o">=</span> <span class="nx">c</span><span class="p">.</span><span class="nx">moreGetData</span> <span class="o">||</span> <span class="p">{};</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">dataMask</span><span class="p">))</span> <span class="p">{</span>
+				<span class="nx">$L</span><span class="p">.</span><span class="nx">augmentObject</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">morePostData</span><span class="o">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">dataMask</span><span class="o">,</span> <span class="kc">true</span><span class="p">);</span>
+				<span class="nx">$L</span><span class="p">.</span><span class="nx">augmentObject</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">moreGetData</span><span class="o">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">dataMask</span><span class="o">,</span> <span class="kc">true</span><span class="p">);</span>
+			<span class="p">}</span>
+			<span class="nx">c</span><span class="p">.</span><span class="nx">loadMethod</span> <span class="o">=</span> <span class="p">((</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isString</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">loadMethod</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nx">c</span><span class="p">.</span><span class="nx">loadMethod</span><span class="p">.</span><span class="nx">toLowerCase</span><span class="p">()</span><span class="o">==</span><span class="s1">&#39;post&#39;</span><span class="p">)</span><span class="o">?</span><span class="s1">&#39;POST&#39;</span><span class="o">:</span><span class="s1">&#39;GET&#39;</span><span class="p">);</span>
+			<span class="c">// checking for dynamic areas...</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">dynamic</span><span class="p">)</span> <span class="p">{</span>
+				<span class="nx">$D</span><span class="p">.</span><span class="nx">addClass</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">id</span><span class="o">,</span> <span class="nx">_dynamic</span><span class="p">);</span>
+			<span class="p">}</span>
+			<span class="nx">$D</span><span class="p">.</span><span class="nx">addClass</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">id</span><span class="o">,</span> <span class="nx">_className</span><span class="p">);</span>
+			<span class="nx">_areas</span><span class="p">[</span><span class="nx">c</span><span class="p">.</span><span class="nx">id</span><span class="p">]</span> <span class="o">=</span> <span class="nx">c</span><span class="o">;</span>
+			<span class="k">return</span> <span class="nx">c</span><span class="o">;</span>
+		<span class="p">};</span>
+		<span class="c">/**</span>
+<span class="c">		* @method add</span>
+<span class="c">		* @description add a new area to the list</span>
+<span class="c">		* @public</span>
+<span class="c">		* @param {string} id  			Unique Id for the area</span>
+<span class="c">		* @param {object} userConfig	Literal object with the configuration for the new area</span>
+<span class="c">		* @return Object</span>
+<span class="c">		*/</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">add</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">id</span><span class="o">,</span> <span class="nx">userConfig</span> <span class="p">)</span> <span class="p">{</span>
+			<span class="kd">var</span> <span class="nx">c</span> <span class="o">=</span> <span class="nx">userConfig</span> <span class="o">||</span> <span class="nx">_defConf</span><span class="o">,</span>
+				<span class="nx">el</span> <span class="o">=</span> <span class="nx">c</span><span class="p">.</span><span class="nx">id</span> <span class="o">||</span> <span class="nx">id</span> <span class="o">||</span>  <span class="nx">c</span><span class="p">.</span><span class="nx">element</span><span class="o">;</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isString</span><span class="p">(</span><span class="nx">el</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">el</span> <span class="o">!==</span> <span class="s1">&#39;&#39;</span><span class="p">))</span> <span class="p">{</span>
+				<span class="nx">el</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="nx">el</span><span class="p">);</span>
+			<span class="p">}</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">el</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nx">$L</span><span class="p">.</span><span class="nx">isString</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">uri</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">uri</span> <span class="o">!==</span> <span class="s1">&#39;&#39;</span><span class="p">))</span> <span class="p">{</span>
+				<span class="nx">c</span><span class="p">.</span><span class="nx">id</span> <span class="o">=</span> <span class="nx">$E</span><span class="p">.</span><span class="nx">generateId</span><span class="p">(</span><span class="nx">el</span><span class="p">);</span>
+				<span class="nx">c</span><span class="p">.</span><span class="nx">element</span> <span class="o">=</span> <span class="nx">el</span><span class="o">;</span>
+				<span class="nx">c</span><span class="p">.</span><span class="nx">handle</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+				<span class="nx">c</span><span class="p">.</span><span class="nx">status</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+				<span class="nx">c</span><span class="p">.</span><span class="nx">values</span> <span class="o">=</span> <span class="p">{};</span>
+				<span class="k">this</span><span class="p">.</span><span class="nx">remove</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">id</span><span class="p">);</span>
+				<span class="k">this</span><span class="p">.</span><span class="nx">init</span><span class="p">(</span><span class="nx">id</span><span class="o">,</span> <span class="nx">c</span><span class="p">);</span>
+				<span class="nx">reset</span> <span class="p">(</span> <span class="nx">_areas</span><span class="p">[</span><span class="nx">id</span><span class="p">]</span> <span class="p">);</span>
+			<span class="p">}</span>
+			<span class="k">return</span> <span class="nx">_areas</span><span class="p">[</span><span class="nx">id</span><span class="p">];</span>
+		<span class="p">};</span>
+		<span class="c">/**</span>
+<span class="c">		* @method adopt</span>
+<span class="c">		* @description adopt an area with the content inside and add to the list</span>
+<span class="c">		* @public</span>
+<span class="c">		* @param {string} id  			Unique Id for the area</span>
+<span class="c">		* @param {object} userConfig	Literal object with the configuration for the new area</span>
+<span class="c">		* @return Object</span>
+<span class="c">		*/</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">adopt</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">id</span><span class="o">,</span> <span class="nx">userConfig</span> <span class="p">)</span> <span class="p">{</span>
+			<span class="kd">var</span> <span class="nx">c</span> <span class="o">=</span> <span class="nx">userConfig</span> <span class="o">||</span> <span class="nx">_defConf</span><span class="o">,</span>
+				<span class="nx">el</span> <span class="o">=</span> <span class="nx">c</span><span class="p">.</span><span class="nx">id</span> <span class="o">||</span> <span class="nx">id</span> <span class="o">||</span>  <span class="nx">c</span><span class="p">.</span><span class="nx">element</span><span class="o">;</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isString</span><span class="p">(</span><span class="nx">el</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">el</span> <span class="o">!==</span> <span class="s1">&#39;&#39;</span><span class="p">))</span> <span class="p">{</span>
+				<span class="nx">el</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="nx">el</span><span class="p">);</span>
+			<span class="p">}</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">el</span><span class="p">))</span> <span class="p">{</span>
+				<span class="nx">c</span><span class="p">.</span><span class="nx">id</span> <span class="o">=</span> <span class="nx">$E</span><span class="p">.</span><span class="nx">generateId</span><span class="p">(</span><span class="nx">el</span><span class="p">);</span>
+				<span class="nx">c</span><span class="p">.</span><span class="nx">element</span> <span class="o">=</span> <span class="nx">el</span><span class="o">;</span>
+				<span class="nx">c</span><span class="p">.</span><span class="nx">handle</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+				<span class="nx">c</span><span class="p">.</span><span class="nx">status</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+				<span class="nx">c</span><span class="p">.</span><span class="nx">values</span> <span class="o">=</span> <span class="p">{};</span>
+				<span class="k">this</span><span class="p">.</span><span class="nx">remove</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">id</span><span class="p">);</span>
+				<span class="k">this</span><span class="p">.</span><span class="nx">init</span><span class="p">(</span><span class="nx">id</span><span class="o">,</span> <span class="nx">c</span><span class="p">);</span>
+				<span class="c">// process the current area&#39;s content...</span>
+				<span class="nx">check</span> <span class="p">(</span> <span class="nx">_areas</span><span class="p">[</span><span class="nx">c</span><span class="p">.</span><span class="nx">id</span><span class="p">]</span> <span class="p">);</span>
+			<span class="p">}</span>
+			<span class="k">return</span> <span class="nx">_areas</span><span class="p">[</span><span class="nx">id</span><span class="p">];</span>
+		<span class="p">};</span>
+		<span class="c">/**</span>
+<span class="c">		* @method delegate</span>
+<span class="c">		* @description delegate the set content method...</span>
+<span class="c">		* @public</span>
+<span class="c">		* @param {object} tab		reference to the tab...</span>
+<span class="c">		* @param {object} tabview   reference to the tabview (optional)...</span>
+<span class="c">		* @param {object} config    Literal object with the user configuration vars</span>
+<span class="c">		* @return void</span>
+<span class="c">		*/</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">delegate</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">tab</span><span class="o">,</span> <span class="nx">tabview</span><span class="o">,</span> <span class="nx">config</span> <span class="p">)</span> <span class="p">{</span>
+			<span class="nx">config</span> <span class="o">=</span> <span class="nx">config</span> <span class="o">||</span> <span class="p">{};</span>
+			<span class="nx">config</span><span class="p">.</span><span class="nx">action</span> <span class="o">=</span> <span class="s1">&#39;tabview&#39;</span><span class="o">;</span>
+			<span class="nx">config</span><span class="p">.</span><span class="nx">uri</span> <span class="o">=</span> <span class="nx">tab</span><span class="p">.</span><span class="nx">get</span> <span class="p">(</span><span class="s1">&#39;dataSrc&#39;</span><span class="p">)</span> <span class="o">||</span> <span class="kc">null</span><span class="o">;</span> <span class="c">// getting the base url for the execution...</span>
+			<span class="nx">config</span><span class="p">.</span><span class="nx">tab</span> <span class="o">=</span> <span class="nx">tab</span><span class="o">;</span>
+			<span class="c">// expanding the URI based on the current GET and MASK params</span>
+			<span class="nx">config</span><span class="p">.</span><span class="nx">moreGetData</span> <span class="o">=</span> <span class="nx">config</span><span class="p">.</span><span class="nx">moreGetData</span> <span class="o">||</span> <span class="p">{};</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">dataMask</span><span class="p">))</span> <span class="p">{</span>
+				<span class="nx">$L</span><span class="p">.</span><span class="nx">augmentObject</span><span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">moreGetData</span><span class="o">,</span> <span class="nx">config</span><span class="p">.</span><span class="nx">dataMask</span><span class="o">,</span> <span class="kc">true</span><span class="p">);</span>
+			<span class="p">}</span>
+			<span class="nx">tab</span><span class="p">.</span><span class="nx">set</span> <span class="p">(</span><span class="s1">&#39;dataSrc&#39;</span><span class="o">,</span> <span class="nx">$DP</span><span class="p">.</span><span class="nx">augmentURI</span> <span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">uri</span><span class="o">,</span> <span class="nx">config</span><span class="p">.</span><span class="nx">moreGetData</span><span class="p">));</span>
+			<span class="nx">tab</span><span class="p">.</span><span class="nx">loadHandler</span><span class="p">.</span><span class="nx">success</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">o</span><span class="p">)</span> <span class="p">{</span>
+				<span class="kd">var</span> <span class="nx">el</span> <span class="o">=</span> <span class="nx">tab</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;contentEl&#39;</span><span class="p">);</span>
+				<span class="nx">config</span><span class="p">.</span><span class="nx">tab</span> <span class="o">=</span> <span class="nx">el</span><span class="o">;</span>
+				<span class="nx">config</span><span class="p">.</span><span class="nx">underground</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+				<span class="c">// processing the response with the dispatcher</span>
+				<span class="nx">$DP</span><span class="p">.</span><span class="nx">process</span><span class="p">(</span> <span class="nx">tab</span><span class="o">,</span> <span class="nx">o</span><span class="p">.</span><span class="nx">responseText</span><span class="o">,</span> <span class="nx">config</span> <span class="p">);</span>
+				<span class="c">// adopting the area... </span>
+				<span class="nx">$D</span><span class="p">.</span><span class="nx">addClass</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="nx">_dynamic</span><span class="p">);</span>
+				<span class="nx">obj</span><span class="p">.</span><span class="nx">adopt</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="nx">config</span><span class="p">);</span>
+				<span class="c">// broadcasting the message</span>
+				<span class="k">if</span> <span class="p">(</span><span class="nx">YAHOO</span><span class="p">.</span><span class="nx">Bubbling</span><span class="p">)</span> <span class="p">{</span>
+				 	 <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">Bubbling</span><span class="p">.</span><span class="nx">fire</span> <span class="p">(</span><span class="s1">&#39;onAsyncRequestEnd&#39;</span><span class="o">,</span> <span class="p">{</span>
+						<span class="nx">element</span><span class="o">:</span> <span class="nx">el</span>
+					 <span class="p">});</span>
+				 <span class="p">}</span>
+			<span class="p">};</span>
+			<span class="nx">tab</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">&quot;activeChange&quot;</span><span class="o">,</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+				<span class="c">// broadcasting the message</span>
+				<span class="k">if</span> <span class="p">(</span><span class="nx">YAHOO</span><span class="p">.</span><span class="nx">Bubbling</span> <span class="o">&amp;&amp;</span> <span class="k">this</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;active&#39;</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nx">tab</span><span class="p">.</span><span class="nx">get</span> <span class="p">(</span><span class="s1">&#39;dataSrc&#39;</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;cacheData&#39;</span><span class="p">))</span> <span class="p">{</span>
+					 <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">Bubbling</span><span class="p">.</span><span class="nx">fire</span> <span class="p">(</span><span class="s1">&#39;onAsyncRequestStart&#39;</span><span class="o">,</span> <span class="p">{</span>
+						<span class="nx">element</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;contentEl&#39;</span><span class="p">)</span>
+					 <span class="p">});</span>
+				<span class="p">}</span>											
+			<span class="p">});</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">tabview</span><span class="p">))</span> <span class="p">{</span>
+				<span class="nx">tabview</span><span class="p">.</span><span class="nx">addTab</span><span class="p">(</span><span class="nx">tab</span><span class="p">);</span>
+			<span class="p">}</span>
+		<span class="p">};</span>
+		<span class="c">/**</span>
+<span class="c">		* @method remove</span>
+<span class="c">		* @description Remove an area from the stock...</span>
+<span class="c">		* @public</span>
+<span class="c">		* @param {string} id  			Unique Id for the area</span>
+<span class="c">		* @return void</span>
+<span class="c">		*/</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">remove</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">id</span> <span class="p">)</span> <span class="p">{</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">id</span><span class="p">))</span> <span class="p">{</span>
+				<span class="nx">id</span> <span class="o">=</span> <span class="nx">$E</span><span class="p">.</span><span class="nx">generateId</span><span class="p">(</span><span class="nx">id</span><span class="p">);</span>
+			<span class="p">}</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">id</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">_areas</span><span class="p">[</span><span class="nx">id</span><span class="p">]))</span> <span class="p">{</span>
+				<span class="nx">_areas</span><span class="p">[</span><span class="nx">id</span><span class="p">].</span><span class="nx">handle</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span> <span class="c">// resetting the handle</span>
+				<span class="nx">_areas</span><span class="p">[</span><span class="nx">id</span><span class="p">]</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span> <span class="c">// discarding the area...</span>
+			<span class="p">}</span>
+			<span class="nx">_areas</span><span class="p">[</span><span class="nx">id</span><span class="p">]</span> <span class="o">=</span> <span class="p">[];</span>
+		<span class="p">};</span>
+		<span class="c">/**</span>
+<span class="c">		* @method reload</span>
+<span class="c">		* @description Reload an area...</span>
+<span class="c">		* @public</span>
+<span class="c">		* @param {string} id  			Unique Id for the area</span>
+<span class="c">		* @param {string} uri  			url for the next step</span>
+<span class="c">		* @return void</span>
+<span class="c">		*/</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">reload</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">id</span><span class="o">,</span> <span class="nx">uri</span> <span class="p">)</span> <span class="p">{</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">id</span><span class="p">))</span> <span class="p">{</span>
+				<span class="nx">id</span> <span class="o">=</span> <span class="nx">$E</span><span class="p">.</span><span class="nx">generateId</span><span class="p">(</span><span class="nx">id</span><span class="p">);</span>
+			<span class="p">}</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">id</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">_areas</span><span class="p">[</span><span class="nx">id</span><span class="p">]))</span> <span class="p">{</span>
+				<span class="nx">reset</span> <span class="p">(</span><span class="nx">_areas</span><span class="p">[</span><span class="nx">id</span><span class="p">]</span><span class="o">,</span> <span class="nx">uri</span><span class="p">);</span>
+			<span class="p">}</span>
+		<span class="p">};</span>
+		<span class="k">return</span> <span class="nx">obj</span><span class="o">;</span>
+    <span class="p">}();</span>
+
+<span class="p">})();</span>
+<span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">WizardManager</span> <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">plugin</span><span class="p">.</span><span class="nx">WizardManager</span><span class="o">;</span> <span class="c">// deprecated: backward compatibility issue.</span>
+</pre></div>
+                    </div>
+			</div>
+		</div>
+		<div class="yui-b">
+            <div class="nav">
+
+                    <div id="moduleList" class="module">
+                        <h4>Modules</h4>
+                        <ul class="content">
+                                <li class=""><a href="module_accordion.html" title="accordion">accordion</a></li>
+                                <li class=""><a href="module_bubbling.html" title="bubbling">bubbling</a></li>
+                                <li class=""><a href="module_dispatcher.html" title="dispatcher">dispatcher</a></li>
+                                <li class=""><a href="module_lighter.html" title="lighter">lighter</a></li>
+                                <li class=""><a href="module_loading.html" title="loading">loading</a></li>
+                                <li class=""><a href="module_navigation.html" title="navigation">navigation</a></li>
+                                <li class="selected"><a href="module_tooltipmanager.html" title="tooltipmanager">tooltipmanager</a></li>
+                                <li class=""><a href="module_wizard.html" title="wizard">wizard</a></li>
+                        </ul>
+                    </div>
+
+                    <div id="classList" class="module">
+                        <h4>Classes</h4>
+                        <ul class="content">
+                                <li class=""><a href="YAHOO.widget.TooltipManager.html" title="YAHOO.widget.TooltipManager">YAHOO.widget.TooltipManager</a></li>
+                        </ul>
+                    </div>
+
+                    <div id="fileList" class="module">
+                        <h4>Files</h4>
+                        <ul class="content">        
+                                <li class="selected"><a href="wizard.js.html" title="wizard.js">wizard.js</a></li>
+                        </ul>
+                    </div>
+
+
+
+
+
+            </div>
+		</div>
+	</div>
+	<div id="ft">
+        <hr />
+        Copyright &copy; 2009 <a href="http://www.bubbling-library.com/" title="JavaScript Bubbling Library - YUI Extension">Bubbling Library</a>. All rights reserved.
+	</div>
+</div>
+<script type="text/javascript">
+    ALL_YUI_PROPS = [{"url": "YAHOO.widget.TooltipManager.html#method_check", "access": "", "host": "YAHOO.widget.TooltipManager", "type": "method", "name": "check"}, {"url": "YAHOO.widget.TooltipManager.html#method_compileBody", "access": "", "host": "YAHOO.widget.TooltipManager", "type": "method", "name": "compileBody"}, {"url": "YAHOO.widget.TooltipManager.html#method_compilePath", "access": "", "host": "YAHOO.widget.TooltipManager", "type": "method", "name": "compilePath"}, {"url": "YAHOO.widget.TooltipManager.html#method_delay", "access": "", "host": "YAHOO.widget.TooltipManager", "type": "method", "name": "delay"}, {"url": "YAHOO.widget.TooltipManager.html#method_dismiss", "access": "", "host": "YAHOO.widget.TooltipManager", "type": "method", "name": "dismiss"}, {"url": "YAHOO.widget.TooltipManager.html#method_finder", "access": "", "host": "YAHOO.widget.TooltipManager", "type": "method", "name": "finder"}, {"url": "YAHOO.widget.TooltipManager.html#method_hide", "access": "", "host": "YAHOO.widget.TooltipManager", "type": "method", "name": "hide"}, {"url": "YAHOO.widget.TooltipManager.html#method_init", "access": "", "host": "YAHOO.widget.TooltipManager", "type": "method", "name": "init"}, {"url": "YAHOO.widget.TooltipManager.html#method_render", "access": "", "host": "YAHOO.widget.TooltipManager", "type": "method", "name": "render"}, {"url": "YAHOO.widget.TooltipManager.html#method_show", "access": "", "host": "YAHOO.widget.TooltipManager", "type": "method", "name": "show"}];
+</script>
+</body>
+</html>

@@ -1,0 +1,1026 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html xmlns:yui="http://yuilibrary.com/rdf/1.0/yui.rdf#">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+	<title>API: bubbling   dispatcher.js  (YRegion Utility)</title>
+
+	<link rel="stylesheet" type="text/css" href="assets/reset-fonts-grids-min.css?stamp=" />
+	<link rel="stylesheet" type="text/css" href="assets/api.css?stamp=" />
+
+    <script type="text/javascript" src="assets/api-js?stamp="></script>
+    <script type="text/javascript" src="assets/ac-js?stamp="></script>
+</head>
+
+<body id="yahoo-com">
+
+<div id="doc3" class="yui-t2">
+	<div id="hd">
+        <h1><a href="http://www.bubbling-library.com/" title="JavaScript Bubbling Library - YUI Extension">JavaScript Bubbling Library - YUI Extension</a></h1>
+        <h3>bubbling&nbsp; <span class="subtitle">2.2</span></h3>
+        <a href="./index.html" title="JavaScript Bubbling Library">Bubbling</a> 
+            &gt; <a href="./module_bubbling.html" title="bubbling">bubbling</a>
+                
+                 &gt; dispatcher.js (source view) 
+        <form onsubmit="return false">
+            <div id="propertysearch">
+                Search: <input autocomplete="off" id="searchinput" />
+                <div id="searchresults">
+                    &nbsp;
+                </div>
+            </div>
+        </form>
+	</div>
+
+	<div id="bd">
+		<div id="yui-main">
+			<div class="yui-b">
+            <form action="#" name="yui-classopts-form" method="get" id="yui-classopts-form">
+                <fieldset>
+                    <legend>Filters</legend>
+                <span class="classopts"><input type="checkbox" name="show_private" id="show_private" /> <label for="show_private">Show Private</label></span>
+                <span class="classopts"><input type="checkbox" name="show_protected" id="show_protected" /> <label for="show_protected">Show Protected</label></span>
+                <span class="classopts"><input type="checkbox" name="show_deprecated" id="show_deprecated" /> <label for="show_deprecated">Show Deprecated</label></span>
+                </fieldset>
+            </form>
+
+                    <div id="srcout">
+                        <style>
+                            #doc3 .classopts { display:none; }
+                        </style>
+<div class="highlight"><pre><span class="c">/**</span>
+<span class="c"> * Dispatcher Definition</span>
+<span class="c"> *</span>
+<span class="c"> * @namespace YAHOO.plugin</span>
+<span class="c"> * @module dispatcher</span>
+<span class="c"> * @requires yahoo</span>
+<span class="c"> * @requires event</span>
+<span class="c"> * @requires dom</span>
+<span class="c"> * @requires connection</span>
+<span class="c"> */</span>
+<span class="nx">YAHOO</span><span class="p">.</span><span class="nx">namespace</span><span class="p">(</span><span class="s2">&quot;plugin&quot;</span><span class="p">);</span>
+<span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">$C</span> <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">Connect</span><span class="o">,</span>
+	  <span class="nx">$L</span> <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">lang</span><span class="o">,</span>
+	  <span class="nx">$E</span> <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">Event</span><span class="o">,</span>
+	  <span class="nx">$D</span> <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">Dom</span><span class="o">,</span>
+	  <span class="nx">$</span>  <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">Dom</span><span class="p">.</span><span class="nx">get</span><span class="o">,</span>
+	  
+	  <span class="c">// Constants</span>
+	  <span class="nx">constants</span> <span class="o">=</span> <span class="p">{</span> 
+		  <span class="nx">LOADING</span><span class="o">:</span> <span class="mi">1</span><span class="o">,</span> 
+		  <span class="nx">DISPATCHED</span><span class="o">:</span> <span class="mi">2</span><span class="o">,</span> 
+		  <span class="nx">ERROR</span><span class="o">:</span> <span class="mi">3</span><span class="o">,</span> 
+		  <span class="nx">EMPTY</span><span class="o">:</span> <span class="mi">4</span><span class="o">,</span> 
+		  <span class="nx">proxy</span><span class="o">:</span> <span class="s1">&#39;/dispatcher.php?uri=&#39;</span><span class="o">,</span> 
+		  <span class="nx">CSSNODE</span><span class="o">:</span> <span class="mi">1</span><span class="o">,</span> 
+		  <span class="nx">JSNODE</span><span class="o">:</span> <span class="mi">2</span> 
+	  <span class="p">}</span><span class="o">,</span>
+  	  <span class="nx">reScriptTag</span> <span class="o">=</span> <span class="sr">/&lt;script([^&gt;]*)&gt;([\s\S]*?)&lt;\/script&gt;/igm</span><span class="o">,</span>
+  	  <span class="nx">reScriptTagSrc</span> <span class="o">=</span> <span class="sr">/src=([&#39;&quot;]?)([^&quot;&#39;]*)\1/i</span><span class="o">,</span>
+  	  <span class="nx">reScriptTagRel</span> <span class="o">=</span> <span class="sr">/rel=([&#39;&quot;]?)([^&quot;&#39;]*)\1/i</span><span class="o">,</span>
+  	  <span class="nx">reLinkTag</span> <span class="o">=</span> <span class="sr">/&lt;link([^&gt;]*)(&gt;[\s]*&lt;\/link&gt;|&gt;)/igm</span><span class="o">,</span>
+  	  <span class="nx">reLinkTagSrc</span> <span class="o">=</span> <span class="sr">/href=([&#39;&quot;]?)([^&quot;&#39;]*)\1/i</span><span class="o">,</span>
+	  <span class="nx">reStyleTag</span> <span class="o">=</span> <span class="sr">/&lt;style([^&gt;]*)&gt;([\s\S]*?)&lt;\/style&gt;/igm</span><span class="o">,</span>
+	  <span class="nx">reTagParams</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">RegExp</span><span class="p">(</span><span class="s1">&#39;([\\w-\.]+)\\s*=\\s*(&quot;.*?&quot;|\&#39;.*?\&#39;|\\w+)*&#39;</span><span class="o">,</span> <span class="s1">&#39;im&#39;</span><span class="p">)</span><span class="o">,</span>
+	  <span class="nx">reCSS3rdFile</span>    <span class="o">=</span> <span class="k">new</span> <span class="nb">RegExp</span><span class="p">(</span><span class="s1">&#39;url\\s*\\(([^\\)]*)&#39;</span><span class="o">,</span> <span class="s1">&#39;igm&#39;</span><span class="p">)</span><span class="o">,</span>                <span class="c">// [url(image.gif] - also can include quotes</span>
+	  <span class="nx">reURI</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">RegExp</span><span class="p">(</span><span class="s1">&#39;^((?:http|https)://)((?:\\w+[\.|-]?)*\\w+)(/.*)$&#39;</span><span class="o">,</span> <span class="s1">&#39;i&#39;</span><span class="p">);</span>  <span class="c">// full url: [http://www.domain.com/path/file.html]</span>
+
+  <span class="c">/**</span>
+<span class="c">   * The Dispatcher Plugin</span>
+<span class="c">   * @class Dispatcher</span>
+<span class="c">   * @static</span>
+<span class="c">   */</span>
+  <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">plugin</span><span class="p">.</span><span class="nx">Dispatcher</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+  	<span class="kd">var</span> <span class="nx">obj</span> <span class="o">=</span> <span class="p">{}</span><span class="o">,</span>
+		<span class="nx">_threads</span> <span class="o">=</span> <span class="p">{}</span><span class="o">,</span> <span class="c">// each thread represent an area...</span>
+		<span class="nx">_hashtable</span> <span class="o">=</span> <span class="p">[]</span><span class="o">,</span>
+		<span class="nx">_oDefaultConfig</span> <span class="o">=</span> <span class="p">{</span><span class="nx">relative</span><span class="o">:</span> <span class="kc">false</span><span class="o">,</span> <span class="nx">baseURI</span><span class="o">:</span><span class="nb">document</span><span class="p">.</span><span class="nx">location</span><span class="p">.</span><span class="nx">toString</span><span class="p">()}</span><span class="o">,</span>
+		<span class="nx">_loadingClass</span> <span class="o">=</span> <span class="s1">&#39;loading&#39;</span><span class="o">,</span>
+		<span class="nx">_classname</span> <span class="o">=</span> <span class="s1">&#39;yui-dispatchable&#39;</span><span class="o">,</span>
+		<span class="nx">_reURI</span> <span class="o">=</span> <span class="p">{</span>
+				<span class="nx">key</span><span class="o">:</span> <span class="p">[</span><span class="s2">&quot;source&quot;</span><span class="o">,</span><span class="s2">&quot;protocol&quot;</span><span class="o">,</span><span class="s2">&quot;authority&quot;</span><span class="o">,</span><span class="s2">&quot;userInfo&quot;</span><span class="o">,</span><span class="s2">&quot;user&quot;</span><span class="o">,</span><span class="s2">&quot;password&quot;</span><span class="o">,</span><span class="s2">&quot;host&quot;</span><span class="o">,</span><span class="s2">&quot;port&quot;</span><span class="o">,</span><span class="s2">&quot;relative&quot;</span><span class="o">,</span><span class="s2">&quot;path&quot;</span><span class="o">,</span><span class="s2">&quot;directory&quot;</span><span class="o">,</span><span class="s2">&quot;file&quot;</span><span class="o">,</span><span class="s2">&quot;query&quot;</span><span class="o">,</span><span class="s2">&quot;anchor&quot;</span><span class="p">]</span><span class="o">,</span>
+				<span class="nx">q</span><span class="o">:</span>   <span class="p">{</span>
+					<span class="nx">name</span><span class="o">:</span>   <span class="s2">&quot;queryKey&quot;</span><span class="o">,</span>
+					<span class="nx">parser</span><span class="o">:</span> <span class="sr">/(?:^|&amp;)([^&amp;=]*)=?([^&amp;]*)/g</span>
+				<span class="p">}</span><span class="o">,</span>
+				<span class="nx">parser</span><span class="o">:</span> <span class="p">{</span>
+					<span class="nx">strict</span><span class="o">:</span> <span class="sr">/^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/</span><span class="o">,</span>
+					<span class="nx">loose</span><span class="o">:</span>  <span class="sr">/^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/</span><span class="p">)</span><span class="o">?</span><span class="p">((</span><span class="o">?:</span><span class="p">(([</span><span class="o">^:</span><span class="err">@</span><span class="p">]</span><span class="o">*</span><span class="p">)</span><span class="o">:?</span><span class="p">([</span><span class="o">^:</span><span class="err">@</span><span class="p">]</span><span class="o">*</span><span class="p">))</span><span class="o">?</span><span class="err">@</span><span class="p">)</span><span class="o">?</span><span class="p">([</span><span class="o">^:\/?</span><span class="err">#</span><span class="p">]</span><span class="o">*</span><span class="p">)(</span><span class="o">?::</span><span class="p">(</span><span class="o">\</span><span class="nx">d</span><span class="o">*</span><span class="p">))</span><span class="o">?</span><span class="p">)(((</span><span class="o">\/</span><span class="p">(</span><span class="o">?:</span><span class="p">[</span><span class="o">^?</span><span class="err">#</span><span class="p">](</span><span class="o">?!</span><span class="p">[</span><span class="o">^?</span><span class="err">#</span><span class="o">\/</span><span class="p">]</span><span class="o">*\</span><span class="p">.[</span><span class="o">^?</span><span class="err">#</span><span class="o">\/</span><span class="p">.]</span><span class="o">+</span><span class="p">(</span><span class="o">?:</span><span class="p">[</span><span class="o">?</span><span class="err">#</span><span class="p">]</span><span class="o">|</span><span class="nx">$</span><span class="p">)))</span><span class="o">*\/?</span><span class="p">)</span><span class="o">?</span><span class="p">([</span><span class="o">^?</span><span class="err">#</span><span class="o">\/</span><span class="p">]</span><span class="o">*</span><span class="p">))(</span><span class="o">?:\?</span><span class="p">([</span><span class="o">^</span><span class="err">#</span><span class="p">]</span><span class="o">*</span><span class="p">))</span><span class="o">?</span><span class="p">(</span><span class="o">?:</span><span class="err">#</span><span class="p">(.</span><span class="o">*</span><span class="p">))</span><span class="o">?</span><span class="p">)</span><span class="o">/</span>
+				<span class="p">}</span>
+		<span class="p">}</span><span class="o">,</span>
+		<span class="nx">_reTrim</span> <span class="o">=</span> <span class="sr">/^\s+|\s+$/g</span><span class="o">;</span>
+
+	<span class="c">/*</span>
+<span class="c">		parseUri 1.2.1</span>
+<span class="c">		(c) 2007 Steven Levithan &lt;stevenlevithan.com&gt;</span>
+<span class="c">		MIT License</span>
+<span class="c">	*/</span>
+	<span class="kd">function</span> <span class="nx">_parseUri</span> <span class="p">(</span><span class="nx">str</span><span class="o">,</span> <span class="nx">strictMode</span><span class="p">)</span> <span class="p">{</span>
+		<span class="kd">var</span>	<span class="nx">o</span>   <span class="o">=</span> <span class="nx">_reURI</span><span class="o">,</span>
+			<span class="nx">m</span>   <span class="o">=</span> <span class="nx">o</span><span class="p">.</span><span class="nx">parser</span><span class="p">[</span><span class="nx">strictMode</span><span class="o">?</span><span class="s2">&quot;strict&quot;</span><span class="o">:</span><span class="s2">&quot;loose&quot;</span><span class="p">].</span><span class="nx">exec</span><span class="p">(</span><span class="nx">str</span><span class="p">)</span><span class="o">,</span>
+			<span class="nx">uri</span> <span class="o">=</span> <span class="p">{}</span><span class="o">,</span>
+			<span class="nx">i</span>   <span class="o">=</span> <span class="mi">14</span><span class="o">;</span>
+	
+		<span class="k">while</span> <span class="p">(</span><span class="nx">i</span><span class="o">--</span><span class="p">)</span> <span class="nx">uri</span><span class="p">[</span><span class="nx">o</span><span class="p">.</span><span class="nx">key</span><span class="p">[</span><span class="nx">i</span><span class="p">]]</span> <span class="o">=</span> <span class="nx">m</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="o">||</span> <span class="s2">&quot;&quot;</span><span class="o">;</span>
+		<span class="nx">uri</span><span class="p">[</span><span class="nx">o</span><span class="p">.</span><span class="nx">q</span><span class="p">.</span><span class="nx">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{};</span>
+		<span class="nx">uri</span><span class="p">[</span><span class="nx">o</span><span class="p">.</span><span class="nx">key</span><span class="p">[</span><span class="mi">12</span><span class="p">]].</span><span class="nx">replace</span><span class="p">(</span><span class="nx">o</span><span class="p">.</span><span class="nx">q</span><span class="p">.</span><span class="nx">parser</span><span class="o">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">$0</span><span class="o">,</span> <span class="nx">$1</span><span class="o">,</span> <span class="nx">$2</span><span class="p">)</span> <span class="p">{</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">$1</span><span class="p">)</span> <span class="nx">uri</span><span class="p">[</span><span class="nx">o</span><span class="p">.</span><span class="nx">q</span><span class="p">.</span><span class="nx">name</span><span class="p">][</span><span class="nx">$1</span><span class="p">]</span> <span class="o">=</span> <span class="nx">$2</span><span class="o">;</span>
+		<span class="p">});</span>
+		<span class="k">return</span> <span class="nx">uri</span><span class="o">;</span>
+	<span class="p">};</span> 
+
+	<span class="kd">function</span> <span class="nx">_globalEval</span> <span class="p">(</span><span class="nx">scriptString</span><span class="p">)</span> <span class="p">{</span>
+		<span class="kd">var</span> <span class="nx">h</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">getElementsByTagName</span><span class="p">(</span><span class="s1">&#39;head&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">||</span> <span class="nb">document</span><span class="p">.</span><span class="nx">documentElement</span><span class="o">,</span>
+			<span class="nx">s</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">createElement</span><span class="p">(</span><span class="s1">&#39;script&#39;</span><span class="p">);</span>
+		<span class="nx">scriptString</span> <span class="o">=</span> <span class="nx">scriptString</span><span class="p">.</span><span class="nx">replace</span> <span class="p">(</span><span class="nx">_reTrim</span><span class="o">,</span> <span class="s1">&#39;&#39;</span><span class="p">);</span>
+		<span class="k">if</span> <span class="p">(</span><span class="nx">scriptString</span><span class="p">)</span> <span class="p">{</span>
+			<span class="nx">s</span><span class="p">.</span><span class="nx">type</span> <span class="o">=</span> <span class="s2">&quot;text/javascript&quot;</span><span class="o">;</span>
+			<span class="c">/* hack: IE doesn&#39;t support appendChild+document.createTextNode, using .text instead */</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">YAHOO</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">ua</span><span class="p">.</span><span class="nx">ie</span><span class="p">)</span> <span class="p">{</span>
+				<span class="nx">s</span><span class="p">.</span><span class="nx">text</span> <span class="o">=</span> <span class="nx">scriptString</span><span class="o">;</span>
+			<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+				<span class="nx">s</span><span class="p">.</span><span class="nx">appendChild</span><span class="p">(</span> <span class="nb">document</span><span class="p">.</span><span class="nx">createTextNode</span><span class="p">(</span> <span class="nx">scriptString</span> <span class="p">)</span> <span class="p">);</span>
+			<span class="p">}</span>
+			<span class="nx">h</span><span class="p">.</span><span class="nx">insertBefore</span><span class="p">(</span><span class="nx">s</span><span class="o">,</span> <span class="nx">h</span><span class="p">.</span><span class="nx">firstChild</span><span class="p">);</span>
+			<span class="nx">h</span><span class="p">.</span><span class="nx">removeChild</span><span class="p">(</span><span class="nx">s</span><span class="p">);</span>
+		<span class="p">}</span>
+	<span class="p">}</span>
+
+	<span class="c">// utilities</span>
+	<span class="kd">function</span> <span class="nx">_eraseQuotes</span><span class="p">(</span> <span class="nx">str</span> <span class="p">)</span> <span class="p">{</span>
+	  <span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isString</span><span class="p">(</span><span class="nx">str</span><span class="p">))</span> <span class="p">{</span>
+	  	<span class="nx">str</span> <span class="o">=</span> <span class="nx">str</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/^\s*(\S*(\s+\S+)*)\s*$/</span><span class="o">,</span> <span class="s2">&quot;$1&quot;</span><span class="p">);</span>  <span class="c">// trim</span>
+		<span class="nx">str</span> <span class="o">=</span> <span class="nx">str</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/^([&#39;|&quot;])*(\S*(?:\s+\S+)*)\1$/</span><span class="o">,</span> <span class="s2">&quot;$2&quot;</span><span class="p">);</span> <span class="c">// un-quotes</span>
+	  <span class="p">}</span>
+	  <span class="k">return</span> <span class="nx">str</span><span class="o">;</span>
+	<span class="p">}</span>
+	<span class="kd">function</span> <span class="nx">_getParams</span> <span class="p">(</span> <span class="nx">str</span><span class="o">,</span> <span class="nx">validator</span> <span class="p">)</span> <span class="p">{</span>
+		<span class="kd">var</span> <span class="nx">p</span> <span class="o">=</span> <span class="kc">null</span><span class="o">,</span> <span class="nx">r</span> <span class="o">=</span> <span class="p">{};</span>
+		<span class="nx">validator</span> <span class="o">=</span> <span class="nx">validator</span> <span class="o">||</span> <span class="p">{};</span>
+		<span class="c">// capturing the params into an object literal (r)</span>
+		<span class="k">if</span><span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isString</span><span class="p">(</span><span class="nx">str</span><span class="p">)){</span>
+		  <span class="k">while</span><span class="p">(</span><span class="nx">p</span> <span class="o">=</span> <span class="nx">reTagParams</span><span class="p">.</span><span class="nx">exec</span><span class="p">(</span><span class="nx">str</span><span class="p">)){</span>
+		  	<span class="c">// apply validation if exists, if the value is null will be discarted</span>
+			<span class="nx">p</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="nx">validator</span><span class="p">.</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="nx">p</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">?</span><span class="nx">validator</span><span class="p">[</span><span class="nx">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="o">:</span><span class="nx">p</span><span class="p">[</span><span class="mi">2</span><span class="p">]);</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">p</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="p">{</span>
+			   <span class="nx">r</span><span class="p">[</span><span class="nx">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="nx">_eraseQuotes</span><span class="p">(</span><span class="nx">p</span><span class="p">[</span><span class="mi">2</span><span class="p">]);</span>
+			<span class="p">}</span>
+			<span class="nx">str</span> <span class="o">=</span> <span class="nx">str</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="nx">reTagParams</span><span class="o">,</span> <span class="s1">&#39;&#39;</span><span class="p">);</span>
+		  <span class="p">}</span>
+		<span class="p">}</span>
+		<span class="k">return</span> <span class="nx">r</span><span class="o">;</span>
+	<span class="p">}</span>
+	<span class="kd">function</span> <span class="nx">_baseURI</span> <span class="p">(</span> <span class="nx">uri</span> <span class="p">)</span> <span class="p">{</span>
+		<span class="nx">uri</span> <span class="o">=</span> <span class="p">((</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isString</span><span class="p">(</span><span class="nx">uri</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">uri</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span><span class="o">?</span><span class="nx">uri</span><span class="o">:</span><span class="nx">_oDefaultConfig</span><span class="p">.</span><span class="nx">baseURI</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;&#39;</span><span class="o">;</span> <span class="c">// the default base is the current document uri (hack to convert to string)</span>
+		<span class="k">return</span> <span class="nx">uri</span><span class="p">.</span><span class="nx">substr</span> <span class="p">(</span><span class="mi">0</span><span class="o">,</span> <span class="nx">uri</span><span class="p">.</span><span class="nx">lastIndexOf</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">);</span> <span class="c">// forget the file name</span>
+	<span class="p">}</span>
+	<span class="kd">function</span> <span class="nx">_relativeURI</span><span class="p">(</span> <span class="nx">base</span><span class="o">,</span> <span class="nx">uri</span> <span class="p">)</span> <span class="p">{</span>
+	  	<span class="c">// is the url is relative (not http..., not / at the begining)</span>
+		<span class="k">if</span><span class="p">(</span><span class="nx">uri</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="nx">reURI</span><span class="p">.</span><span class="nx">test</span><span class="p">(</span><span class="nx">uri</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">uri</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span> <span class="o">!==</span> <span class="mi">0</span><span class="p">)){</span>
+		  <span class="nx">uri</span> <span class="o">=</span> <span class="nx">base</span><span class="o">+</span><span class="nx">uri</span><span class="o">;</span>
+		<span class="p">}</span>
+	    <span class="k">return</span> <span class="nx">uri</span><span class="o">;</span>
+	<span class="p">}</span>
+	<span class="kd">function</span> <span class="nx">_onStart</span> <span class="p">(</span><span class="nx">config</span><span class="p">)</span> <span class="p">{</span>
+	 	 <span class="c">/* ARIA: set as a live area */</span>
+		 <span class="k">if</span> <span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">element</span> <span class="o">&amp;&amp;</span> <span class="nx">config</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">setAttribute</span><span class="p">)</span> <span class="p">{</span>
+			 <span class="nx">config</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">setAttribute</span> <span class="p">(</span><span class="s1">&#39;aria-live&#39;</span><span class="o">,</span> <span class="s1">&#39;polite&#39;</span><span class="p">);</span>
+			 <span class="nx">config</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">setAttribute</span> <span class="p">(</span><span class="s1">&#39;aria-atomic&#39;</span><span class="o">,</span> <span class="s1">&#39;true&#39;</span><span class="p">);</span> <span class="c">// the whole area will be updated</span>
+			 <span class="nx">config</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">setAttribute</span> <span class="p">(</span><span class="s1">&#39;aria-relevant&#39;</span><span class="o">,</span> <span class="s1">&#39;all&#39;</span><span class="p">);</span> <span class="c">// the whole area will be updated</span>
+			 <span class="nx">config</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">setAttribute</span> <span class="p">(</span><span class="s1">&#39;aria-busy&#39;</span><span class="o">,</span> <span class="s1">&#39;true&#39;</span><span class="p">);</span> <span class="c">// starting the loading process</span>
+		 <span class="p">}</span>
+		 <span class="c">// onStart (before the loading)</span>
+		 <span class="nx">config</span><span class="p">.</span><span class="nx">onStart</span> <span class="o">=</span> <span class="nx">config</span><span class="p">.</span><span class="nx">before</span> <span class="o">||</span> <span class="nx">config</span><span class="p">.</span><span class="nx">onStart</span><span class="o">;</span>
+		 <span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isFunction</span><span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">onStart</span><span class="p">))</span> <span class="p">{</span>
+		   <span class="nx">config</span><span class="p">.</span><span class="nx">onStart</span><span class="p">.</span><span class="nx">apply</span> <span class="p">(</span> <span class="nx">config</span><span class="o">,</span> <span class="p">[</span><span class="nx">config</span><span class="p">.</span><span class="nx">element</span><span class="p">]</span> <span class="p">);</span>
+		   <span class="nx">config</span><span class="p">.</span><span class="nx">onStart</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span> <span class="c">// because the process method will try to executed again...</span>
+		 <span class="p">}</span>
+		 <span class="c">// broadcasting the message</span>
+		 <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">config</span><span class="p">.</span><span class="nx">underground</span> <span class="o">&amp;&amp;</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">Bubbling</span><span class="p">)</span> <span class="p">{</span>
+			 <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">Bubbling</span><span class="p">.</span><span class="nx">fire</span> <span class="p">(</span><span class="s1">&#39;onAsyncRequestStart&#39;</span><span class="o">,</span> <span class="p">{</span>
+				<span class="nx">element</span><span class="o">:</span> <span class="nx">config</span><span class="p">.</span><span class="nx">element</span>
+			 <span class="p">});</span>
+		 <span class="p">}</span>
+	<span class="p">}</span>
+	<span class="kd">function</span> <span class="nx">_onChange</span> <span class="p">(</span><span class="nx">config</span><span class="o">,</span> <span class="nx">el</span><span class="p">)</span> <span class="p">{</span>
+		 <span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isFunction</span><span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">onChange</span><span class="p">))</span> <span class="p">{</span>
+		   <span class="nx">el</span> <span class="o">=</span> <span class="nx">el</span> <span class="o">||</span> <span class="nx">config</span><span class="p">.</span><span class="nx">element</span><span class="o">;</span>
+		   <span class="nx">config</span><span class="p">.</span><span class="nx">onChange</span><span class="p">.</span><span class="nx">apply</span> <span class="p">(</span> <span class="nx">config</span><span class="o">,</span> <span class="p">[</span><span class="nx">el</span><span class="p">]</span> <span class="p">);</span>
+		 <span class="p">}</span>
+	<span class="p">}</span>
+	<span class="kd">function</span> <span class="nx">_onLoad</span> <span class="p">(</span><span class="nx">config</span><span class="p">)</span> <span class="p">{</span>
+		 <span class="c">// onLoad (after the execution)</span>
+		 <span class="nx">config</span><span class="p">.</span><span class="nx">onLoad</span> <span class="o">=</span> <span class="nx">config</span><span class="p">.</span><span class="nx">after</span> <span class="o">||</span> <span class="nx">config</span><span class="p">.</span><span class="nx">onLoad</span><span class="o">;</span>
+		 <span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isFunction</span><span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">onLoad</span><span class="p">))</span> <span class="p">{</span>
+		   <span class="nx">config</span><span class="p">.</span><span class="nx">onLoad</span><span class="p">.</span><span class="nx">apply</span> <span class="p">(</span> <span class="nx">config</span><span class="o">,</span> <span class="p">[</span><span class="nx">config</span><span class="p">.</span><span class="nx">element</span><span class="p">]</span> <span class="p">);</span>
+		 <span class="p">}</span>
+		 <span class="c">//console.log (&quot;config: &quot;, config);</span>
+		 <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">config</span><span class="p">.</span><span class="nx">underground</span> <span class="o">&amp;&amp;</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">Bubbling</span><span class="p">)</span> <span class="p">{</span>
+		 <span class="c">//console.log (&#39;el:&#39;, (config.tab || config.element));</span>
+			 <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">Bubbling</span><span class="p">.</span><span class="nx">fire</span> <span class="p">(</span><span class="s1">&#39;onAsyncRequestEnd&#39;</span><span class="o">,</span> <span class="p">{</span>
+				<span class="nx">element</span><span class="o">:</span> <span class="nx">config</span><span class="p">.</span><span class="nx">element</span>
+			 <span class="p">});</span>
+		 <span class="p">}</span>
+		 <span class="c">/* ARIA: set as a live area */</span>
+		 <span class="k">if</span> <span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">element</span> <span class="o">&amp;&amp;</span> <span class="nx">config</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">setAttribute</span><span class="p">)</span> <span class="p">{</span>
+		 	<span class="nx">config</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">setAttribute</span> <span class="p">(</span><span class="s1">&#39;aria-busy&#39;</span><span class="o">,</span> <span class="s1">&#39;false&#39;</span><span class="p">);</span> <span class="c">// ending the loading process</span>
+		 <span class="p">}</span>
+	<span class="p">}</span>
+	<span class="c">// private stuff</span>
+	<span class="c">/**</span>
+<span class="c">	* @description Dispatching the next node of the handle</span>
+<span class="c">	* @method _dispatch</span>
+<span class="c">	* @private</span>
+<span class="c">	* @param {Object} hd     		Thread&#39;s handle</span>
+<span class="c">	* @param {Object} config    Used to pass the user configuration thru the chain of execution</span>
+<span class="c">	* @return boolean</span>
+<span class="c">	*/</span>
+	<span class="kd">function</span> <span class="nx">dispatch</span><span class="p">(</span> <span class="nx">hd</span><span class="o">,</span> <span class="nx">config</span> <span class="p">)</span> <span class="p">{</span>
+	  <span class="kd">var</span> <span class="nx">callback</span> <span class="o">=</span> <span class="kc">null</span><span class="o">,</span> <span class="nx">flag</span> <span class="o">=</span> <span class="kc">true</span><span class="o">,</span> <span class="nx">node</span> <span class="o">=</span> <span class="kc">null</span><span class="o">,</span> <span class="nx">uri</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">,</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+	  <span class="nx">config</span> <span class="o">=</span> <span class="nx">config</span> <span class="o">||</span> <span class="p">{};</span>
+	  <span class="k">if</span> <span class="p">(</span><span class="nx">obj</span><span class="p">.</span><span class="nx">isAlive</span><span class="p">(</span><span class="nx">hd</span><span class="p">))</span> <span class="p">{</span>
+	  	<span class="nx">node</span> <span class="o">=</span> <span class="nx">_threads</span><span class="p">[</span><span class="nx">hd</span><span class="p">].</span><span class="nx">chunks</span><span class="p">.</span><span class="nx">shift</span> <span class="p">();</span>
+	  	<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">node</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nx">node</span><span class="p">.</span><span class="nx">src</span><span class="p">)</span> <span class="p">{</span>
+		  <span class="c">// cheching the uri in the hashtable</span>
+		  <span class="nx">config</span><span class="p">.</span><span class="nx">hash</span> <span class="o">=</span> <span class="nx">_hashtable</span><span class="p">.</span><span class="nx">length</span><span class="o">;</span> <span class="c">// default hash (at the end of the table)</span>
+		  <span class="k">for</span> <span class="p">(</span><span class="nx">i</span><span class="o">=</span><span class="mi">0</span><span class="o">;</span> <span class="nx">i</span><span class="o">&lt;</span><span class="nx">_hashtable</span><span class="p">.</span><span class="nx">length</span><span class="o">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+		  	<span class="k">if</span> <span class="p">(</span><span class="nx">_hashtable</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nx">uri</span> <span class="o">==</span> <span class="nx">node</span><span class="p">.</span><span class="nx">src</span><span class="p">)</span> <span class="p">{</span>
+				<span class="k">if</span> <span class="p">((</span><span class="nx">_hashtable</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nx">status</span> <span class="o">==</span> <span class="nx">constants</span><span class="p">.</span><span class="nx">DISPATCHED</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="nx">config</span><span class="p">.</span><span class="nx">override</span><span class="p">)</span> <span class="p">{</span>
+					<span class="c">// this uri was already dispatched by this plugin and will be discarted...</span>
+					<span class="nx">flag</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+				<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+					<span class="c">// the uri already exists in the table</span>
+				<span class="p">}</span>
+		  		<span class="nx">config</span><span class="p">.</span><span class="nx">hash</span> <span class="o">=</span> <span class="nx">i</span><span class="o">;</span>
+				<span class="k">break</span><span class="o">;</span>
+			<span class="p">}</span>
+		  <span class="p">}</span>
+		  <span class="k">if</span> <span class="p">(</span><span class="nx">flag</span><span class="p">)</span> <span class="p">{</span>
+		  	<span class="c">// fetching the remote script using the YUI Get Utility</span>
+		    <span class="nx">uri</span> <span class="o">=</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">firewall</span> <span class="p">(</span><span class="nx">node</span><span class="p">.</span><span class="nx">src</span><span class="o">,</span> <span class="nx">config</span><span class="o">,</span> <span class="kc">true</span><span class="p">);</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isString</span><span class="p">(</span><span class="nx">uri</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">uri</span> <span class="o">!==</span> <span class="s1">&#39;&#39;</span><span class="p">))</span> <span class="p">{</span>
+				<span class="nx">_hashtable</span><span class="p">[</span><span class="nx">config</span><span class="p">.</span><span class="nx">hash</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="nx">uri</span><span class="o">:</span> <span class="nx">node</span><span class="p">.</span><span class="nx">src</span><span class="o">,</span> <span class="nx">proxy</span><span class="o">:</span> <span class="nx">uri</span><span class="o">,</span> <span class="nx">status</span><span class="o">:</span> <span class="nx">constants</span><span class="p">.</span><span class="nx">LOADING</span><span class="p">};</span>
+				<span class="k">if</span> <span class="p">(</span><span class="nx">node</span><span class="p">.</span><span class="nx">type</span> <span class="o">===</span> <span class="nx">constants</span><span class="p">.</span><span class="nx">JSNODE</span><span class="p">)</span> <span class="p">{</span>
+					<span class="nx">obj</span><span class="p">.</span><span class="nx">area</span> <span class="o">=</span> <span class="nx">hd</span><span class="o">;</span>
+					<span class="nx">obj</span><span class="p">.</span><span class="nx">destroyer</span> <span class="o">=</span> <span class="nx">_threads</span><span class="p">[</span><span class="nx">hd</span><span class="p">].</span><span class="nx">destroyer</span><span class="o">;</span>
+					<span class="nx">config</span><span class="p">.</span><span class="nx">handle</span> <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">Get</span><span class="p">.</span><span class="nx">script</span><span class="p">(</span><span class="nx">uri</span><span class="o">,</span> <span class="p">{</span> 
+						<span class="nx">onSuccess</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+						    <span class="nx">_hashtable</span><span class="p">[</span><span class="nx">config</span><span class="p">.</span><span class="nx">hash</span><span class="p">].</span><span class="nx">status</span> <span class="o">=</span> <span class="nx">constants</span><span class="p">.</span><span class="nx">DISPATCHED</span><span class="o">;</span>
+							<span class="c">// broadcasting the message</span>
+							<span class="k">if</span> <span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">rel</span> <span class="o">&amp;&amp;</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">Bubbling</span><span class="p">)</span> <span class="p">{</span>
+								 <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">Bubbling</span><span class="p">.</span><span class="nx">fire</span> <span class="p">(</span><span class="s1">&#39;onScriptReady&#39;</span><span class="o">,</span> <span class="p">{</span>
+									<span class="nx">module</span><span class="o">:</span> <span class="nx">node</span><span class="p">.</span><span class="nx">rel</span><span class="o">,</span>
+									<span class="nx">src</span><span class="o">:</span> <span class="nx">node</span><span class="p">.</span><span class="nx">src</span><span class="o">,</span>
+									<span class="nx">uri</span><span class="o">:</span> <span class="nx">uri</span><span class="o">,</span>
+									<span class="nx">hash</span><span class="o">:</span> <span class="nx">config</span><span class="p">.</span><span class="nx">hash</span>
+								 <span class="p">});</span>
+							<span class="p">}</span>
+							<span class="nx">config</span><span class="p">.</span><span class="nx">hash</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span> <span class="c">// resetting the config.hash for the next iteration...</span>
+							<span class="c">// continue with the thread</span>
+							<span class="nx">dispatch</span><span class="p">(</span> <span class="nx">hd</span><span class="o">,</span> <span class="nx">config</span> <span class="p">);</span>
+						<span class="p">}</span><span class="o">,</span>
+						<span class="nx">onFailure</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+							<span class="c">// continue with the thread</span>
+							<span class="nx">dispatch</span><span class="p">(</span> <span class="nx">hd</span><span class="o">,</span> <span class="nx">config</span> <span class="p">);</span>
+						<span class="p">}</span><span class="o">,</span>
+						<span class="nx">scope</span><span class="o">:</span> <span class="nx">obj</span><span class="o">,</span>
+						<span class="nx">data</span><span class="o">:</span> <span class="nx">config</span>
+					<span class="p">});</span>
+				<span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="nx">node</span><span class="p">.</span><span class="nx">type</span> <span class="o">===</span> <span class="nx">constants</span><span class="p">.</span><span class="nx">CSSNODE</span><span class="p">)</span> <span class="p">{</span>
+					<span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">Get</span><span class="p">.</span><span class="nx">css</span><span class="p">(</span><span class="nx">uri</span><span class="o">,</span> <span class="p">{});</span>
+					<span class="nx">_hashtable</span><span class="p">[</span><span class="nx">config</span><span class="p">.</span><span class="nx">hash</span><span class="p">].</span><span class="nx">status</span> <span class="o">=</span> <span class="nx">constants</span><span class="p">.</span><span class="nx">DISPATCHED</span><span class="o">;</span>
+					<span class="c">// continue with the thread</span>
+					<span class="nx">dispatch</span><span class="p">(</span> <span class="nx">hd</span><span class="o">,</span> <span class="nx">config</span> <span class="p">);</span>
+				<span class="p">}</span>
+			<span class="p">}</span>
+		  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+		  	<span class="c">// continue with the thread execution</span>
+			<span class="nx">dispatch</span><span class="p">(</span> <span class="nx">hd</span><span class="o">,</span> <span class="nx">config</span> <span class="p">);</span>
+		  <span class="p">}</span>
+		<span class="p">}</span>
+		<span class="k">else</span> <span class="p">{</span>
+		  <span class="c">// the node represent an inline script (don&#39;t have hash value)</span>
+		  <span class="nx">config</span><span class="p">.</span><span class="nx">hash</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+		  <span class="nx">exec</span> <span class="p">(</span><span class="nx">hd</span><span class="o">,</span> <span class="nx">node</span><span class="p">.</span><span class="nx">content</span><span class="o">,</span> <span class="nx">config</span><span class="p">);</span>
+		<span class="p">}</span>
+	  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+	  	<span class="c">// ending the execution thread</span>
+	  	<span class="nx">obj</span><span class="p">.</span><span class="nx">kill</span><span class="p">(</span><span class="nx">hd</span><span class="p">);</span>
+		<span class="nx">_onLoad</span> <span class="p">(</span><span class="nx">config</span><span class="p">);</span>
+	  <span class="p">}</span>
+	<span class="p">}</span>
+
+	<span class="c">/**</span>
+<span class="c">	* @description Executing a javascript script segment</span>
+<span class="c">	* @method _exec</span>
+<span class="c">	* @private</span>
+<span class="c">	* @param {Object} hd     		Thread&#39;s handle</span>
+<span class="c">	* @param {string} c     		Content to execute</span>
+<span class="c">	* @param {Object} config    User configuration (useful for future implementations)</span>
+<span class="c">	* @return boolean</span>
+<span class="c">	*/</span>
+	<span class="kd">function</span> <span class="nx">exec</span><span class="p">(</span> <span class="nx">hd</span><span class="o">,</span> <span class="nx">c</span><span class="o">,</span> <span class="nx">config</span> <span class="p">)</span> <span class="p">{</span>
+	  <span class="kd">var</span> <span class="nx">status</span> <span class="o">=</span> <span class="nx">constants</span><span class="p">.</span><span class="nx">EMPTY</span><span class="o">;</span>
+	  <span class="k">if</span> <span class="p">(</span><span class="nx">c</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">c</span> <span class="o">!==</span> <span class="s1">&#39;&#39;</span><span class="p">))</span> <span class="p">{</span>
+		<span class="k">try</span><span class="p">{</span>
+		  <span class="nx">status</span> <span class="o">=</span> <span class="nx">constants</span><span class="p">.</span><span class="nx">DISPATCHED</span><span class="o">;</span>
+		  <span class="c">// instead send in a variable that points to this object...</span>
+		  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">config</span><span class="p">.</span><span class="nx">hash</span> <span class="o">||</span> <span class="p">(</span><span class="nx">_hashtable</span><span class="p">[</span><span class="nx">config</span><span class="p">.</span><span class="nx">hash</span><span class="p">].</span><span class="nx">status</span> <span class="o">!=</span> <span class="nx">constants</span><span class="p">.</span><span class="nx">DISPATCHED</span><span class="p">))</span> <span class="p">{</span>
+			 <span class="nx">obj</span><span class="p">.</span><span class="nx">area</span> <span class="o">=</span> <span class="nx">hd</span><span class="o">;</span>
+			 <span class="nx">obj</span><span class="p">.</span><span class="nx">destroyer</span> <span class="o">=</span> <span class="nx">_threads</span><span class="p">[</span><span class="nx">hd</span><span class="p">].</span><span class="nx">destroyer</span><span class="o">;</span>
+			 <span class="c">// you can define your own evaluation routine for inline scripts</span>
+			 <span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isFunction</span><span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">evalRoutine</span><span class="p">))</span> <span class="p">{</span>
+				 <span class="nx">config</span><span class="p">.</span><span class="nx">evalRoutine</span><span class="p">(</span><span class="nx">c</span><span class="o">,</span> <span class="nx">config</span><span class="p">);</span>
+			 <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+			 	 <span class="c">/* using the new routine to evaluate inline script, no longer using eval */</span>
+				 <span class="nx">_globalEval</span> <span class="p">(</span><span class="nx">c</span><span class="p">);</span>
+			 <span class="p">}</span>			 
+		  <span class="p">}</span>
+		<span class="p">}</span><span class="k">catch</span><span class="p">(</span><span class="nx">e</span><span class="p">){</span>
+		  <span class="nx">status</span> <span class="o">=</span> <span class="nx">constants</span><span class="p">.</span><span class="nx">ERROR</span><span class="o">;</span>
+		  <span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isFunction</span><span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">error</span><span class="p">))</span> <span class="p">{</span>
+			  <span class="nx">config</span><span class="p">.</span><span class="nx">error</span><span class="p">.</span><span class="nx">apply</span> <span class="p">(</span> <span class="nx">config</span><span class="o">,</span> <span class="p">[</span><span class="nx">hd</span><span class="o">,</span> <span class="nx">c</span><span class="o">,</span> <span class="nx">_hashtable</span><span class="o">,</span> <span class="nx">e</span><span class="p">]</span> <span class="p">);</span>
+		  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+			  <span class="k">throw</span> <span class="k">new</span>
+			    <span class="nb">Error</span> <span class="p">(</span><span class="s2">&quot;Dispacher: Script Execution Error (&quot;</span><span class="o">+</span><span class="nx">e</span><span class="o">+</span><span class="s2">&quot;)&quot;</span><span class="p">);</span>
+		  <span class="p">}</span>
+		<span class="p">}</span>
+	  <span class="p">}</span>
+	  <span class="c">// updating the status of the remote script in the hashtable</span>
+	  <span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isNumber</span><span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">hash</span><span class="p">))</span> <span class="p">{</span>
+		<span class="nx">_hashtable</span><span class="p">[</span><span class="nx">config</span><span class="p">.</span><span class="nx">hash</span><span class="p">].</span><span class="nx">status</span> <span class="o">=</span> <span class="nx">status</span><span class="o">;</span>
+		<span class="nx">config</span><span class="p">.</span><span class="nx">hash</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span> <span class="c">// resetting the config.hash for the next iteration...</span>
+	  <span class="p">}</span>
+	  <span class="nx">dispatch</span><span class="p">(</span> <span class="nx">hd</span><span class="o">,</span> <span class="nx">config</span> <span class="p">);</span>
+	<span class="p">}</span>
+
+	<span class="c">/**</span>
+<span class="c">	* @description Display the content inside the element</span>
+<span class="c">	* @method _display</span>
+<span class="c">	* @private</span>
+<span class="c">	* @param {Object} el    		Element reference</span>
+<span class="c">	* @param {string} c     		Content to display</span>
+<span class="c">	* @param {Object} config    User configuration (useful for future implementations)</span>
+<span class="c">	* @return boolean</span>
+<span class="c">	*/</span>
+	<span class="kd">function</span> <span class="nx">display</span><span class="p">(</span> <span class="nx">el</span><span class="o">,</span> <span class="nx">c</span><span class="o">,</span> <span class="nx">config</span> <span class="p">)</span> <span class="p">{</span>
+		<span class="nx">config</span><span class="p">.</span><span class="nx">action</span> <span class="o">=</span> <span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">action</span><span class="o">?</span><span class="nx">config</span><span class="p">.</span><span class="nx">action</span><span class="o">:</span><span class="s1">&#39;replace&#39;</span><span class="p">);</span>
+		<span class="nx">switch</span> <span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">action</span><span class="p">)</span>
+		<span class="p">{</span>
+			<span class="nx">case</span> <span class="s1">&#39;tabview&#39;</span><span class="o">:</span>
+				<span class="c">// onDestroy event... used to release the memory inside the tab...</span>
+				<span class="nx">destroy</span> <span class="p">(</span><span class="nx">el</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;contentEl&#39;</span><span class="p">)</span><span class="o">,</span> <span class="nx">config</span><span class="p">);</span>
+				<span class="k">try</span> <span class="p">{</span> <span class="nx">el</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;content&#39;</span><span class="o">,</span> <span class="nx">c</span><span class="p">);</span> <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">e1</span><span class="p">)</span> <span class="p">{</span><span class="k">return</span> <span class="kc">false</span><span class="o">;</span><span class="p">}</span>
+				<span class="nx">_onChange</span> <span class="p">(</span><span class="nx">config</span><span class="o">,</span> <span class="nx">el</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;contentEl&#39;</span><span class="p">));</span>
+				<span class="k">break</span><span class="o">;</span>
+			<span class="nx">case</span> <span class="s1">&#39;update&#39;</span><span class="o">:</span>
+				<span class="nx">c</span> <span class="o">=</span> <span class="nx">el</span><span class="p">.</span><span class="nx">innerHTML</span> <span class="o">+</span> <span class="nx">c</span><span class="o">;</span>
+				<span class="k">try</span> <span class="p">{</span> <span class="nx">el</span><span class="p">.</span><span class="nx">innerHTML</span> <span class="o">=</span> <span class="nx">c</span><span class="o">;</span> <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">e2</span><span class="p">)</span> <span class="p">{</span><span class="k">return</span> <span class="kc">false</span><span class="o">;</span><span class="p">}</span>
+				<span class="nx">_onChange</span> <span class="p">(</span><span class="nx">config</span><span class="o">,</span> <span class="nx">el</span><span class="p">);</span>
+				<span class="k">break</span><span class="o">;</span>
+			<span class="nx">case</span> <span class="s1">&#39;replace&#39;</span><span class="o">:</span>
+			<span class="nx">case</span> <span class="s1">&#39;layout&#39;</span><span class="o">:</span>
+			<span class="nx">default</span><span class="o">:</span>
+				<span class="c">// onDestroy event... used to release the memory inside the element...</span>
+			    <span class="nx">destroy</span> <span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="nx">config</span><span class="p">);</span>
+				<span class="c">// changing the content</span>
+				<span class="k">try</span> <span class="p">{</span> <span class="nx">el</span><span class="p">.</span><span class="nx">innerHTML</span> <span class="o">=</span> <span class="nx">c</span><span class="o">;</span> <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">e3</span><span class="p">)</span> <span class="p">{</span><span class="k">return</span> <span class="kc">false</span><span class="o">;</span><span class="p">}</span>
+				<span class="nx">_onChange</span> <span class="p">(</span><span class="nx">config</span><span class="o">,</span> <span class="nx">el</span><span class="p">);</span>
+				<span class="k">break</span><span class="o">;</span>
+		<span class="p">}</span>
+		<span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
+	<span class="p">}</span>
+	<span class="c">/**</span>
+<span class="c">	* @description Destroy will be fired before remove the innerHTML in the displaying process</span>
+<span class="c">	* @method _destroy</span>
+<span class="c">	* @private</span>
+<span class="c">	* @param {Object} el    	DOM Element reference</span>
+<span class="c">	* @param {Object} config    User configuration (useful for future implementations)</span>
+<span class="c">	* @return void</span>
+<span class="c">	*/</span>
+    <span class="kd">function</span> <span class="nx">destroy</span><span class="p">(</span> <span class="nx">el</span><span class="o">,</span> <span class="nx">config</span> <span class="p">)</span> <span class="p">{</span>
+		<span class="kd">var</span> <span class="nx">hd</span> <span class="o">=</span> <span class="nx">config</span><span class="p">.</span><span class="nx">guid</span><span class="o">,</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+		<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">_threads</span><span class="p">[</span><span class="nx">hd</span><span class="p">].</span><span class="nx">destroyer</span><span class="p">))</span> <span class="p">{</span>
+			<span class="nx">_threads</span><span class="p">[</span><span class="nx">hd</span><span class="p">].</span><span class="nx">destroyer</span><span class="p">.</span><span class="nx">fire</span> <span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="nx">config</span><span class="p">);</span>
+		<span class="p">}</span>
+		<span class="k">if</span> <span class="p">(</span><span class="nx">$D</span><span class="p">.</span><span class="nx">inDocument</span><span class="p">(</span><span class="nx">el</span><span class="p">))</span> <span class="p">{</span>
+			<span class="c">// purge the child elements and the events attached...</span>
+		  	<span class="k">for</span> <span class="p">(</span><span class="nx">i</span><span class="o">=</span><span class="mi">0</span><span class="o">;</span><span class="nx">i</span><span class="o">&lt;</span><span class="nx">el</span><span class="p">.</span><span class="nx">childNodes</span><span class="p">.</span><span class="nx">length</span><span class="o">;</span><span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+			  <span class="nx">$E</span><span class="p">.</span><span class="nx">purgeElement</span> <span class="p">(</span> <span class="nx">el</span><span class="p">.</span><span class="nx">childNodes</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span><span class="o">,</span> <span class="kc">true</span> <span class="p">);</span>
+			<span class="p">}</span>
+			<span class="nx">$D</span><span class="p">.</span><span class="nx">addClass</span> <span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="nx">_classname</span><span class="p">);</span>
+		<span class="p">}</span>
+		<span class="nx">_threads</span><span class="p">[</span><span class="nx">hd</span><span class="p">].</span><span class="nx">destroyer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">CustomEvent</span><span class="p">(</span><span class="s1">&#39;destroyer&#39;</span><span class="p">);</span>
+		<span class="c">// checking for default onDestroy (usually passed to the methods fetch, delegate or process)</span>
+		<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isFunction</span><span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">onDestroy</span><span class="p">))</span> <span class="p">{</span>
+			<span class="nx">_threads</span><span class="p">[</span><span class="nx">hd</span><span class="p">].</span><span class="nx">destroyer</span><span class="p">.</span><span class="nx">subscribe</span> <span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">onDestroy</span><span class="p">);</span>
+		<span class="p">}</span>
+		<span class="c">// other subscribers can be add using: YAHOO.plugin.Dispatcher.destroyer.subscribe ( mySubscriber );</span>
+	<span class="p">}</span>
+	<span class="c">/**</span>
+<span class="c">	* @description Parse the string, remove the script tags, and create the execution thread...</span>
+<span class="c">	* @method _parse</span>
+<span class="c">	* @private</span>
+<span class="c">	* @param {Object} hd    		Element reference</span>
+<span class="c">	* @param {string} s     		String with the script tags inside...</span>
+<span class="c">	* @return string</span>
+<span class="c">	*/</span>
+    <span class="kd">function</span> <span class="nx">parse</span><span class="p">(</span> <span class="nx">hd</span><span class="o">,</span> <span class="nx">s</span><span class="o">,</span> <span class="nx">config</span> <span class="p">)</span> <span class="p">{</span>
+		<span class="nx">config</span> <span class="o">=</span> <span class="nx">config</span> <span class="o">||</span> <span class="p">{};</span>
+		<span class="nx">config</span><span class="p">.</span><span class="nx">uri</span> <span class="o">=</span> <span class="nx">config</span><span class="p">.</span><span class="nx">uri</span> <span class="o">||</span> <span class="kc">null</span><span class="o">;</span>
+		<span class="nx">config</span><span class="p">.</span><span class="nx">relative</span> <span class="o">=</span> <span class="nx">config</span><span class="p">.</span><span class="nx">relative</span> <span class="o">||</span> <span class="nx">_oDefaultConfig</span><span class="p">.</span><span class="nx">relative</span><span class="o">;</span>
+		<span class="kd">var</span> <span class="nx">m</span> <span class="o">=</span> <span class="kc">true</span><span class="o">,</span> <span class="nx">attr</span> <span class="o">=</span> <span class="kc">false</span><span class="o">,</span>
+		    <span class="nx">base</span> <span class="o">=</span> <span class="nx">_baseURI</span><span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">uri</span><span class="p">);</span> <span class="c">// calculation of the base path...</span>
+		<span class="c">// searching and cut out all style tags, push them into thread</span>
+		<span class="c">// ej. &lt;style title=&quot;&quot; type=&quot;text/css&quot;&gt;&lt;/style&gt;</span>
+		<span class="c">// not supported yet. &lt;!--@import url(&quot;http://us.js2.yimg.com/us.js.yimg.com/lib/hdr/ygma_2.19.css&quot;);body{margin:0px 4px;}--&gt;</span>
+		<span class="nx">s</span> <span class="o">=</span> <span class="nx">s</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="nx">reStyleTag</span><span class="o">,</span>
+		  <span class="kd">function</span> <span class="p">(</span><span class="nx">str</span><span class="o">,</span><span class="nx">p1</span><span class="o">,</span><span class="nx">p2</span><span class="o">,</span><span class="nx">offset</span><span class="o">,</span><span class="nx">s</span><span class="p">)</span> <span class="p">{</span>
+			<span class="c">// apply the inline style automatically</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">p2</span><span class="p">)</span> <span class="p">{</span>
+			    <span class="nx">obj</span><span class="p">.</span><span class="nx">applyCSS</span><span class="p">(</span><span class="nx">p2</span><span class="o">,</span> <span class="nx">_getParams</span><span class="p">(</span><span class="nx">p1</span><span class="p">)</span><span class="o">,</span> <span class="nx">config</span><span class="p">);</span>
+			<span class="p">}</span>
+		    <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="o">;</span>
+	      <span class="p">}</span>
+		<span class="p">);</span>
+
+		<span class="c">// searching and cut out all Link tags, push them into thread</span>
+		<span class="c">// ej. &lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&#39;/themes/bubbling/css/common.css&#39; /&gt;</span>
+		<span class="nx">s</span> <span class="o">=</span> <span class="nx">s</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="nx">reLinkTag</span><span class="o">,</span>
+		  <span class="kd">function</span> <span class="p">(</span><span class="nx">str</span><span class="o">,</span><span class="nx">p1</span><span class="o">,</span><span class="nx">p2</span><span class="o">,</span><span class="nx">offset</span><span class="o">,</span><span class="nx">s</span><span class="p">)</span> <span class="p">{</span>
+			<span class="c">// add a remote style to buffer</span>
+			<span class="k">if</span><span class="p">(</span><span class="nx">p1</span><span class="p">){</span>
+			  <span class="nx">attr</span> <span class="o">=</span> <span class="nx">p1</span><span class="p">.</span><span class="nx">match</span><span class="p">(</span><span class="nx">reLinkTagSrc</span><span class="p">);</span>
+			  <span class="k">if</span><span class="p">(</span><span class="nx">attr</span><span class="p">)</span> <span class="p">{</span>
+			    <span class="k">if</span> <span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">relative</span><span class="p">)</span> <span class="p">{</span>
+					<span class="nx">attr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="nx">_relativeURI</span><span class="p">(</span><span class="nx">base</span><span class="o">,</span> <span class="nx">attr</span><span class="p">[</span><span class="mi">2</span><span class="p">]);</span> <span class="c">// path correction process...</span>
+				<span class="p">}</span>
+			    <span class="nx">_threads</span><span class="p">[</span><span class="nx">hd</span><span class="p">].</span><span class="nx">chunks</span><span class="p">.</span><span class="nx">push</span> <span class="p">({</span>
+					<span class="nx">src</span><span class="o">:</span> <span class="nx">attr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">,</span>
+					<span class="nx">content</span><span class="o">:</span> <span class="s1">&#39;&#39;</span><span class="o">,</span>
+					<span class="nx">type</span><span class="o">:</span> <span class="nx">constants</span><span class="p">.</span><span class="nx">CSSNODE</span><span class="o">,</span>
+					<span class="nx">params</span><span class="o">:</span> <span class="nx">_getParams</span><span class="p">(</span><span class="nx">p1</span><span class="p">)</span>
+				<span class="p">});</span>
+			  <span class="p">}</span>
+			<span class="p">}</span>
+		    <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="o">;</span>
+	      <span class="p">}</span>
+		<span class="p">);</span>
+
+		<span class="c">// searching and cut out all script tags, push them into thread</span>
+		<span class="nx">s</span> <span class="o">=</span> <span class="nx">s</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="nx">reScriptTag</span><span class="o">,</span>
+		  <span class="kd">function</span> <span class="p">(</span><span class="nx">str</span><span class="o">,</span><span class="nx">p1</span><span class="o">,</span><span class="nx">p2</span><span class="o">,</span><span class="nx">offset</span><span class="o">,</span><span class="nx">s</span><span class="p">)</span> <span class="p">{</span>
+			<span class="c">// add a remote script to buffer</span>
+			<span class="k">if</span><span class="p">(</span><span class="nx">p1</span><span class="p">){</span>
+			  <span class="nx">attr</span> <span class="o">=</span> <span class="nx">p1</span><span class="p">.</span><span class="nx">match</span><span class="p">(</span><span class="nx">reScriptTagSrc</span><span class="p">);</span>
+			  <span class="k">if</span><span class="p">(</span><span class="nx">attr</span><span class="p">)</span> <span class="p">{</span>
+				<span class="kd">var</span> <span class="nx">rel</span> <span class="o">=</span> <span class="nx">p1</span><span class="p">.</span><span class="nx">match</span><span class="p">(</span><span class="nx">reScriptTagRel</span><span class="p">);</span>
+				<span class="nx">rel</span> <span class="o">=</span> <span class="p">(</span><span class="nx">rel</span><span class="o">?</span><span class="nx">rel</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">:</span><span class="kc">null</span><span class="p">);</span>
+			    <span class="k">if</span> <span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">relative</span><span class="p">)</span> <span class="p">{</span>
+					<span class="nx">attr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="nx">_relativeURI</span><span class="p">(</span><span class="nx">base</span><span class="o">,</span> <span class="nx">attr</span><span class="p">[</span><span class="mi">2</span><span class="p">]);</span> <span class="c">// path correction process...</span>
+				<span class="p">}</span>
+			    <span class="nx">_threads</span><span class="p">[</span><span class="nx">hd</span><span class="p">].</span><span class="nx">chunks</span><span class="p">.</span><span class="nx">push</span> <span class="p">({</span>
+					<span class="nx">src</span><span class="o">:</span> <span class="nx">attr</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">,</span>
+					<span class="nx">content</span><span class="o">:</span> <span class="s1">&#39;&#39;</span><span class="o">,</span>
+					<span class="nx">type</span><span class="o">:</span> <span class="nx">constants</span><span class="p">.</span><span class="nx">JSNODE</span><span class="o">,</span>
+					<span class="nx">rel</span><span class="o">:</span> <span class="nx">rel</span><span class="o">,</span>
+					<span class="nx">params</span><span class="o">:</span> <span class="nx">_getParams</span><span class="p">(</span><span class="nx">p1</span><span class="p">)</span>
+				<span class="p">});</span>
+			  <span class="p">}</span>
+			<span class="p">}</span>
+			<span class="c">// add a inline script to buffer</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">p2</span><span class="p">)</span> <span class="p">{</span>
+			    <span class="nx">_threads</span><span class="p">[</span><span class="nx">hd</span><span class="p">].</span><span class="nx">chunks</span><span class="p">.</span><span class="nx">push</span> <span class="p">({</span>
+					<span class="nx">src</span><span class="o">:</span> <span class="kc">null</span><span class="o">,</span>
+					<span class="nx">content</span><span class="o">:</span> <span class="nx">p2</span><span class="o">,</span>
+					<span class="nx">type</span><span class="o">:</span> <span class="nx">constants</span><span class="p">.</span><span class="nx">JSNODE</span><span class="o">,</span>
+					<span class="nx">params</span><span class="o">:</span> <span class="nx">_getParams</span><span class="p">(</span><span class="nx">p1</span><span class="p">)</span>
+				<span class="p">});</span>
+			<span class="p">}</span>
+		    <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="o">;</span>
+	      <span class="p">}</span>
+		<span class="p">);</span>
+		<span class="k">return</span> <span class="nx">s</span><span class="o">;</span>
+    <span class="p">}</span>
+	
+	<span class="c">// is the bubbling is available, we will define the cache listener...</span>
+	<span class="k">if</span> <span class="p">(</span><span class="nx">YAHOO</span><span class="p">.</span><span class="nx">Bubbling</span><span class="p">)</span> <span class="p">{</span>
+		<span class="nx">YAHOO</span><span class="p">.</span><span class="nx">Bubbling</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;onScriptReady&#39;</span><span class="o">,</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+			<span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">src</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">hash</span><span class="p">)</span> <span class="p">{</span>
+				<span class="nx">_hashtable</span><span class="p">[</span><span class="k">this</span><span class="p">.</span><span class="nx">hash</span><span class="p">].</span><span class="nx">status</span> <span class="o">=</span> <span class="nx">constants</span><span class="p">.</span><span class="nx">DISPATCHED</span><span class="o">;</span>
+			<span class="p">}</span>
+		<span class="p">});</span>		
+	<span class="p">}</span>
+
+	<span class="c">// public vars</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">area</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span> <span class="c">// current thread, useful to get the current DOM element...</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">strictMode</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">destroyer</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span> <span class="c">// current destroyer, useful to add new subscriber during the execution...</span>
+	<span class="c">// public methods</span>
+	<span class="c">/**</span>
+<span class="c">	* @method fetch</span>
+<span class="c">	* @description Fetching a remote file that will be processed thru this object...</span>
+<span class="c">	* @public</span>
+<span class="c">	* @param {Node} el     		{HTMLElement | String | Object} The html element that represents the dynamic area.</span>
+<span class="c">	* @param {object} uri       Remote file that will be loaded using AJAX</span>
+<span class="c">	* @param {object} config    Literal object with the user configuration vars</span>
+<span class="c">	* @return object  Reference to the connection handle</span>
+<span class="c">	*/</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">fetch</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span> <span class="nx">el</span><span class="o">,</span> <span class="nx">uri</span><span class="o">,</span> <span class="nx">config</span> <span class="p">){</span>
+	   <span class="nx">config</span> <span class="o">=</span> <span class="nx">config</span> <span class="o">||</span> <span class="p">{};</span>
+	   <span class="nx">config</span><span class="p">.</span><span class="nx">uri</span> <span class="o">=</span> <span class="nx">uri</span><span class="o">;</span>
+	   <span class="kd">var</span> <span class="nx">id</span> <span class="o">=</span> <span class="kc">null</span><span class="o">,</span>
+	       <span class="nx">u</span> <span class="o">=</span> <span class="kc">null</span><span class="o">,</span>
+	       <span class="nx">callback</span> <span class="o">=</span> <span class="p">{</span>
+			<span class="nx">success</span><span class="o">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">o</span><span class="p">)</span> <span class="p">{</span>
+				<span class="k">if</span> <span class="p">(</span><span class="nx">o</span><span class="p">.</span><span class="nx">responseText</span> <span class="o">!=</span> <span class="s1">&#39;undefined&#39;</span><span class="p">)</span> <span class="p">{</span>
+					<span class="nx">obj</span><span class="p">.</span><span class="nx">process</span><span class="p">(</span> <span class="nx">el</span><span class="o">,</span> <span class="nx">o</span><span class="p">.</span><span class="nx">responseText</span><span class="o">,</span> <span class="nx">config</span><span class="o">,</span> <span class="kc">true</span> <span class="p">);</span>
+				<span class="p">}</span>
+				<span class="nx">$D</span><span class="p">.</span><span class="nx">removeClass</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="nx">_loadingClass</span><span class="p">);</span>
+			<span class="p">}</span><span class="o">,</span>
+			<span class="nx">failure</span><span class="o">:</span><span class="kd">function</span> <span class="p">(</span><span class="nx">o</span><span class="p">)</span> <span class="p">{</span>
+				<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isFunction</span><span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">onError</span><span class="p">))</span> <span class="p">{</span>
+        		   <span class="nx">config</span><span class="p">.</span><span class="nx">onError</span><span class="p">.</span><span class="nx">apply</span> <span class="p">(</span> <span class="nx">config</span><span class="o">,</span> <span class="p">[</span><span class="nx">config</span><span class="p">.</span><span class="nx">element</span><span class="o">,</span> <span class="nx">o</span><span class="p">]</span> <span class="p">);</span>
+        		<span class="p">}</span>
+				<span class="nx">$D</span><span class="p">.</span><span class="nx">removeClass</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="nx">_loadingClass</span><span class="p">);</span>
+			<span class="p">}</span>
+	   <span class="p">};</span>
+	   <span class="k">if</span> <span class="p">((</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">el</span><span class="p">)</span> <span class="o">||</span> <span class="p">(</span><span class="nx">el</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span> <span class="nx">el</span> <span class="p">)))</span> <span class="o">&amp;&amp;</span> <span class="nx">uri</span><span class="p">)</span> <span class="p">{</span>
+		 <span class="nx">u</span> <span class="o">=</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">firewall</span> <span class="p">(</span><span class="nx">uri</span><span class="o">,</span> <span class="nx">config</span><span class="p">);</span>
+		 <span class="nx">$D</span><span class="p">.</span><span class="nx">addClass</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="nx">_loadingClass</span><span class="p">);</span>
+		 <span class="nx">config</span><span class="p">.</span><span class="nx">handle</span> <span class="o">=</span> <span class="nx">$C</span><span class="p">.</span><span class="nx">asyncRequest</span><span class="p">(</span><span class="s1">&#39;GET&#39;</span><span class="o">,</span> <span class="nx">u</span><span class="o">,</span> <span class="nx">callback</span><span class="p">);</span>
+		 <span class="nx">config</span><span class="p">.</span><span class="nx">element</span> <span class="o">=</span> <span class="nx">el</span><span class="o">;</span>
+		 <span class="nx">_onStart</span> <span class="p">(</span><span class="nx">config</span><span class="p">);</span>
+		 <span class="c">// broadcasting the message to log the navigation action into the history manager</span>
+		 <span class="k">if</span> <span class="p">(</span><span class="nx">YAHOO</span><span class="p">.</span><span class="nx">Bubbling</span><span class="p">)</span> <span class="p">{</span>
+			<span class="nx">id</span> <span class="o">=</span> <span class="nx">config</span><span class="p">.</span><span class="nx">guid</span> <span class="o">||</span> <span class="nx">$E</span><span class="p">.</span><span class="nx">generateId</span> <span class="p">(</span><span class="nx">el</span><span class="p">);</span>
+			<span class="nx">YAHOO</span><span class="p">.</span><span class="nx">Bubbling</span><span class="p">.</span><span class="nx">fire</span> <span class="p">(</span><span class="s1">&#39;onNavigate&#39;</span><span class="o">,</span> <span class="p">{</span>
+				<span class="nx">state</span><span class="o">:</span> <span class="nx">id</span><span class="o">+</span><span class="nx">escape</span><span class="p">(</span><span class="nx">uri</span><span class="p">)</span><span class="o">,</span>				
+				<span class="nx">control</span><span class="o">:</span> <span class="s1">&#39;dispatcher&#39;</span><span class="o">,</span>
+				<span class="nx">element</span><span class="o">:</span> <span class="nx">el</span><span class="o">,</span>
+				<span class="nx">uri</span><span class="o">:</span> <span class="nx">uri</span><span class="o">,</span>
+				<span class="nx">config</span><span class="o">:</span> <span class="nx">config</span><span class="o">,</span>
+				<span class="nx">restore</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span> 
+				   <span class="nx">obj</span><span class="p">.</span><span class="nx">fetch</span> <span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="nx">uri</span><span class="o">,</span> <span class="nx">config</span><span class="p">);</span>
+				<span class="p">}</span>
+			<span class="p">});</span>
+		 <span class="p">}</span>
+		 <span class="k">return</span> <span class="nx">config</span><span class="p">.</span><span class="nx">handle</span><span class="o">;</span>
+	   <span class="p">}</span>
+	   <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+	<span class="p">};</span>
+	<span class="c">/**</span>
+<span class="c">	* @method process</span>
+<span class="c">	* @description Starting the process for a content...</span>
+<span class="c">	* @public</span>
+<span class="c">	* @param {Node} el     			{HTMLElement | String | Object} The html element that represents the dynamic area.</span>
+<span class="c">	* @param {string} content       Content to be processed</span>
+<span class="c">	* @param {object} config    	Literal object with the user configuration vars</span>
+<span class="c">	* @param {boolean} flag    	    If the call was internal or external</span>
+<span class="c">	* @return object  reference to the thread handle...</span>
+<span class="c">	*/</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">process</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span> <span class="nx">el</span><span class="o">,</span> <span class="nx">content</span><span class="o">,</span> <span class="nx">config</span><span class="o">,</span> <span class="nx">flag</span> <span class="p">){</span>
+		<span class="kd">var</span> <span class="nx">hd</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+		<span class="nx">config</span> <span class="o">=</span> <span class="nx">config</span> <span class="o">||</span> <span class="p">{};</span>
+		<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">el</span><span class="p">)</span> <span class="o">||</span> <span class="p">(</span><span class="nx">el</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span> <span class="nx">el</span> <span class="p">)))</span> <span class="p">{</span>
+			<span class="nx">hd</span> <span class="o">=</span> <span class="nx">config</span><span class="p">.</span><span class="nx">guid</span> <span class="o">||</span> <span class="nx">$E</span><span class="p">.</span><span class="nx">generateId</span> <span class="p">(</span><span class="nx">el</span><span class="p">);</span> <span class="c">// by default, one thread by element, use the GUID to discard this rule...</span>
+			<span class="k">this</span><span class="p">.</span><span class="nx">kill</span><span class="p">(</span><span class="nx">hd</span><span class="p">);</span> <span class="c">// kill the previous process for this handle...</span>
+			<span class="nx">config</span><span class="p">.</span><span class="nx">element</span> <span class="o">=</span> <span class="nx">el</span><span class="o">;</span>
+			<span class="nx">config</span><span class="p">.</span><span class="nx">content</span> <span class="o">=</span> <span class="nx">content</span><span class="o">;</span>
+			<span class="nx">config</span><span class="p">.</span><span class="nx">guid</span> <span class="o">=</span> <span class="nx">hd</span><span class="o">;</span>
+			<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">flag</span><span class="p">)</span> <span class="p">{</span>
+				<span class="nx">_onStart</span><span class="p">(</span><span class="nx">config</span><span class="p">);</span>
+			<span class="p">}</span>
+			<span class="c">// processing</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">display</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="nx">parse</span> <span class="p">(</span><span class="nx">hd</span><span class="o">,</span> <span class="nx">content</span><span class="o">,</span> <span class="nx">config</span><span class="p">)</span><span class="o">,</span> <span class="nx">config</span><span class="p">))</span> <span class="p">{</span>
+				<span class="nx">dispatch</span> <span class="p">(</span><span class="nx">hd</span><span class="o">,</span> <span class="nx">config</span><span class="p">);</span> <span class="c">// starting the execution chain</span>
+			<span class="p">}</span>
+		<span class="p">}</span>
+		<span class="k">return</span> <span class="nx">hd</span><span class="o">;</span>
+	<span class="p">};</span>
+	<span class="c">/**</span>
+<span class="c">	* @method delegate</span>
+<span class="c">	* @description delegate the set content method...</span>
+<span class="c">	* @public</span>
+<span class="c">	* @param {object} tab		reference to the tab...</span>
+<span class="c">	* @param {object} tabview   reference to the tabview...</span>
+<span class="c">	* @param {object} config    Literal object with the user configuration vars</span>
+<span class="c">	* @return void</span>
+<span class="c">	*/</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">delegate</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">tab</span><span class="o">,</span> <span class="nx">tabview</span><span class="o">,</span> <span class="nx">config</span> <span class="p">)</span> <span class="p">{</span>
+		<span class="nx">config</span> <span class="o">=</span> <span class="nx">config</span> <span class="o">||</span> <span class="p">{};</span>
+		<span class="nx">config</span><span class="p">.</span><span class="nx">action</span> <span class="o">=</span> <span class="s1">&#39;tabview&#39;</span><span class="o">;</span>
+		<span class="nx">config</span><span class="p">.</span><span class="nx">uri</span> <span class="o">=</span> <span class="nx">tab</span><span class="p">.</span><span class="nx">get</span> <span class="p">(</span><span class="s1">&#39;dataSrc&#39;</span><span class="p">)</span> <span class="o">||</span> <span class="kc">null</span><span class="o">;</span> <span class="c">// getting the base url for the execution...</span>
+		<span class="nx">config</span><span class="p">.</span><span class="nx">tab</span> <span class="o">=</span> <span class="nx">tab</span><span class="o">;</span>
+		<span class="nx">tab</span><span class="p">.</span><span class="nx">loadHandler</span><span class="p">.</span><span class="nx">success</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">o</span><span class="p">)</span> <span class="p">{</span>
+			<span class="kd">var</span> <span class="nx">el</span> <span class="o">=</span> <span class="nx">tab</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;contentEl&#39;</span><span class="p">);</span>
+			<span class="nx">config</span><span class="p">.</span><span class="nx">tab</span> <span class="o">=</span> <span class="nx">el</span><span class="o">;</span>
+			<span class="nx">config</span><span class="p">.</span><span class="nx">underground</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+			<span class="nx">obj</span><span class="p">.</span><span class="nx">process</span><span class="p">(</span> <span class="nx">tab</span><span class="o">,</span> <span class="nx">o</span><span class="p">.</span><span class="nx">responseText</span><span class="o">,</span> <span class="nx">config</span> <span class="p">);</span>
+			<span class="c">// broadcasting the message</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">YAHOO</span><span class="p">.</span><span class="nx">Bubbling</span><span class="p">)</span> <span class="p">{</span>
+				 <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">Bubbling</span><span class="p">.</span><span class="nx">fire</span> <span class="p">(</span><span class="s1">&#39;onAsyncRequestEnd&#39;</span><span class="o">,</span> <span class="p">{</span>
+					<span class="nx">element</span><span class="o">:</span> <span class="nx">el</span>
+				 <span class="p">});</span>
+			<span class="p">}</span>
+		<span class="p">};</span>
+		<span class="nx">tab</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">&quot;activeChange&quot;</span><span class="o">,</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+			<span class="c">// broadcasting the message</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">YAHOO</span><span class="p">.</span><span class="nx">Bubbling</span> <span class="o">&amp;&amp;</span> <span class="k">this</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;active&#39;</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nx">tab</span><span class="p">.</span><span class="nx">get</span> <span class="p">(</span><span class="s1">&#39;dataSrc&#39;</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;cacheData&#39;</span><span class="p">))</span> <span class="p">{</span>
+				 <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">Bubbling</span><span class="p">.</span><span class="nx">fire</span> <span class="p">(</span><span class="s1">&#39;onAsyncRequestStart&#39;</span><span class="o">,</span> <span class="p">{</span>
+					<span class="nx">element</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;contentEl&#39;</span><span class="p">)</span>
+				 <span class="p">});</span>
+			<span class="p">}</span>											
+		<span class="p">});</span>
+		<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">tabview</span><span class="p">))</span> <span class="p">{</span>
+			<span class="nx">tabview</span><span class="p">.</span><span class="nx">addTab</span><span class="p">(</span><span class="nx">tab</span><span class="p">);</span>
+		<span class="p">}</span>
+	<span class="p">};</span>
+	<span class="c">/**</span>
+<span class="c">	* @method addUnit</span>
+<span class="c">	* @description delegate the addUnit layout method...</span>
+<span class="c">	* @public</span>
+<span class="c">	* @param {object} unit         reference to the unit...</span>
+<span class="c">	* @param {object} layout       reference to the layout...</span>
+<span class="c">	* @param {object} config       Literal object with the user configuration vars</span>
+<span class="c">	* @return object 	reference to the unit</span>
+<span class="c">	*/</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">addUnit</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">unit</span><span class="o">,</span> <span class="nx">layout</span><span class="o">,</span> <span class="nx">config</span> <span class="p">)</span> <span class="p">{</span>
+		<span class="kd">var</span> <span class="nx">c</span> <span class="o">=</span> <span class="nx">config</span> <span class="o">||</span> <span class="p">{}</span><span class="o">,</span> <span class="nx">el</span><span class="o">;</span>
+		<span class="nx">c</span><span class="p">.</span><span class="nx">action</span> <span class="o">=</span> <span class="s1">&#39;layout&#39;</span><span class="o">;</span>
+		<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">unit</span> <span class="o">||</span> <span class="o">!</span><span class="nx">layout</span><span class="p">)</span> <span class="p">{</span>
+			<span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+		<span class="p">}</span>
+		<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isString</span><span class="p">(</span><span class="nx">unit</span><span class="p">))</span> <span class="p">{</span>
+			<span class="nx">unit</span> <span class="o">=</span> <span class="nx">layout</span><span class="p">.</span><span class="nx">getUnitByPosition</span> <span class="p">(</span><span class="nx">unit</span><span class="p">);</span>
+		<span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="nx">unit</span><span class="p">.</span><span class="nx">position</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="nx">layout</span><span class="p">.</span><span class="nx">getUnitByPosition</span> <span class="p">(</span><span class="nx">unit</span><span class="p">.</span><span class="nx">position</span><span class="p">))</span> <span class="p">{</span>
+			<span class="c">// creating the new unit if the object is a simple literal with the position and </span>
+			<span class="c">// the position is not filled yet in the layout manager...</span>
+			<span class="nx">unit</span> <span class="o">=</span> <span class="nx">layout</span><span class="p">.</span><span class="nx">addUnit</span><span class="p">(</span><span class="nx">unit</span><span class="p">);</span>
+		<span class="p">}</span>
+		<span class="k">if</span> <span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">uri</span><span class="p">)</span> <span class="p">{</span>
+			<span class="nx">unit</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;dataSrc&#39;</span><span class="o">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">uri</span><span class="p">);</span>
+		<span class="p">}</span>
+		<span class="k">if</span> <span class="p">((</span><span class="nx">c</span><span class="p">.</span><span class="nx">unit</span> <span class="o">=</span> <span class="nx">unit</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">uri</span> <span class="o">=</span> <span class="nx">c</span><span class="p">.</span><span class="nx">unit</span><span class="p">.</span><span class="nx">get</span> <span class="p">(</span><span class="s1">&#39;dataSrc&#39;</span><span class="p">))</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">el</span> <span class="o">=</span> <span class="nx">c</span><span class="p">.</span><span class="nx">unit</span><span class="p">.</span><span class="nx">body</span><span class="p">))</span> <span class="p">{</span>
+			<span class="nx">c</span><span class="p">.</span><span class="nx">underground</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+			<span class="nx">c</span><span class="p">.</span><span class="nx">_dispatcherConfig</span> <span class="o">=</span> <span class="nx">c</span><span class="o">;</span>
+			<span class="nx">c</span><span class="p">.</span><span class="nx">unit</span><span class="p">.</span><span class="nx">loadHandler</span><span class="p">.</span><span class="nx">success</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">o</span><span class="p">)</span> <span class="p">{</span>
+				<span class="nx">obj</span><span class="p">.</span><span class="nx">process</span><span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">body</span><span class="o">,</span> <span class="nx">o</span><span class="p">.</span><span class="nx">responseText</span><span class="o">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">_dispatcherConfig</span> <span class="p">);</span>
+				<span class="c">// broadcasting the message</span>
+				<span class="k">if</span> <span class="p">(</span><span class="nx">YAHOO</span><span class="p">.</span><span class="nx">Bubbling</span><span class="p">)</span> <span class="p">{</span>
+					 <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">Bubbling</span><span class="p">.</span><span class="nx">fire</span> <span class="p">(</span><span class="s1">&#39;onAsyncRequestEnd&#39;</span><span class="o">,</span> <span class="p">{</span>
+						<span class="nx">element</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">body</span>
+					 <span class="p">});</span>
+				<span class="p">}</span>
+			<span class="p">};</span>
+			<span class="c">/* starting the loading process */</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">unit</span><span class="p">.</span><span class="nx">loadContent</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">Bubbling</span><span class="p">)</span> <span class="p">{</span>
+				 <span class="c">// broadcasting the message</span>
+				 <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">Bubbling</span><span class="p">.</span><span class="nx">fire</span> <span class="p">(</span><span class="s1">&#39;onAsyncRequestStart&#39;</span><span class="o">,</span> <span class="p">{</span>
+					<span class="nx">element</span><span class="o">:</span> <span class="nx">el</span>
+				 <span class="p">});</span>
+			<span class="p">}</span>
+		<span class="p">}</span>
+		<span class="k">return</span> <span class="nx">c</span><span class="p">.</span><span class="nx">unit</span><span class="o">;</span>
+	<span class="p">};</span>
+	<span class="c">/**</span>
+<span class="c">	* @method applyCSS</span>
+<span class="c">	* @description Injecting CSS in the current page</span>
+<span class="c">	* @public</span>
+<span class="c">	* @param {string} cssCode   CSS content that will be injected</span>
+<span class="c">	* @param {object} params    Literal object with the tag configuration params</span>
+<span class="c">	* @param {object} config    Literal object with the dispatcher configuration values</span>
+<span class="c">	* @return boolean  the operation result</span>
+<span class="c">	*/</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">applyCSS</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span> <span class="nx">cssCode</span><span class="o">,</span> <span class="nx">params</span><span class="o">,</span> <span class="nx">config</span> <span class="p">)</span> <span class="p">{</span>
+		<span class="nx">params</span> <span class="o">=</span> <span class="nx">params</span> <span class="o">||</span> <span class="p">{};</span>
+		<span class="kd">var</span> <span class="nx">styleElement</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">createElement</span><span class="p">(</span><span class="s2">&quot;style&quot;</span><span class="p">)</span><span class="o">,</span> <span class="nx">base</span> <span class="o">=</span> <span class="nx">params</span><span class="p">.</span><span class="nx">href</span> <span class="o">||</span> <span class="s1">&#39;&#39;</span><span class="o">;</span>
+		<span class="c">// calculation of the base path...</span>
+		<span class="nx">config</span> <span class="o">=</span> <span class="nx">config</span> <span class="o">||</span> <span class="p">{};</span>
+		<span class="kd">var</span> <span class="nx">uri</span> <span class="o">=</span> <span class="nx">config</span><span class="p">.</span><span class="nx">uri</span> <span class="o">||</span> <span class="nx">_oDefaultConfig</span><span class="p">.</span><span class="nx">baseURI</span><span class="o">;</span>
+		<span class="nx">config</span><span class="p">.</span><span class="nx">relative</span> <span class="o">=</span> <span class="nx">config</span><span class="p">.</span><span class="nx">relative</span> <span class="o">||</span> <span class="nx">_oDefaultConfig</span><span class="p">.</span><span class="nx">relative</span><span class="o">;</span>
+		<span class="k">if</span> <span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">relative</span><span class="p">)</span> <span class="p">{</span>
+			<span class="c">// applying the firewall routine to get the real path and load the css internal resources correctly.</span>
+		    <span class="nx">uri</span> <span class="o">=</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">firewall</span> <span class="p">(</span><span class="nx">uri</span><span class="o">,</span> <span class="nx">config</span><span class="o">,</span> <span class="kc">true</span><span class="p">);</span>
+			<span class="nx">base</span> <span class="o">=</span> <span class="nx">_baseURI</span><span class="p">(</span><span class="nx">uri</span><span class="p">);</span> <span class="c">// calculation of the base path...</span>
+			<span class="nx">base</span> <span class="o">=</span> <span class="nx">_relativeURI</span><span class="p">(</span><span class="nx">base</span><span class="o">,</span> <span class="nx">params</span><span class="p">.</span><span class="nx">href</span><span class="p">);</span> <span class="c">// path correction process...</span>
+		<span class="p">}</span>
+		<span class="nx">base</span> <span class="o">=</span> <span class="nx">_baseURI</span><span class="p">(</span><span class="nx">base</span><span class="p">);</span>
+		<span class="c">// path correction process...</span>
+		<span class="c">// ej: (image.gif) or (&quot;image.gif&quot;) or (&#39;image.gif&#39;) or (http://fullpath/image.gif)</span>
+		<span class="c">/*  In the case of DXImageTransform.Microsoft.AlphaImageLoader(src=&#39;image.png&#39;,sizingMethod=&#39;scale&#39;);</span>
+<span class="c">		    The use of the AlphaImageLoader ultimately proved to be</span>
+<span class="c">			an unreliable solution for IE 6 as it never handled relative paths well.</span>
+<span class="c">			It seems like the AlphaImageLoader always expects the paths to be relative</span>
+<span class="c">			to the page the CSS is included in, rather than relative to the CSS file itself. */</span>
+  		<span class="nx">cssCode</span> <span class="o">=</span> <span class="nx">cssCode</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="nx">reCSS3rdFile</span><span class="o">,</span>
+		  <span class="kd">function</span> <span class="p">(</span><span class="nx">str</span><span class="o">,</span><span class="nx">p1</span><span class="o">,</span><span class="nx">offset</span><span class="o">,</span><span class="nx">s</span><span class="p">)</span> <span class="p">{</span>
+			<span class="nx">p1</span> <span class="o">=</span> <span class="nx">_eraseQuotes</span> <span class="p">(</span><span class="nx">p1</span><span class="p">);</span>
+			<span class="nx">p1</span> <span class="o">=</span> <span class="s1">&#39;url(&#39;</span><span class="o">+</span><span class="nx">_relativeURI</span><span class="p">(</span><span class="nx">base</span><span class="o">,</span> <span class="nx">p1</span><span class="p">);</span>
+			<span class="k">return</span> <span class="nx">p1</span><span class="o">;</span>
+		  <span class="p">}</span>
+		<span class="p">);</span>
+
+		<span class="c">// the CSS is ready...</span>
+	    <span class="nx">styleElement</span><span class="p">.</span><span class="nx">type</span> <span class="o">=</span> <span class="s2">&quot;text/css&quot;</span><span class="o">;</span>
+	    <span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">styleElement</span><span class="p">.</span><span class="nx">styleSheet</span><span class="p">))</span> <span class="p">{</span>
+	      <span class="nx">styleElement</span><span class="p">.</span><span class="nx">styleSheet</span><span class="p">.</span><span class="nx">cssText</span> <span class="o">=</span> <span class="nx">cssCode</span><span class="o">;</span>
+	    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+	      <span class="nx">styleElement</span><span class="p">.</span><span class="nx">appendChild</span><span class="p">(</span><span class="nb">document</span><span class="p">.</span><span class="nx">createTextNode</span><span class="p">(</span><span class="nx">cssCode</span><span class="p">));</span>
+	    <span class="p">}</span>
+	    <span class="k">try</span><span class="p">{</span>
+	      <span class="nb">document</span><span class="p">.</span><span class="nx">getElementsByTagName</span><span class="p">(</span><span class="s2">&quot;head&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">].</span><span class="nx">appendChild</span><span class="p">(</span><span class="nx">styleElement</span><span class="p">);</span>
+	    <span class="p">}</span><span class="k">catch</span><span class="p">(</span><span class="nx">e</span><span class="p">){</span>
+		  <span class="k">throw</span> <span class="k">new</span>
+		    <span class="nb">Error</span> <span class="p">(</span><span class="s2">&quot;Dispacher: CSS Processing Error (&quot;</span><span class="o">+</span><span class="nx">e</span><span class="o">+</span><span class="s2">&quot;)&quot;</span><span class="p">);</span>
+		  <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+	    <span class="p">}</span>
+	    <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
+	<span class="p">};</span>
+	<span class="c">/**</span>
+<span class="c">	* @method jsLoader</span>
+<span class="c">	* @description Fetching a remote javascript file that will be processed thru this object...</span>
+<span class="c">	* @public</span>
+<span class="c">	* @param {object} uri       Remote js file that will be loaded using AJAX</span>
+<span class="c">	* @param {object} config    Literal object with the user configuration vars</span>
+<span class="c">	* @return string  ID reference to the new dispatcher&#39;s thread</span>
+<span class="c">	*/</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">jsLoader</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span> <span class="nx">uri</span><span class="o">,</span> <span class="nx">config</span> <span class="p">){</span>
+	   <span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isString</span><span class="p">(</span><span class="nx">uri</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">uri</span> <span class="o">!==</span> <span class="s1">&#39;&#39;</span><span class="p">))</span> <span class="p">{</span>
+	   	 <span class="nx">config</span> <span class="o">=</span> <span class="nx">config</span> <span class="o">||</span> <span class="p">{};</span>
+		 <span class="nx">$E</span><span class="p">.</span><span class="nx">generateId</span> <span class="p">(</span> <span class="nx">config</span> <span class="p">);</span> <span class="c">// generating an unique ID for the thread (config.id)</span>
+		 <span class="nx">obj</span><span class="p">.</span><span class="nx">kill</span> <span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">id</span><span class="p">);</span>
+	   	 <span class="c">// add a remote script to buffer</span>
+ 	     <span class="nx">_threads</span><span class="p">[</span><span class="nx">config</span><span class="p">.</span><span class="nx">id</span><span class="p">].</span><span class="nx">chunks</span> <span class="o">=</span> <span class="p">[{</span>
+			<span class="nx">src</span><span class="o">:</span> <span class="nx">uri</span><span class="o">,</span>
+			<span class="nx">content</span><span class="o">:</span> <span class="s1">&#39;&#39;</span><span class="o">,</span>
+			<span class="nx">type</span><span class="o">:</span> <span class="nx">constants</span><span class="p">.</span><span class="nx">JSNODE</span><span class="o">,</span>
+			<span class="nx">params</span><span class="o">:</span> <span class="p">{</span><span class="nx">href</span><span class="o">:</span> <span class="nx">uri</span><span class="p">}</span>
+		 <span class="p">}];</span>
+		 <span class="nx">config</span><span class="p">.</span><span class="nx">underground</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+		 <span class="nx">_onStart</span><span class="p">(</span><span class="nx">config</span><span class="p">);</span>
+		 <span class="nx">dispatch</span> <span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">id</span><span class="o">,</span> <span class="nx">config</span><span class="p">);</span> <span class="c">// starting the execution chain</span>
+		 <span class="k">return</span> <span class="nx">config</span><span class="p">.</span><span class="nx">id</span><span class="o">;</span>
+	   <span class="p">}</span>
+	   <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+	<span class="p">};</span>
+	<span class="c">/**</span>
+<span class="c">	* @method cssLoader</span>
+<span class="c">	* @description Fetching a remote CSS file that will be processed thru this object...</span>
+<span class="c">	* @public</span>
+<span class="c">	* @param {object} uri       Remote CSS file that will be loaded using AJAX</span>
+<span class="c">	* @param {object} config    Literal object with the user configuration vars</span>
+<span class="c">	* @return string  ID reference to the new dispatcher&#39;s thread</span>
+<span class="c">	*/</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">cssLoader</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span> <span class="nx">uri</span><span class="o">,</span> <span class="nx">config</span> <span class="p">){</span>
+	   <span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isString</span><span class="p">(</span><span class="nx">uri</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">uri</span> <span class="o">!==</span> <span class="s1">&#39;&#39;</span><span class="p">))</span> <span class="p">{</span>
+	   	 <span class="nx">config</span> <span class="o">=</span> <span class="nx">config</span> <span class="o">||</span> <span class="p">{};</span>
+		 <span class="nx">$E</span><span class="p">.</span><span class="nx">generateId</span> <span class="p">(</span> <span class="nx">config</span> <span class="p">);</span> <span class="c">// generating an unique ID for the thread (config.id)</span>
+		 <span class="nx">obj</span><span class="p">.</span><span class="nx">kill</span> <span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">id</span><span class="p">);</span>
+	   	 <span class="c">// add a remote script to buffer</span>
+	     <span class="nx">_threads</span><span class="p">[</span><span class="nx">config</span><span class="p">.</span><span class="nx">id</span><span class="p">].</span><span class="nx">chunks</span> <span class="o">=</span> <span class="p">[{</span>
+			<span class="nx">src</span><span class="o">:</span> <span class="nx">uri</span><span class="o">,</span>
+			<span class="nx">content</span><span class="o">:</span> <span class="s1">&#39;&#39;</span><span class="o">,</span>
+			<span class="nx">type</span><span class="o">:</span> <span class="nx">constants</span><span class="p">.</span><span class="nx">CSSNODE</span><span class="o">,</span>
+			<span class="nx">params</span><span class="o">:</span> <span class="p">{</span><span class="nx">href</span><span class="o">:</span> <span class="nx">uri</span><span class="p">}</span>
+		 <span class="p">}];</span>
+		 <span class="nx">config</span><span class="p">.</span><span class="nx">underground</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+		 <span class="nx">_onStart</span><span class="p">(</span><span class="nx">config</span><span class="p">);</span>
+		 <span class="nx">dispatch</span> <span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">id</span><span class="o">,</span> <span class="nx">config</span><span class="p">);</span> <span class="c">// starting the execution chain</span>
+		 <span class="k">return</span> <span class="nx">config</span><span class="p">.</span><span class="nx">id</span><span class="o">;</span>
+	   <span class="p">}</span>
+	   <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+	<span class="p">};</span>
+	<span class="c">/**</span>
+<span class="c">	* @method isAlive</span>
+<span class="c">	* @description Verify if the a process is still alive</span>
+<span class="c">	* @public</span>
+<span class="c">	* @param {object} hd   Process handle</span>
+<span class="c">	* @return boolean</span>
+<span class="c">	*/</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">isAlive</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">hd</span> <span class="p">)</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="p">(</span><span class="nx">hd</span> <span class="o">&amp;&amp;</span> <span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">_threads</span><span class="p">[</span><span class="nx">hd</span><span class="p">])</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">_threads</span><span class="p">[</span><span class="nx">hd</span><span class="p">].</span><span class="nx">chunks</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">));</span>
+	<span class="p">};</span>
+	<span class="c">/**</span>
+<span class="c">	* @method kill</span>
+<span class="c">	* @description Kill a process...</span>
+<span class="c">	* @public</span>
+<span class="c">	* @param {object} handle   Process handle</span>
+<span class="c">	* @return void</span>
+<span class="c">	*/</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">kill</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">hd</span> <span class="p">)</span> <span class="p">{</span>
+		<span class="k">if</span> <span class="p">(</span><span class="nx">hd</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">_threads</span><span class="p">[</span><span class="nx">hd</span><span class="p">]))</span> <span class="p">{</span>
+			<span class="nx">_threads</span><span class="p">[</span><span class="nx">hd</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="nx">chunks</span><span class="o">:</span> <span class="p">[]</span><span class="o">,</span> <span class="nx">destroyer</span><span class="o">:</span> <span class="kc">null</span><span class="p">};</span>
+		<span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">isAlive</span> <span class="p">(</span><span class="nx">hd</span><span class="p">))</span> <span class="p">{</span>
+			<span class="nx">_threads</span><span class="p">[</span><span class="nx">hd</span><span class="p">].</span><span class="nx">chunks</span> <span class="o">=</span> <span class="p">[];</span> <span class="c">// discarding the handle...</span>
+		<span class="p">}</span>
+	<span class="p">};</span>
+	<span class="c">/**</span>
+<span class="c">	* @method destroy</span>
+<span class="c">	* @description Destroy an area...</span>
+<span class="c">	* @public</span>
+<span class="c">	* @param {object} handle   Process handle</span>
+<span class="c">	* @return void</span>
+<span class="c">	*/</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">destroy</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">hd</span> <span class="p">)</span> <span class="p">{</span>
+		<span class="k">this</span><span class="p">.</span><span class="nx">kill</span><span class="p">(</span><span class="nx">hd</span><span class="p">);</span>
+		<span class="k">if</span> <span class="p">(</span><span class="nx">hd</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">_threads</span><span class="p">[</span><span class="nx">hd</span><span class="p">]))</span> <span class="p">{</span>
+			<span class="nx">_threads</span><span class="p">[</span><span class="nx">hd</span><span class="p">].</span><span class="nx">destroyer</span><span class="p">.</span><span class="nx">fire</span><span class="p">(</span> <span class="nx">$</span><span class="p">(</span><span class="nx">hd</span><span class="p">)</span><span class="o">,</span> <span class="p">{}</span> <span class="p">);</span>
+		<span class="p">}</span>
+	<span class="p">};</span>
+	<span class="c">/**</span>
+<span class="c">	 * @method onDestroy</span>
+<span class="c">	 * @description subscribe a new destroyer for a certain area...</span>
+<span class="c">	 * @public</span>
+<span class="c">	 * @param {string} hd   	Unique id for the area to be monitored</span>
+<span class="c">	 * @param {function} bh   	Listener</span>
+<span class="c">	 * @param {object} scope   	Execution scope</span>
+<span class="c">	 * @return boolean</span>
+<span class="c">	 */</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">onDestroy</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">hd</span><span class="o">,</span> <span class="nx">bh</span><span class="o">,</span> <span class="nx">scope</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">params</span> <span class="o">=</span> <span class="p">(</span><span class="nx">scope</span><span class="o">?</span><span class="p">[</span><span class="nx">bh</span><span class="o">,</span> <span class="nx">scope</span><span class="o">,</span> <span class="kc">true</span><span class="p">]</span><span class="o">:</span><span class="p">[</span><span class="nx">bh</span><span class="p">]);</span> <span class="c">// params for scope corrections</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">_threads</span><span class="p">[</span><span class="nx">hd</span><span class="p">])</span> <span class="o">&amp;&amp;</span> <span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">_threads</span><span class="p">[</span><span class="nx">hd</span><span class="p">].</span><span class="nx">destroyer</span><span class="p">))</span> <span class="p">{</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">scope</span><span class="p">))</span> <span class="p">{</span>
+			  <span class="nx">_threads</span><span class="p">[</span><span class="nx">hd</span><span class="p">].</span><span class="nx">destroyer</span><span class="p">.</span><span class="nx">subscribe</span><span class="p">(</span><span class="nx">bh</span><span class="o">,</span> <span class="nx">scope</span><span class="o">,</span> <span class="kc">true</span><span class="p">);</span>  <span class="c">// correcting the default scope</span>
+			<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+			  <span class="nx">_threads</span><span class="p">[</span><span class="nx">hd</span><span class="p">].</span><span class="nx">destroyer</span><span class="p">.</span><span class="nx">subscribe</span><span class="p">(</span><span class="nx">bh</span><span class="p">);</span>  <span class="c">// use the default scope</span>
+			<span class="p">}</span>
+			<span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
+		<span class="p">}</span>
+		<span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+	<span class="p">};</span>
+	<span class="c">/**</span>
+<span class="c">	 * @method init</span>
+<span class="c">	 * @description Initialization routine (optional)</span>
+<span class="c">	 * @public</span>
+<span class="c">	 * @param {object} c   	default configuration object</span>
+<span class="c">	 * @return void</span>
+<span class="c">	 */</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">init</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">c</span><span class="p">)</span> <span class="p">{</span>
+		<span class="nx">c</span> <span class="o">=</span> <span class="nx">c</span> <span class="o">||</span> <span class="p">{};</span>
+		<span class="nx">c</span><span class="p">.</span><span class="nx">relative</span> <span class="o">=</span> <span class="nx">c</span><span class="p">.</span><span class="nx">relative</span> <span class="o">||</span> <span class="kc">false</span><span class="o">;</span>
+		<span class="nx">_oDefaultConfig</span> <span class="o">=</span> <span class="nx">c</span><span class="o">;</span>
+	<span class="p">};</span>
+	<span class="c">/**</span>
+<span class="c">	* @method firewall</span>
+<span class="c">	* @description Analyze the uri before start the downloading process (if the uri isn&#39;t in over the current domain name, the dispatcher can use a proxy)</span>
+<span class="c">	* @public</span>
+<span class="c">	* @param {String} uri     	  Remote URL</span>
+<span class="c">	* @param {Object} config      Used to pass the user configuration thru the chain of execution</span>
+<span class="c">	* @param {Boolean} monolitic  Do not use proxy</span>
+<span class="c">	* @return String</span>
+<span class="c">	*/</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">firewall</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span> <span class="nx">uri</span><span class="o">,</span> <span class="nx">config</span><span class="o">,</span> <span class="nx">monolitic</span> <span class="p">)</span> <span class="p">{</span>
+		<span class="kd">var</span> <span class="nx">sDomain</span> <span class="o">=</span> <span class="kc">null</span><span class="o">,</span>
+			<span class="nx">sProtocol</span> <span class="o">=</span> <span class="kc">null</span><span class="o">,</span>
+			<span class="nx">m</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+		<span class="c">// AJAX url don&#39;t work with &amp;amp;</span>
+		<span class="k">while</span> <span class="p">(</span><span class="nx">uri</span><span class="p">.</span><span class="nx">indexOf</span> <span class="p">(</span> <span class="s1">&#39;&amp;amp;&#39;</span> <span class="p">)</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+		    <span class="nx">uri</span> <span class="o">=</span> <span class="nx">uri</span><span class="p">.</span><span class="nx">replace</span> <span class="p">(</span> <span class="s1">&#39;&amp;amp;&#39;</span><span class="o">,</span> <span class="s1">&#39;&amp;&#39;</span> <span class="p">);</span>
+		<span class="p">}</span>
+		<span class="c">// defining the proxy for cross-domain scripting...</span>
+		<span class="nx">config</span><span class="p">.</span><span class="nx">proxy</span> <span class="o">=</span> <span class="nx">config</span><span class="p">.</span><span class="nx">proxy</span> <span class="o">||</span> <span class="nx">constants</span><span class="p">.</span><span class="nx">proxy</span><span class="o">;</span>
+		<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isFunction</span><span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">firewall</span><span class="p">))</span> <span class="p">{</span>
+		  <span class="c">// external verification only...</span>
+		  <span class="nx">uri</span> <span class="o">=</span> <span class="nx">config</span><span class="p">.</span><span class="nx">firewall</span><span class="p">.</span><span class="nx">apply</span> <span class="p">(</span> <span class="nx">config</span><span class="o">,</span> <span class="p">[</span><span class="nx">uri</span><span class="p">]</span> <span class="p">);</span>
+		<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+			<span class="c">// internal verification only...</span>
+			<span class="c">// monolithic execution discard the cross-domain capabilities</span>
+			<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">config</span><span class="p">.</span><span class="nx">monolithic</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="nx">monolitic</span> <span class="o">&amp;&amp;</span> <span class="nx">config</span><span class="p">.</span><span class="nx">proxy</span><span class="p">)</span> <span class="p">{</span>
+				<span class="nx">m</span> <span class="o">=</span> <span class="nx">uri</span><span class="p">.</span><span class="nx">match</span><span class="p">(</span><span class="nx">reURI</span><span class="p">);</span> <span class="c">// checking the RE to verify if the url is external...</span>
+				<span class="k">if</span> <span class="p">(</span><span class="nx">m</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">m</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">!==</span> <span class="nb">document</span><span class="p">.</span><span class="nx">domain</span><span class="p">))</span> <span class="p">{</span>
+					<span class="c">// the uri is external, escaping especial chars and use a proxy</span>
+					<span class="nx">uri</span> <span class="o">=</span> <span class="nx">config</span><span class="p">.</span><span class="nx">proxy</span> <span class="o">+</span> <span class="nx">escape</span><span class="p">(</span><span class="nx">uri</span><span class="p">);</span>
+				<span class="p">}</span>
+			<span class="p">}</span>
+		<span class="p">}</span>
+		<span class="k">return</span> <span class="nx">uri</span><span class="o">;</span>
+	<span class="p">};</span>
+ 	<span class="c">/**</span>
+<span class="c">    * @method obj2query</span>
+<span class="c">	* @description converting a literal object into a query string</span>
+<span class="c">    * @public</span>
+<span class="c">    * @param {object} params       Literal object to create the url querystring</span>
+<span class="c">    * @return string</span>
+<span class="c">    */</span>
+    <span class="nx">obj</span><span class="p">.</span><span class="nx">obj2query</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span> <span class="nx">params</span> <span class="p">)</span> <span class="p">{</span>
+		<span class="kd">var</span> <span class="nx">u</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">,</span> <span class="nx">indx</span><span class="o">;</span>
+		<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">params</span><span class="p">))</span> <span class="p">{</span>
+			<span class="k">for</span> <span class="p">(</span><span class="nx">key</span> <span class="k">in</span> <span class="nx">params</span><span class="p">)</span> <span class="p">{</span>
+				<span class="k">if</span> <span class="p">(</span><span class="nx">params</span><span class="p">.</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="nx">key</span><span class="p">))</span> <span class="p">{</span>
+					<span class="nx">u</span> <span class="o">+=</span> <span class="p">(</span><span class="nx">u</span><span class="o">==</span><span class="s1">&#39;&#39;</span><span class="o">?</span><span class="s1">&#39;&#39;</span><span class="o">:</span><span class="s1">&#39;&amp;&#39;</span><span class="p">);</span>
+					<span class="nx">u</span> <span class="o">+=</span> <span class="nx">key</span><span class="o">+</span><span class="s1">&#39;=&#39;</span><span class="o">+</span><span class="nx">params</span><span class="p">[</span><span class="nx">key</span><span class="p">];</span>
+				<span class="p">}</span>
+			<span class="p">}</span>
+		<span class="p">}</span>
+		<span class="k">return</span> <span class="nx">u</span><span class="o">;</span>
+    <span class="p">};</span>
+    <span class="c">/**</span>
+<span class="c">    * @description augment an url with more parameters, overriding...</span>
+<span class="c">    * @method augmentURI</span>
+<span class="c">    * @public</span>
+<span class="c">    * @param {string} url   url that should be expanded with new arguments</span>
+<span class="c">    * @param {string|array} m   MoreParams: string: param1=value1&amp;param2=value2 or associative array</span>
+<span class="c">    * @return string</span>
+<span class="c">    */</span>
+    <span class="nx">obj</span><span class="p">.</span><span class="nx">augmentURI</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span> <span class="nx">url</span><span class="o">,</span> <span class="nx">m</span> <span class="p">)</span> <span class="p">{</span>
+		<span class="nx">m</span> <span class="o">=</span> <span class="nx">m</span> <span class="o">||</span> <span class="p">{};</span>
+	    <span class="kd">var</span> <span class="nx">o</span> <span class="o">=</span> <span class="nx">_parseUri</span><span class="p">(</span><span class="nx">url</span><span class="o">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">strictMode</span><span class="p">)</span><span class="o">,</span>
+	        <span class="nx">u</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">;</span>
+		<span class="nx">o</span><span class="p">.</span><span class="nx">queryKey</span> <span class="o">=</span> <span class="nx">o</span><span class="p">.</span><span class="nx">queryKey</span> <span class="o">||</span> <span class="p">{};</span>
+		<span class="nx">$L</span><span class="p">.</span><span class="nx">augmentObject</span><span class="p">(</span><span class="nx">o</span><span class="p">.</span><span class="nx">queryKey</span><span class="o">,</span> <span class="nx">m</span><span class="o">,</span> <span class="kc">true</span><span class="p">);</span>
+		<span class="k">if</span> <span class="p">(</span><span class="nx">o</span><span class="p">.</span><span class="nx">protocol</span><span class="p">)</span> <span class="nx">u</span> <span class="o">+=</span> <span class="nx">o</span><span class="p">.</span><span class="nx">protocol</span> <span class="o">+</span> <span class="s1">&#39;:&#39;</span><span class="o">;</span>
+		<span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">strictMode</span><span class="p">)</span> <span class="p">{</span>
+			<span class="k">if</span> <span class="p">(</span><span class="sr">/^(?:[^:\/?#]+:)?\/\//</span><span class="p">.</span><span class="nx">test</span><span class="p">(</span><span class="nx">o</span><span class="p">.</span><span class="nx">source</span><span class="p">))</span> <span class="nx">u</span> <span class="o">+=</span> <span class="s1">&#39;//&#39;</span><span class="o">;</span>
+		<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+			<span class="k">if</span> <span class="p">(</span><span class="sr">/^(?:(?![^:@]+:[^:@\/]*@)[^:\/?#.]+:)?\/\//</span><span class="p">.</span><span class="nx">test</span><span class="p">(</span><span class="nx">o</span><span class="p">.</span><span class="nx">source</span><span class="p">))</span> <span class="nx">u</span> <span class="o">+=</span> <span class="s1">&#39;//&#39;</span><span class="o">;</span>
+		<span class="p">}</span>
+		<span class="k">if</span> <span class="p">(</span><span class="nx">o</span><span class="p">.</span><span class="nx">authority</span><span class="p">)</span> <span class="p">{</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">o</span><span class="p">.</span><span class="nx">userInfo</span><span class="p">)</span> <span class="p">{</span>
+				<span class="k">if</span> <span class="p">(</span><span class="nx">o</span><span class="p">.</span><span class="nx">user</span><span class="p">)</span> <span class="nx">u</span> <span class="o">+=</span> <span class="nx">o</span><span class="p">.</span><span class="nx">user</span><span class="o">;</span>
+				<span class="k">if</span> <span class="p">(</span><span class="nx">o</span><span class="p">.</span><span class="nx">userInfo</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="nx">u</span> <span class="o">+=</span> <span class="s1">&#39;:&#39;</span><span class="o">;</span>
+				<span class="k">if</span> <span class="p">(</span><span class="nx">o</span><span class="p">.</span><span class="nx">password</span><span class="p">)</span> <span class="nx">u</span> <span class="o">+=</span> <span class="nx">o</span><span class="p">.</span><span class="nx">password</span><span class="o">;</span>
+				<span class="nx">u</span> <span class="o">+=</span> <span class="s1">&#39;@&#39;</span><span class="o">;</span>
+			<span class="p">}</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">o</span><span class="p">.</span><span class="nx">host</span><span class="p">)</span> <span class="nx">u</span> <span class="o">+=</span> <span class="nx">o</span><span class="p">.</span><span class="nx">host</span><span class="o">;</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">o</span><span class="p">.</span><span class="nx">port</span><span class="p">)</span> <span class="nx">u</span> <span class="o">+=</span> <span class="s1">&#39;:&#39;</span> <span class="o">+</span> <span class="nx">o</span><span class="p">.</span><span class="nx">port</span><span class="o">;</span>
+		<span class="p">}</span>
+		<span class="k">if</span> <span class="p">(</span><span class="nx">o</span><span class="p">.</span><span class="nx">relative</span><span class="p">)</span> <span class="p">{</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">o</span><span class="p">.</span><span class="nx">path</span><span class="p">)</span> <span class="p">{</span>
+				<span class="k">if</span> <span class="p">(</span><span class="nx">o</span><span class="p">.</span><span class="nx">directory</span><span class="p">)</span> <span class="nx">u</span> <span class="o">+=</span> <span class="nx">o</span><span class="p">.</span><span class="nx">directory</span><span class="o">;</span>
+				<span class="k">if</span> <span class="p">(</span><span class="nx">o</span><span class="p">.</span><span class="nx">file</span><span class="p">)</span> <span class="nx">u</span> <span class="o">+=</span> <span class="nx">o</span><span class="p">.</span><span class="nx">file</span><span class="o">;</span>
+			<span class="p">}</span>
+			<span class="nx">u</span> <span class="o">+=</span> <span class="s1">&#39;?&#39;</span><span class="o">;//</span> <span class="o">+</span> <span class="nx">o</span><span class="p">.</span><span class="nx">query</span><span class="o">;</span>
+			<span class="k">for</span> <span class="p">(</span><span class="nx">sName</span> <span class="k">in</span> <span class="nx">o</span><span class="p">.</span><span class="nx">queryKey</span><span class="p">)</span> <span class="p">{</span>
+				<span class="k">if</span> <span class="p">(</span><span class="nx">o</span><span class="p">.</span><span class="nx">queryKey</span><span class="p">.</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="nx">sName</span><span class="p">))</span> <span class="p">{</span>
+					<span class="nx">u</span> <span class="o">+=</span> <span class="nx">sName</span><span class="o">+</span><span class="s1">&#39;=&#39;</span><span class="o">+</span><span class="nx">o</span><span class="p">.</span><span class="nx">queryKey</span><span class="p">[</span><span class="nx">sName</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;&amp;&#39;</span><span class="o">;</span>
+				<span class="p">}</span>
+			<span class="p">}</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">o</span><span class="p">.</span><span class="nx">anchor</span><span class="p">)</span> <span class="nx">u</span> <span class="o">+=</span> <span class="s1">&#39;#&#39;</span> <span class="o">+</span> <span class="nx">o</span><span class="p">.</span><span class="nx">anchor</span><span class="o">;</span>
+		<span class="p">}</span>
+		<span class="k">return</span> <span class="nx">u</span><span class="o">;</span>
+    <span class="p">};</span>
+	<span class="c">/**</span>
+<span class="c">	* @method toString</span>
+<span class="c">	* @description Returns a string representing the dispatcher plugin.</span>
+<span class="c">	* @return {String}</span>
+<span class="c">	*/</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">toString</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+	    <span class="k">return</span> <span class="p">(</span><span class="s2">&quot;YUI Dispatcher Plugin&quot;</span><span class="p">);</span>
+	<span class="p">};</span>
+	<span class="k">return</span> <span class="nx">obj</span><span class="o">;</span>
+  <span class="p">}();</span>
+<span class="p">})();</span>
+<span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">Dispatcher</span> <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">plugin</span><span class="p">.</span><span class="nx">Dispatcher</span><span class="o">;</span> <span class="c">// deprecated: backward compatibility issue.</span>
+</pre></div>
+                    </div>
+			</div>
+		</div>
+		<div class="yui-b">
+            <div class="nav">
+
+                    <div id="moduleList" class="module">
+                        <h4>Modules</h4>
+                        <ul class="content">
+                                <li class=""><a href="module_accordion.html" title="accordion">accordion</a></li>
+                                <li class="selected"><a href="module_bubbling.html" title="bubbling">bubbling</a></li>
+                                <li class=""><a href="module_dispatcher.html" title="dispatcher">dispatcher</a></li>
+                                <li class=""><a href="module_lighter.html" title="lighter">lighter</a></li>
+                                <li class=""><a href="module_loading.html" title="loading">loading</a></li>
+                                <li class=""><a href="module_navigation.html" title="navigation">navigation</a></li>
+                                <li class=""><a href="module_tooltipmanager.html" title="tooltipmanager">tooltipmanager</a></li>
+                                <li class=""><a href="module_wizard.html" title="wizard">wizard</a></li>
+                        </ul>
+                    </div>
+
+                    <div id="classList" class="module">
+                        <h4>Classes</h4>
+                        <ul class="content">
+                                <li class=""><a href="YAHOO.Bubbling.html" title="YAHOO.Bubbling">YAHOO.Bubbling</a></li>
+                        </ul>
+                    </div>
+
+                    <div id="fileList" class="module">
+                        <h4>Files</h4>
+                        <ul class="content">        
+                                <li class="selected"><a href="dispatcher.js.html" title="dispatcher.js">dispatcher.js</a></li>
+                        </ul>
+                    </div>
+
+
+
+
+
+            </div>
+		</div>
+	</div>
+	<div id="ft">
+        <hr />
+        Copyright &copy; 2009 <a href="http://www.bubbling-library.com/" title="JavaScript Bubbling Library - YUI Extension">Bubbling Library</a>. All rights reserved.
+	</div>
+</div>
+<script type="text/javascript">
+    ALL_YUI_PROPS = [{"url": "YAHOO.Bubbling.html#method_addDefaultAction", "access": "", "host": "YAHOO.Bubbling", "type": "method", "name": "addDefaultAction"}, {"url": "YAHOO.Bubbling.html#method_addLayer", "access": "", "host": "YAHOO.Bubbling", "type": "method", "name": "addLayer"}, {"url": "YAHOO.Bubbling.html#method_fire", "access": "", "host": "YAHOO.Bubbling", "type": "method", "name": "fire"}, {"url": "YAHOO.Bubbling.html#method_getActionName", "access": "", "host": "YAHOO.Bubbling", "type": "method", "name": "getActionName"}, {"url": "YAHOO.Bubbling.html#method_getAllActions", "access": "", "host": "YAHOO.Bubbling", "type": "method", "name": "getAllActions"}, {"url": "YAHOO.Bubbling.html#method_getAncestorByClassName", "access": "", "host": "YAHOO.Bubbling", "type": "method", "name": "getAncestorByClassName"}, {"url": "YAHOO.Bubbling.html#method_getAncestorByTagName", "access": "", "host": "YAHOO.Bubbling", "type": "method", "name": "getAncestorByTagName"}, {"url": "YAHOO.Bubbling.html#method_getFirstChildByTagName", "access": "", "host": "YAHOO.Bubbling", "type": "method", "name": "getFirstChildByTagName"}, {"url": "YAHOO.Bubbling.html#method_getOwnerByClassName", "access": "", "host": "YAHOO.Bubbling", "type": "method", "name": "getOwnerByClassName"}, {"url": "YAHOO.Bubbling.html#method_getOwnerByTagName", "access": "", "host": "YAHOO.Bubbling", "type": "method", "name": "getOwnerByTagName"}, {"url": "YAHOO.Bubbling.html#method_getYUIButton", "access": "", "host": "YAHOO.Bubbling", "type": "method", "name": "getYUIButton"}, {"url": "YAHOO.Bubbling.html#method_init", "access": "", "host": "YAHOO.Bubbling", "type": "method", "name": "init"}, {"url": "YAHOO.Bubbling.html#method_initMonitors", "access": "", "host": "YAHOO.Bubbling", "type": "method", "name": "initMonitors"}, {"url": "YAHOO.Bubbling.html#method_on", "access": "", "host": "YAHOO.Bubbling", "type": "method", "name": "on"}, {"url": "YAHOO.Bubbling.html#method_onEventTrigger", "access": "", "host": "YAHOO.Bubbling", "type": "method", "name": "onEventTrigger"}, {"url": "YAHOO.Bubbling.html#method_onKeyPressedTrigger", "access": "", "host": "YAHOO.Bubbling", "type": "method", "name": "onKeyPressedTrigger"}, {"url": "YAHOO.Bubbling.html#method_processingAction", "access": "", "host": "YAHOO.Bubbling", "type": "method", "name": "processingAction"}, {"url": "YAHOO.Bubbling.html#method_subscribe", "access": "", "host": "YAHOO.Bubbling", "type": "method", "name": "subscribe"}, {"url": "YAHOO.Bubbling.html#method_virtualTarget", "access": "", "host": "YAHOO.Bubbling", "type": "method", "name": "virtualTarget"}];
+</script>
+</body>
+</html>

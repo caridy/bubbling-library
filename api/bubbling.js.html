@@ -1,0 +1,772 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html xmlns:yui="http://yuilibrary.com/rdf/1.0/yui.rdf#">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+	<title>API: accordion   bubbling.js  (YRegion Utility)</title>
+
+	<link rel="stylesheet" type="text/css" href="assets/reset-fonts-grids-min.css?stamp=" />
+	<link rel="stylesheet" type="text/css" href="assets/api.css?stamp=" />
+
+    <script type="text/javascript" src="assets/api-js?stamp="></script>
+    <script type="text/javascript" src="assets/ac-js?stamp="></script>
+</head>
+
+<body id="yahoo-com">
+
+<div id="doc3" class="yui-t2">
+	<div id="hd">
+        <h1><a href="http://www.bubbling-library.com/" title="JavaScript Bubbling Library - YUI Extension">JavaScript Bubbling Library - YUI Extension</a></h1>
+        <h3>accordion&nbsp; <span class="subtitle">2.2</span></h3>
+        <a href="./index.html" title="JavaScript Bubbling Library">Bubbling</a> 
+            &gt; <a href="./module_accordion.html" title="accordion">accordion</a>
+                
+                 &gt; bubbling.js (source view) 
+        <form onsubmit="return false">
+            <div id="propertysearch">
+                Search: <input autocomplete="off" id="searchinput" />
+                <div id="searchresults">
+                    &nbsp;
+                </div>
+            </div>
+        </form>
+	</div>
+
+	<div id="bd">
+		<div id="yui-main">
+			<div class="yui-b">
+            <form action="#" name="yui-classopts-form" method="get" id="yui-classopts-form">
+                <fieldset>
+                    <legend>Filters</legend>
+                <span class="classopts"><input type="checkbox" name="show_private" id="show_private" /> <label for="show_private">Show Private</label></span>
+                <span class="classopts"><input type="checkbox" name="show_protected" id="show_protected" /> <label for="show_protected">Show Protected</label></span>
+                <span class="classopts"><input type="checkbox" name="show_deprecated" id="show_deprecated" /> <label for="show_deprecated">Show Deprecated</label></span>
+                </fieldset>
+            </form>
+
+                    <div id="srcout">
+                        <style>
+                            #doc3 .classopts { display:none; }
+                        </style>
+<div class="highlight"><pre><span class="c">/**</span>
+<span class="c"> * Bubbling Core Definition: The bubbling core basically define a mechanism (communication pipes) to easily interact between the browser, server and the components in a web app, defining a programming pattern based on messages and listeners at the highest level.</span>
+<span class="c"> *</span>
+<span class="c"> * @namespace YAHOO</span>
+<span class="c"> * @module bubbling</span>
+<span class="c"> * @requires yahoo</span>
+<span class="c"> * @requires event</span>
+<span class="c"> * @requires dom</span>
+<span class="c"> */</span>
+
+<span class="nx">YAHOO</span><span class="p">.</span><span class="nx">namespace</span><span class="p">(</span><span class="s2">&quot;plugin&quot;</span><span class="o">,</span><span class="s2">&quot;behavior&quot;</span><span class="p">);</span>
+<span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">$Y</span> <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="o">,</span>
+	  <span class="nx">$E</span> <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">Event</span><span class="o">,</span>
+	  <span class="nx">$D</span> <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">Dom</span><span class="o">,</span>
+	  <span class="nx">$L</span> <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">lang</span><span class="o">,</span>
+	  <span class="nx">$</span>  <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">Dom</span><span class="p">.</span><span class="nx">get</span><span class="o">;</span>
+	  
+  <span class="c">/**</span>
+<span class="c">   * The Bubbling Core Object</span>
+<span class="c">   * @class Bubbling</span>
+<span class="c">   * @static</span>
+<span class="c">   */</span>
+  <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">Bubbling</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+  	<span class="kd">var</span> <span class="nx">obj</span> <span class="o">=</span> <span class="p">{}</span><span class="o">,</span>
+	    <span class="nx">_config</span> <span class="o">=</span> <span class="p">{</span>
+			<span class="nx">classname</span><span class="o">:</span> <span class="s1">&#39;js&#39;</span>
+		<span class="p">}</span><span class="o">,</span>
+		<span class="nx">_handle</span> <span class="o">=</span> <span class="kc">null</span><span class="o">,</span>
+		<span class="c">// private stuff</span>
+		<span class="nx">navRelExternal</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">layer</span><span class="o">,</span> <span class="nx">args</span><span class="p">)</span> <span class="p">{</span>
+			  <span class="kd">var</span> <span class="nx">el</span> <span class="o">=</span> <span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">anchor</span><span class="o">,</span> <span class="nx">r</span><span class="o">,</span> <span class="nx">t</span><span class="o">;</span>
+			  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">flagged</span> <span class="o">||</span> <span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">decrepitate</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nx">el</span><span class="p">)</span> <span class="p">{</span>
+				  <span class="nx">r</span> <span class="o">=</span> <span class="nx">el</span><span class="p">.</span><span class="nx">getAttribute</span><span class="p">(</span><span class="s2">&quot;rel&quot;</span><span class="p">);</span>
+				  <span class="nx">t</span> <span class="o">=</span> <span class="nx">el</span><span class="p">.</span><span class="nx">getAttribute</span><span class="p">(</span><span class="s2">&quot;target&quot;</span><span class="p">);</span>
+			  	  <span class="k">if</span> <span class="p">((</span><span class="o">!</span><span class="nx">t</span> <span class="o">||</span> <span class="p">(</span><span class="nx">t</span> <span class="o">===</span> <span class="s1">&#39;&#39;</span><span class="p">))</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">r</span> <span class="o">==</span> <span class="s1">&#39;external&#39;</span><span class="p">))</span> <span class="p">{</span>
+					<span class="nx">el</span><span class="p">.</span><span class="nx">setAttribute</span><span class="p">(</span><span class="s2">&quot;target&quot;</span><span class="o">,</span> <span class="s2">&quot;blank&quot;</span><span class="p">);</span>
+			      <span class="p">}</span>
+			  <span class="p">}</span>
+		<span class="p">}</span><span class="o">,</span>
+	    <span class="nx">defaultActionsControl</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">layer</span><span class="o">,</span> <span class="nx">args</span><span class="p">)</span> <span class="p">{</span>
+		  <span class="nx">obj</span><span class="p">.</span><span class="nx">processingAction</span> <span class="p">(</span><span class="nx">layer</span><span class="o">,</span> <span class="nx">args</span><span class="o">,</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">defaultActions</span><span class="p">);</span>
+	    <span class="p">}</span><span class="o">,</span>
+		<span class="nx">_target</span> <span class="o">=</span> <span class="p">{</span><span class="nx">newRef</span><span class="o">:</span> <span class="kc">null</span><span class="o">,</span> <span class="nx">oldRef</span><span class="o">:</span> <span class="kc">null</span><span class="o">,</span> <span class="nx">value</span><span class="o">:</span> <span class="kc">null</span><span class="p">};</span> <span class="c">// last target (this variable will be used by the onChange/onFocus/onBlur layer)</span>
+	
+	<span class="kd">function</span> <span class="nx">_onBlur</span><span class="p">()</span> <span class="p">{</span>
+		<span class="k">if</span> <span class="p">(</span><span class="nx">_target</span><span class="p">.</span><span class="nx">oldRef</span><span class="p">)</span> <span class="p">{</span>
+			<span class="c">// firing the blur</span>
+			<span class="nx">obj</span><span class="p">.</span><span class="nx">fire</span><span class="p">(</span> <span class="s1">&#39;blur&#39;</span><span class="o">,</span> <span class="p">{</span>
+				<span class="nx">target</span><span class="o">:</span> <span class="nx">_target</span><span class="p">.</span><span class="nx">oldRef</span>
+			<span class="p">});</span>
+		<span class="p">}</span>
+	<span class="p">}</span>
+	
+	<span class="kd">function</span> <span class="nx">_onFocus</span><span class="p">()</span> <span class="p">{</span>
+		<span class="k">if</span> <span class="p">(</span><span class="nx">_target</span><span class="p">.</span><span class="nx">newRef</span><span class="p">)</span> <span class="p">{</span>
+			<span class="c">// firing the blur</span>
+			<span class="nx">obj</span><span class="p">.</span><span class="nx">fire</span><span class="p">(</span> <span class="s1">&#39;focus&#39;</span><span class="o">,</span> <span class="p">{</span>
+				<span class="nx">target</span><span class="o">:</span> <span class="nx">_target</span><span class="p">.</span><span class="nx">newRef</span><span class="o">,</span>
+				<span class="nx">blur</span><span class="o">:</span> <span class="nx">_target</span><span class="p">.</span><span class="nx">oldRef</span>
+			<span class="p">});</span>
+		<span class="p">}</span>
+	<span class="p">}</span>
+	
+	<span class="kd">function</span> <span class="nx">_onChange</span><span class="p">()</span> <span class="p">{</span>
+		<span class="k">if</span> <span class="p">(</span><span class="nx">_target</span><span class="p">.</span><span class="nx">newRef</span><span class="p">)</span> <span class="p">{</span>
+			<span class="c">// checking select tag. multi-selection is not supported for onChange</span>
+			<span class="k">try</span> <span class="p">{</span>
+				<span class="nx">_target</span><span class="p">.</span><span class="nx">newValue</span> <span class="o">=</span> <span class="p">(</span><span class="nx">_target</span><span class="p">.</span><span class="nx">tagName</span><span class="o">==</span><span class="s2">&quot;SELECT&quot;</span><span class="o">&amp;&amp;!</span><span class="nx">_target</span><span class="p">.</span><span class="nx">multiple</span><span class="o">?</span><span class="nx">_target</span><span class="p">.</span><span class="nx">newRef</span><span class="p">[</span><span class="nx">_target</span><span class="p">.</span><span class="nx">newRef</span><span class="p">.</span><span class="nx">selectedIndex</span><span class="p">].</span><span class="nx">value</span><span class="o">:</span><span class="nx">_target</span><span class="p">.</span><span class="nx">newRef</span><span class="p">.</span><span class="nx">value</span><span class="p">);</span>
+			<span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+				<span class="nx">_target</span><span class="p">.</span><span class="nx">newValue</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+			<span class="p">}</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">_target</span><span class="p">.</span><span class="nx">newValue</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">_target</span><span class="p">.</span><span class="nx">newValue</span> <span class="o">!=</span> <span class="nx">_target</span><span class="p">.</span><span class="nx">oldValue</span><span class="p">))</span> <span class="p">{</span>
+				<span class="k">if</span> <span class="p">(</span><span class="nx">YAHOO</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">ua</span><span class="p">.</span><span class="nx">webkit</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">_target</span><span class="p">.</span><span class="nx">tagName</span> <span class="o">==</span> <span class="s2">&quot;SELECT&quot;</span><span class="p">))</span> <span class="p">{</span>
+					<span class="nx">_target</span><span class="p">.</span><span class="nx">newRef</span><span class="p">.</span><span class="nx">setAttribute</span><span class="p">(</span> <span class="s1">&#39;default&#39;</span><span class="o">,</span> <span class="nx">_target</span><span class="p">.</span><span class="nx">newValue</span> <span class="p">);</span>
+				<span class="p">}</span>
+				<span class="c">// firing the blur</span>
+				<span class="nx">obj</span><span class="p">.</span><span class="nx">fire</span><span class="p">(</span> <span class="s1">&#39;change&#39;</span><span class="o">,</span> <span class="p">{</span>
+					<span class="nx">target</span><span class="o">:</span> <span class="nx">_target</span><span class="p">.</span><span class="nx">newRef</span><span class="o">,</span>
+					<span class="nx">value</span><span class="o">:</span> <span class="nx">_target</span><span class="p">.</span><span class="nx">newValue</span><span class="o">,</span>
+					<span class="nx">newValue</span><span class="o">:</span> <span class="nx">_target</span><span class="p">.</span><span class="nx">newValue</span><span class="o">,</span>
+					<span class="nx">oldValue</span><span class="o">:</span> <span class="nx">_target</span><span class="p">.</span><span class="nx">oldValue</span><span class="o">,</span>
+					<span class="nx">rel</span><span class="o">:</span> <span class="nx">_target</span><span class="p">.</span><span class="nx">newRef</span><span class="p">.</span><span class="nx">getAttribute</span><span class="p">(</span> <span class="s1">&#39;rel&#39;</span> <span class="p">)</span>
+				<span class="p">});</span>
+				<span class="nx">_target</span><span class="p">.</span><span class="nx">oldValue</span> <span class="o">=</span> <span class="nx">_target</span><span class="p">.</span><span class="nx">newValue</span><span class="o">;</span>
+			<span class="p">}</span>
+		<span class="p">}</span>
+	<span class="p">}</span>
+	
+	<span class="kd">function</span> <span class="nx">_setTarget</span> <span class="p">(</span><span class="nx">newRef</span><span class="o">,</span> <span class="nx">tn</span><span class="p">)</span> <span class="p">{</span>
+		<span class="nx">_target</span> <span class="o">=</span> <span class="p">{</span>
+			<span class="nx">oldRef</span><span class="o">:</span> <span class="nx">_target</span><span class="p">.</span><span class="nx">newRef</span><span class="o">,</span>
+			<span class="nx">newRef</span><span class="o">:</span> <span class="nx">newRef</span><span class="o">,</span>
+			<span class="nx">tagName</span><span class="o">:</span> <span class="p">(</span><span class="nx">newRef</span><span class="o">&amp;&amp;</span><span class="nx">newRef</span><span class="p">.</span><span class="nx">tagName</span><span class="o">?</span><span class="nx">newRef</span><span class="p">.</span><span class="nx">tagName</span><span class="p">.</span><span class="nx">toUpperCase</span><span class="p">()</span><span class="o">:</span><span class="kc">null</span><span class="p">)</span><span class="o">,</span>
+			<span class="nx">oldValue</span><span class="o">:</span> <span class="p">(</span><span class="nx">newRef</span><span class="o">?</span><span class="nx">newRef</span><span class="p">.</span><span class="nx">value</span><span class="o">:</span><span class="kc">null</span><span class="p">)</span>
+		<span class="p">};</span>
+		<span class="k">if</span> <span class="p">(</span><span class="nx">tn</span><span class="o">==</span><span class="s1">&#39;SELECT&#39;</span><span class="o">&amp;&amp;!</span><span class="nx">newRef</span><span class="p">.</span><span class="nx">multiple</span><span class="p">)</span> <span class="p">{</span> 
+			<span class="c">// select element (hack for safari: default attribute)</span>
+			<span class="nx">_target</span><span class="p">.</span><span class="nx">oldValue</span> <span class="o">=</span> <span class="p">(</span><span class="nx">YAHOO</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">ua</span><span class="p">.</span><span class="nx">webkit</span><span class="o">?</span><span class="nx">newRef</span><span class="p">.</span><span class="nx">getAttribute</span><span class="p">(</span><span class="s1">&#39;default&#39;</span><span class="p">)</span><span class="o">:</span><span class="nx">newRef</span><span class="p">[</span><span class="nx">newRef</span><span class="p">.</span><span class="nx">selectedIndex</span><span class="p">].</span><span class="nx">value</span><span class="p">);</span>
+		<span class="p">}</span>
+	<span class="p">}</span>
+
+	<span class="kd">function</span> <span class="nx">_isFocusable</span> <span class="p">(</span><span class="nx">t</span><span class="p">)</span> <span class="p">{</span>
+		<span class="kd">var</span> <span class="nx">tagName</span><span class="o">,</span> <span class="nx">tags</span> <span class="o">=</span> <span class="s1">&#39;[INPUT][TEXTAREA][SELECT][BUTTON][A][IMG]&#39;</span><span class="o">;</span>
+		<span class="k">if</span> <span class="p">(</span><span class="nx">t</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">tagName</span> <span class="o">=</span> <span class="nx">t</span><span class="p">.</span><span class="nx">tagName</span><span class="p">.</span><span class="nx">toUpperCase</span><span class="p">()))</span> <span class="p">{</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">t</span><span class="p">.</span><span class="nx">getAttribute</span><span class="p">(</span><span class="s1">&#39;tabindex&#39;</span><span class="p">)</span> <span class="o">||</span> <span class="p">(</span><span class="nx">tags</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="o">+</span><span class="nx">tagName</span><span class="o">+</span><span class="s1">&#39;]&#39;</span><span class="p">)</span> <span class="o">!==</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>  <span class="p">{</span>
+				<span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
+			<span class="p">}</span>
+		<span class="p">}</span>
+		<span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+	<span class="p">}</span>
+
+	<span class="kd">function</span> <span class="nx">_checkFocus</span> <span class="p">(</span><span class="nx">t</span><span class="o">,</span> <span class="nx">conf</span><span class="p">)</span> <span class="p">{</span>
+		<span class="c">/* checking the tagName */</span>
+		<span class="kd">var</span> <span class="nx">tn</span> <span class="o">=</span> <span class="p">(</span><span class="nx">t</span><span class="o">&amp;&amp;</span><span class="nx">t</span><span class="p">.</span><span class="nx">tagName</span><span class="o">?</span><span class="nx">t</span><span class="p">.</span><span class="nx">tagName</span><span class="p">.</span><span class="nx">toUpperCase</span><span class="p">()</span><span class="o">:</span><span class="kc">null</span><span class="p">);</span>
+		<span class="k">if</span> <span class="p">(</span><span class="nx">t</span> <span class="o">&amp;&amp;</span> <span class="nx">tn</span><span class="p">)</span> <span class="p">{</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">tn</span> <span class="o">==</span> <span class="s1">&#39;OPTION&#39;</span><span class="p">)</span> <span class="p">{</span>
+				<span class="k">return</span> <span class="nx">_checkFocus</span> <span class="p">(</span><span class="nx">t</span><span class="p">.</span><span class="nx">parentNode</span><span class="o">,</span> <span class="nx">conf</span><span class="p">);</span>
+			<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+				<span class="c">/* checking if the target is the document */</span>
+				<span class="k">if</span> <span class="p">(</span><span class="nb">document</span><span class="p">.</span><span class="nx">body</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">t</span> <span class="o">===</span> <span class="nb">document</span><span class="p">.</span><span class="nx">body</span><span class="p">))</span> <span class="p">{</span>
+					<span class="c">// the document received the focus, trigger the onBlur and onChange</span>
+					<span class="nx">_onChange</span> <span class="p">();</span>
+					<span class="nx">_setTarget</span> <span class="p">(</span><span class="kc">null</span><span class="p">);</span>
+					<span class="nx">_onBlur</span> <span class="p">();</span>
+				<span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">((</span><span class="nx">t</span> <span class="o">!==</span> <span class="nx">_target</span><span class="p">.</span><span class="nx">newRef</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nx">_isFocusable</span><span class="p">(</span><span class="nx">t</span><span class="p">))</span> <span class="p">{</span>
+					<span class="c">/* checking if the target element is focusable */</span>
+					<span class="c">/* - 1: setting the new target */</span>
+					<span class="nx">_onChange</span> <span class="p">();</span>
+					<span class="nx">_setTarget</span> <span class="p">(</span><span class="nx">t</span><span class="o">,</span> <span class="nx">tn</span><span class="p">);</span>
+					<span class="nx">_onBlur</span> <span class="p">();</span>
+					<span class="nx">_onFocus</span> <span class="p">();</span>
+				<span class="p">}</span>
+			<span class="p">}</span>
+		<span class="p">}</span>
+	<span class="p">}</span>
+
+	<span class="c">// public vars</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">ready</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">bubble</span> <span class="o">=</span> <span class="p">{};</span> <span class="c">// CustomEvent Handles</span>
+    
+	<span class="c">// mapping external methods...</span>
+	<span class="c">/**</span>
+<span class="c">	* @method getOwnerByClassName</span>
+<span class="c">	* @description Analyzing the element and the ancestor path to find a node with a certain classname</span>
+<span class="c">	* @public</span>
+<span class="c">	* @param {Node} node    		 DOM element that should be analyzed</span>
+<span class="c">	* @param {String} tagName        DOM event</span>
+<span class="c">	* @return {Node} DOM Element or null</span>
+<span class="c">	*/</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">getOwnerByClassName</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">node</span><span class="o">,</span> <span class="nx">className</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="p">(</span><span class="nx">$D</span><span class="p">.</span><span class="nx">hasClass</span><span class="p">(</span><span class="nx">node</span><span class="o">,</span> <span class="nx">className</span><span class="p">)</span><span class="o">?</span><span class="nx">node</span><span class="o">:</span><span class="nx">$D</span><span class="p">.</span><span class="nx">getAncestorByClassName</span> <span class="p">(</span><span class="nx">node</span><span class="o">,</span> <span class="nx">className</span><span class="p">));</span>
+    <span class="p">};</span>
+    <span class="c">/**</span>
+<span class="c">	* @method getOwnerByTagName</span>
+<span class="c">	* @description Analyzing the element and the ancestor path to find a node with a certain tag name</span>
+<span class="c">	* @public</span>
+<span class="c">	* @param {Node} node    		 DOM element that should be analyzed</span>
+<span class="c">	* @param {String} tagName        DOM event</span>
+<span class="c">	* @return {Node} DOM Element or null</span>
+<span class="c">	*/</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">getOwnerByTagName</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">node</span><span class="o">,</span> <span class="nx">tagName</span><span class="p">)</span> <span class="p">{</span>
+		<span class="nx">node</span> <span class="o">=</span> <span class="nx">$D</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="nx">node</span><span class="p">);</span>
+		<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">node</span><span class="p">)</span> <span class="p">{</span>
+			<span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+		<span class="p">}</span>
+		<span class="k">return</span> <span class="p">(</span><span class="nx">node</span><span class="p">.</span><span class="nx">tagName</span> <span class="o">&amp;&amp;</span> <span class="nx">node</span><span class="p">.</span><span class="nx">tagName</span><span class="p">.</span><span class="nx">toUpperCase</span><span class="p">()</span> <span class="o">==</span> <span class="nx">tagName</span><span class="p">.</span><span class="nx">toUpperCase</span><span class="p">()</span><span class="o">?</span><span class="nx">node</span><span class="o">:</span><span class="nx">$D</span><span class="p">.</span><span class="nx">getAncestorByTagName</span> <span class="p">(</span><span class="nx">node</span><span class="o">,</span> <span class="nx">tagName</span><span class="p">));</span>
+	<span class="p">};</span>
+	<span class="c">// Deprecated in favor of getOwnerByClassName and getOwnerByTagName</span>
+	<span class="c">/**</span>
+<span class="c">     * YAHOO.Bubbling.getAncestorByClassName is an alias for getOwnerByClassName</span>
+<span class="c">     * @method getAncestorByClassName</span>
+<span class="c">     * @see getOwnerByClassName</span>
+<span class="c">     * @static</span>
+<span class="c">     */</span>
+    <span class="nx">obj</span><span class="p">.</span><span class="nx">getAncestorByClassName</span> <span class="o">=</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">getOwnerByClassName</span><span class="o">;</span>
+    <span class="c">/**</span>
+<span class="c">     * YAHOO.Bubbling.getAncestorByTagName is an alias for getOwnerByTagName</span>
+<span class="c">     * @method getAncestorByTagName</span>
+<span class="c">     * @see getOwnerByTagName</span>
+<span class="c">     * @static</span>
+<span class="c">     */</span>
+    <span class="nx">obj</span><span class="p">.</span><span class="nx">getAncestorByTagName</span> <span class="o">=</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">getOwnerByTagName</span><span class="o">;</span>
+
+	<span class="c">// public methods</span>
+    <span class="c">/**</span>
+<span class="c">	* @method onKeyPressedTrigger</span>
+<span class="c">	* @description Pipeline method to analyze key strokes events and trigger the corresponding actions</span>
+<span class="c">	* @public</span>
+<span class="c">	* @param {String} args     Literal object with the event information (target, char, etc). Useful if you want to fake this event.</span>
+<span class="c">	* @param {Event} e         DOM event</span>
+<span class="c">	* @param {Object} m        Default arguments that should be shipped with the action execution</span>
+<span class="c">	* @return {boolean} true if one of the listeners stopped the event</span>
+<span class="c">	*/</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">onKeyPressedTrigger</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">args</span><span class="o">,</span> <span class="nx">e</span><span class="o">,</span> <span class="nx">m</span><span class="p">){</span>
+	  <span class="kd">var</span> <span class="nx">b</span> <span class="o">=</span> <span class="s1">&#39;key&#39;</span><span class="o">;</span>
+	  <span class="nx">e</span> <span class="o">=</span> <span class="nx">e</span> <span class="o">||</span> <span class="nx">$E</span><span class="p">.</span><span class="nx">getEvent</span><span class="p">();</span>
+	  <span class="nx">m</span> <span class="o">=</span> <span class="nx">m</span> <span class="o">||</span> <span class="p">{};</span>
+	  <span class="nx">m</span><span class="p">.</span><span class="nx">action</span> <span class="o">=</span> <span class="nx">b</span><span class="o">;</span>
+	  <span class="c">// comparing the targets and the value of the targets</span>
+	  <span class="nx">m</span><span class="p">.</span><span class="nx">target</span> <span class="o">=</span> <span class="nx">args</span><span class="p">.</span><span class="nx">target</span> <span class="o">||</span> <span class="p">(</span><span class="nx">e</span><span class="o">?</span><span class="nx">$E</span><span class="p">.</span><span class="nx">getTarget</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span><span class="o">:</span><span class="kc">null</span><span class="p">);</span>
+	  <span class="c">//_monitorChanges( m.target, m );</span>
+	  <span class="nx">_checkFocus</span> <span class="p">(</span><span class="nx">m</span><span class="p">.</span><span class="nx">target</span><span class="o">,</span> <span class="nx">m</span><span class="p">);</span>
+	  <span class="nx">m</span><span class="p">.</span><span class="nx">flagged</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span> <span class="nx">m</span><span class="p">.</span><span class="nx">decrepitate</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+	  <span class="nx">m</span><span class="p">.</span><span class="nx">event</span> <span class="o">=</span> <span class="nx">e</span><span class="o">;</span>
+	  <span class="nx">m</span><span class="p">.</span><span class="nx">stop</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+	  <span class="nx">m</span><span class="p">.</span><span class="nx">type</span> <span class="o">=</span> <span class="nx">args</span><span class="p">.</span><span class="nx">type</span><span class="o">;</span>
+	  <span class="nx">m</span><span class="p">.</span><span class="nx">keyCode</span> <span class="o">=</span> <span class="nx">args</span><span class="p">.</span><span class="nx">keyCode</span><span class="o">;</span>
+	  <span class="nx">m</span><span class="p">.</span><span class="nx">charCode</span> <span class="o">=</span> <span class="nx">args</span><span class="p">.</span><span class="nx">charCode</span><span class="o">;</span>
+	  <span class="nx">m</span><span class="p">.</span><span class="nx">ctrlKey</span> <span class="o">=</span> <span class="nx">args</span><span class="p">.</span><span class="nx">ctrlKey</span><span class="o">;</span>
+	  <span class="nx">m</span><span class="p">.</span><span class="nx">shiftKey</span> <span class="o">=</span> <span class="nx">args</span><span class="p">.</span><span class="nx">shiftKey</span><span class="o">;</span>
+	  <span class="nx">m</span><span class="p">.</span><span class="nx">altKey</span> <span class="o">=</span> <span class="nx">args</span><span class="p">.</span><span class="nx">altKey</span><span class="o">;</span>
+	  <span class="k">this</span><span class="p">.</span><span class="nx">bubble</span><span class="p">.</span><span class="nx">key</span><span class="p">.</span><span class="nx">fire</span><span class="p">(</span><span class="nx">e</span><span class="o">,</span> <span class="nx">m</span><span class="p">);</span>
+	  <span class="k">if</span> <span class="p">(</span><span class="nx">m</span><span class="p">.</span><span class="nx">stop</span><span class="p">)</span> <span class="p">{</span>
+	  	<span class="nx">$E</span><span class="p">.</span><span class="nx">stopEvent</span><span class="p">(</span><span class="nx">e</span><span class="p">);</span>
+	  <span class="p">}</span>
+	  <span class="k">return</span> <span class="nx">m</span><span class="p">.</span><span class="nx">stop</span><span class="o">;</span>
+	<span class="p">};</span>
+	<span class="c">/**</span>
+<span class="c">	* @method onEventTrigger</span>
+<span class="c">	* @description Pipeline method to analyze the events and trigger the corresponding actions</span>
+<span class="c">	* @public</span>
+<span class="c">	* @param {String} b        Layer that should be analyzed (navigate, repaint, property, etc)</span>
+<span class="c">	* @param {Event} e         DOM event</span>
+<span class="c">	* @param {Object} m        Default arguments that should be shipped with the action execution</span>
+<span class="c">	* @return {boolean} true if one of the listeners stopped the event</span>
+<span class="c">	*/</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">onEventTrigger</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">b</span><span class="o">,</span> <span class="nx">e</span><span class="o">,</span> <span class="nx">m</span><span class="p">){</span>
+	  <span class="nx">e</span> <span class="o">=</span> <span class="nx">e</span> <span class="o">||</span> <span class="nx">$E</span><span class="p">.</span><span class="nx">getEvent</span><span class="p">();</span>
+	  <span class="nx">m</span> <span class="o">=</span> <span class="nx">m</span> <span class="o">||</span> <span class="p">{};</span>
+	  <span class="nx">m</span><span class="p">.</span><span class="nx">action</span> <span class="o">=</span> <span class="nx">b</span><span class="o">;</span>
+	  <span class="nx">m</span><span class="p">.</span><span class="nx">target</span> <span class="o">=</span> <span class="p">(</span><span class="nx">e</span><span class="o">?</span><span class="nx">$E</span><span class="p">.</span><span class="nx">getTarget</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span><span class="o">:</span><span class="kc">null</span><span class="p">);</span>
+	  <span class="c">// comparing the target and the value of the target (if clicks)</span>
+	  <span class="k">if</span> <span class="p">((</span><span class="nx">b</span> <span class="o">==</span> <span class="s1">&#39;navigate&#39;</span><span class="p">)</span> <span class="o">||</span> <span class="p">(</span><span class="nx">b</span> <span class="o">==</span> <span class="s1">&#39;property&#39;</span><span class="p">))</span> <span class="p">{</span>
+	  	<span class="c">//_checkChanges( m.target, m );</span>
+		<span class="nx">_checkFocus</span><span class="p">(</span><span class="nx">m</span><span class="p">.</span><span class="nx">target</span><span class="o">,</span> <span class="nx">m</span><span class="p">);</span>
+	  <span class="p">}</span>
+	  <span class="nx">m</span><span class="p">.</span><span class="nx">flagged</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span> <span class="nx">m</span><span class="p">.</span><span class="nx">decrepitate</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+	  <span class="nx">m</span><span class="p">.</span><span class="nx">event</span> <span class="o">=</span> <span class="nx">e</span><span class="o">;</span>
+	  <span class="nx">m</span><span class="p">.</span><span class="nx">stop</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+	  <span class="k">this</span><span class="p">.</span><span class="nx">bubble</span><span class="p">[</span><span class="nx">b</span><span class="p">].</span><span class="nx">fire</span><span class="p">(</span><span class="nx">e</span><span class="o">,</span> <span class="nx">m</span><span class="p">);</span>
+	  <span class="k">if</span> <span class="p">(</span><span class="nx">m</span><span class="p">.</span><span class="nx">stop</span><span class="p">)</span> <span class="p">{</span>
+	  	<span class="nx">$E</span><span class="p">.</span><span class="nx">stopEvent</span><span class="p">(</span><span class="nx">e</span><span class="p">);</span>
+	  <span class="p">}</span>
+	  <span class="k">return</span> <span class="nx">m</span><span class="p">.</span><span class="nx">stop</span><span class="o">;</span>
+	<span class="p">};</span>
+	<span class="c">/**</span>
+<span class="c">	* @method onNavigate</span>
+<span class="c">	* @description Callback method for click events</span>
+<span class="c">	* @private</span>
+<span class="c">	* @param {Event} e        DOM event</span>
+<span class="c">	* @return void</span>
+<span class="c">	*/</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">onNavigate</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">e</span><span class="p">){</span>
+	  <span class="kd">var</span> <span class="nx">conf</span> <span class="o">=</span> <span class="p">{</span>
+	  	<span class="nx">anchor</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">getOwnerByTagName</span><span class="p">(</span> <span class="nx">$E</span><span class="p">.</span><span class="nx">getTarget</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span><span class="o">,</span> <span class="s1">&#39;A&#39;</span> <span class="p">)</span><span class="o">,</span>
+		<span class="nx">button</span><span class="o">:</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">getYUIButton</span><span class="p">(</span><span class="nx">$E</span><span class="p">.</span><span class="nx">getTarget</span><span class="p">(</span><span class="nx">e</span><span class="p">))</span>
+	  <span class="p">};</span>
+	  <span class="k">if</span> <span class="p">(</span><span class="nx">conf</span><span class="p">.</span><span class="nx">button</span><span class="p">)</span> <span class="p">{</span>
+          <span class="nx">conf</span><span class="p">.</span><span class="nx">value</span> <span class="o">=</span> <span class="nx">conf</span><span class="p">.</span><span class="nx">button</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">);</span>
+          <span class="nx">conf</span><span class="p">.</span><span class="nx">rel</span> <span class="o">=</span> <span class="nx">conf</span><span class="p">.</span><span class="nx">button</span><span class="p">.</span><span class="nx">_button</span><span class="p">.</span><span class="nx">getAttribute</span><span class="p">(</span><span class="s1">&#39;rel&#39;</span><span class="p">);</span>
+	  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="nx">conf</span><span class="p">.</span><span class="nx">anchor</span><span class="p">)</span> <span class="p">{</span>
+		  <span class="nx">conf</span><span class="p">.</span><span class="nx">rel</span> <span class="o">=</span> <span class="nx">conf</span><span class="p">.</span><span class="nx">anchor</span><span class="p">.</span><span class="nx">getAttribute</span><span class="p">(</span><span class="s1">&#39;rel&#39;</span><span class="p">);</span>
+	  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+	  	  <span class="nx">conf</span><span class="p">.</span><span class="nx">input</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">getOwnerByTagName</span><span class="p">(</span> <span class="nx">$E</span><span class="p">.</span><span class="nx">getTarget</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span><span class="o">,</span> <span class="s1">&#39;INPUT&#39;</span> <span class="p">);</span>
+	  	  <span class="nx">conf</span><span class="p">.</span><span class="nx">select</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">getOwnerByTagName</span><span class="p">(</span> <span class="nx">$E</span><span class="p">.</span><span class="nx">getTarget</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span><span class="o">,</span> <span class="s1">&#39;SELECT&#39;</span> <span class="p">);</span>
+		  <span class="k">if</span> <span class="p">(</span><span class="nx">conf</span><span class="p">.</span><span class="nx">input</span><span class="p">)</span> <span class="p">{</span>
+				<span class="nx">conf</span><span class="p">.</span><span class="nx">value</span> <span class="o">=</span> <span class="nx">conf</span><span class="p">.</span><span class="nx">input</span><span class="p">.</span><span class="nx">getAttribute</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">);</span>
+				<span class="nx">conf</span><span class="p">.</span><span class="nx">rel</span> <span class="o">=</span> <span class="nx">conf</span><span class="p">.</span><span class="nx">input</span><span class="p">.</span><span class="nx">getAttribute</span><span class="p">(</span><span class="s1">&#39;rel&#39;</span><span class="p">);</span>
+		  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="nx">conf</span><span class="p">.</span><span class="nx">select</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="nx">conf</span><span class="p">.</span><span class="nx">select</span><span class="p">.</span><span class="nx">multiple</span> <span class="o">&amp;&amp;</span> <span class="nx">conf</span><span class="p">.</span><span class="nx">select</span><span class="p">.</span><span class="nx">selectedIndex</span><span class="p">)</span> <span class="p">{</span>
+				<span class="nx">conf</span><span class="p">.</span><span class="nx">value</span> <span class="o">=</span> <span class="nx">conf</span><span class="p">.</span><span class="nx">select</span><span class="p">[</span><span class="nx">conf</span><span class="p">.</span><span class="nx">select</span><span class="p">.</span><span class="nx">selectedIndex</span><span class="p">].</span><span class="nx">value</span><span class="o">;</span>
+				<span class="nx">conf</span><span class="p">.</span><span class="nx">rel</span> <span class="o">=</span> <span class="nx">conf</span><span class="p">.</span><span class="nx">select</span><span class="p">.</span><span class="nx">getAttribute</span><span class="p">(</span><span class="s1">&#39;rel&#39;</span><span class="p">);</span>
+		  <span class="p">}</span>
+	  <span class="p">}</span>
+	  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">onEventTrigger</span> <span class="p">(</span><span class="s1">&#39;navigate&#39;</span><span class="o">,</span> <span class="nx">e</span><span class="o">,</span> <span class="nx">conf</span><span class="p">))</span> <span class="p">{</span>
+	    <span class="k">this</span><span class="p">.</span><span class="nx">onEventTrigger</span> <span class="p">(</span><span class="s1">&#39;god&#39;</span><span class="o">,</span> <span class="nx">e</span><span class="o">,</span> <span class="nx">conf</span><span class="p">);</span> <span class="c">// if nobody claim the event, god can handle it...</span>
+	  <span class="p">}</span>
+	<span class="p">};</span>
+	<span class="c">/**</span>
+<span class="c">	* @method onProperty</span>
+<span class="c">	* @description Callback method for right click events</span>
+<span class="c">	* @private</span>
+<span class="c">	* @param {Event} e        DOM event</span>
+<span class="c">	* @return void</span>
+<span class="c">	*/</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">onProperty</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">e</span><span class="p">){</span>
+	  <span class="k">this</span><span class="p">.</span><span class="nx">onEventTrigger</span> <span class="p">(</span><span class="s1">&#39;property&#39;</span><span class="o">,</span> <span class="nx">e</span><span class="o">,</span> <span class="p">{</span>
+	  	<span class="nx">anchor</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">getOwnerByTagName</span><span class="p">(</span> <span class="nx">$E</span><span class="p">.</span><span class="nx">getTarget</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span><span class="o">,</span> <span class="s1">&#39;A&#39;</span> <span class="p">)</span><span class="o">,</span>
+		<span class="nx">button</span><span class="o">:</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">getYUIButton</span><span class="p">(</span><span class="nx">$E</span><span class="p">.</span><span class="nx">getTarget</span><span class="p">(</span><span class="nx">e</span><span class="p">))</span>
+	  <span class="p">});</span>
+	<span class="p">};</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">_timeoutId</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+	<span class="c">/**</span>
+<span class="c">	* @method onRepaint</span>
+<span class="c">	* @description Callback method for repaint and resize events</span>
+<span class="c">	* @private</span>
+<span class="c">	* @param {Event} e        DOM event</span>
+<span class="c">	* @return void</span>
+<span class="c">	*/</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">onRepaint</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">e</span><span class="p">){</span>
+	  <span class="c">// Downshift Your Code (can&#39;t let something happen multiple times in a second)</span>
+	  <span class="c">// http://yuiblog.com/blog/2007/07/09/downshift-your-code/</span>
+      <span class="nx">clearTimeout</span><span class="p">(</span><span class="nx">obj</span><span class="p">.</span><span class="nx">_timeoutId</span><span class="p">);</span>
+      <span class="nx">obj</span><span class="p">.</span><span class="nx">_timeoutId</span> <span class="o">=</span> <span class="nx">setTimeout</span><span class="p">(</span><span class="kd">function</span><span class="p">(){</span>
+            <span class="kd">var</span> <span class="nx">b</span> <span class="o">=</span> <span class="s1">&#39;repaint&#39;</span><span class="o">,</span>
+                <span class="nx">e</span> <span class="o">=</span> <span class="p">{</span><span class="nx">target</span><span class="o">:</span><span class="nb">document</span><span class="p">.</span><span class="nx">body</span><span class="p">}</span><span class="o">,</span>
+                <span class="nx">m</span> <span class="o">=</span> <span class="p">{</span>
+            	    <span class="nx">action</span><span class="o">:</span> <span class="nx">b</span><span class="o">,</span>
+            	    <span class="nx">target</span><span class="o">:</span> <span class="kc">null</span><span class="o">,</span>
+            	    <span class="nx">event</span><span class="o">:</span> <span class="nx">e</span><span class="o">,</span>
+	  				<span class="nx">flagged</span><span class="o">:</span> <span class="kc">false</span><span class="o">,</span>
+            	    <span class="nx">decrepitate</span><span class="o">:</span> <span class="kc">false</span><span class="o">,</span>
+            	    <span class="nx">stop</span><span class="o">:</span> <span class="kc">false</span>
+            	<span class="p">};</span>
+        	<span class="nx">obj</span><span class="p">.</span><span class="nx">bubble</span><span class="p">[</span><span class="nx">b</span><span class="p">].</span><span class="nx">fire</span><span class="p">(</span><span class="nx">e</span><span class="o">,</span> <span class="nx">m</span><span class="p">);</span>
+        	<span class="k">if</span> <span class="p">(</span><span class="nx">m</span><span class="p">.</span><span class="nx">stop</span><span class="p">)</span> <span class="p">{</span>
+        	  	<span class="nx">$E</span><span class="p">.</span><span class="nx">stopEvent</span><span class="p">(</span><span class="nx">e</span><span class="p">);</span>
+        	<span class="p">}</span>
+      <span class="p">}</span><span class="o">,</span> <span class="mi">150</span><span class="p">);</span>
+	<span class="p">};</span>
+	<span class="c">/**</span>
+<span class="c">	* @method onRollOver</span>
+<span class="c">	* @description Callback method for mouseover events</span>
+<span class="c">	* @private</span>
+<span class="c">	* @param {Event} e        DOM event</span>
+<span class="c">	* @return void</span>
+<span class="c">	*/</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">onRollOver</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">e</span><span class="p">){</span>
+	  <span class="k">this</span><span class="p">.</span><span class="nx">onEventTrigger</span> <span class="p">(</span><span class="s1">&#39;rollover&#39;</span><span class="o">,</span> <span class="nx">e</span><span class="o">,</span> <span class="p">{</span>
+	  	<span class="nx">anchor</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">getOwnerByTagName</span><span class="p">(</span> <span class="nx">$E</span><span class="p">.</span><span class="nx">getTarget</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span><span class="o">,</span> <span class="s1">&#39;A&#39;</span> <span class="p">)</span>
+	  <span class="p">});</span>
+	<span class="p">};</span>
+	<span class="c">/**</span>
+<span class="c">	* @method onRollOut</span>
+<span class="c">	* @description Callback method for mouseout events</span>
+<span class="c">	* @private</span>
+<span class="c">	* @param {Event} e        DOM Event</span>
+<span class="c">	* @return void</span>
+<span class="c">	*/</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">onRollOut</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">e</span><span class="p">){</span>
+	  <span class="k">this</span><span class="p">.</span><span class="nx">onEventTrigger</span> <span class="p">(</span><span class="s1">&#39;rollout&#39;</span><span class="o">,</span> <span class="nx">e</span><span class="o">,</span> <span class="p">{</span>
+	  	<span class="nx">anchor</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">getOwnerByTagName</span><span class="p">(</span> <span class="nx">$E</span><span class="p">.</span><span class="nx">getTarget</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span><span class="o">,</span> <span class="s1">&#39;A&#39;</span> <span class="p">)</span>
+	  <span class="p">});</span>
+	<span class="p">};</span>
+	<span class="c">/**</span>
+<span class="c">	* @method onKeyPressed</span>
+<span class="c">	* @description Callback method for key strokes</span>
+<span class="c">	* @private</span>
+<span class="c">	* @param {Event} e			DOM Event</span>
+<span class="c">	* @return void</span>
+<span class="c">	*/</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">onKeyPressed</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">e</span><span class="p">){</span>
+	  <span class="k">this</span><span class="p">.</span><span class="nx">onKeyPressedTrigger</span><span class="p">(</span><span class="nx">e</span><span class="p">);</span>
+	<span class="p">};</span>
+	<span class="c">/**</span>
+<span class="c">	* @method getActionName</span>
+<span class="c">	* @description This method will try to match the classname of the DOM element with the list of actions (literal object) </span>
+<span class="c">	* @public</span>
+<span class="c">	* @param {object} el        element reference</span>
+<span class="c">	* @param {object} depot     list of actions that should be analyzed</span>
+<span class="c">	* @return {string} first matching action</span>
+<span class="c">	*/</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">getActionName</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="nx">depot</span><span class="p">)</span> <span class="p">{</span>
+	  <span class="nx">depot</span> <span class="o">=</span> <span class="nx">depot</span> <span class="o">||</span> <span class="p">{};</span>
+	  <span class="kd">var</span> <span class="nx">b</span> <span class="o">=</span> <span class="kc">null</span><span class="o">,</span> <span class="nx">r</span> <span class="o">=</span> <span class="kc">null</span><span class="o">,</span>
+	      <span class="nx">f</span> <span class="o">=</span> <span class="p">(</span><span class="nx">$D</span><span class="p">.</span><span class="nx">inDocument</span><span class="p">(</span><span class="nx">el</span><span class="p">)</span><span class="o">?</span><span class="kd">function</span><span class="p">(</span><span class="nx">b</span><span class="p">){</span><span class="k">return</span> <span class="nx">$D</span><span class="p">.</span><span class="nx">hasClass</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="nx">b</span><span class="p">);}</span><span class="o">:</span><span class="kd">function</span><span class="p">(</span><span class="nx">b</span><span class="p">){</span><span class="k">return</span> <span class="nx">el</span><span class="p">.</span><span class="nx">hasClass</span><span class="p">(</span><span class="nx">b</span><span class="p">);});</span> <span class="c">// f: check is certain object has a classname</span>
+	  <span class="k">if</span> <span class="p">(</span><span class="nx">el</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">el</span><span class="p">)</span> <span class="o">||</span> <span class="p">(</span><span class="nx">el</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span> <span class="nx">el</span> <span class="p">))))</span> <span class="p">{</span>
+	  	<span class="k">try</span><span class="p">{</span>
+			<span class="nx">r</span> <span class="o">=</span> <span class="nx">el</span><span class="p">.</span><span class="nx">getAttribute</span><span class="p">(</span><span class="s2">&quot;rel&quot;</span><span class="p">);</span> <span class="c">// if rel is available...</span>
+		<span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{}</span>
+		<span class="k">for</span> <span class="p">(</span><span class="nx">b</span> <span class="k">in</span> <span class="nx">depot</span><span class="p">)</span> <span class="p">{</span> <span class="c">// behaviors in the depot...</span>
+			<span class="k">if</span> <span class="p">((</span><span class="nx">depot</span><span class="p">.</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="nx">b</span><span class="p">))</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">f</span><span class="p">(</span><span class="nx">b</span><span class="p">)</span> <span class="o">||</span> <span class="p">(</span><span class="nx">b</span> <span class="o">===</span> <span class="nx">r</span><span class="p">)))</span> <span class="p">{</span>
+				<span class="k">return</span> <span class="nx">b</span><span class="o">;</span>
+			<span class="p">}</span>
+		<span class="p">}</span>
+	  <span class="p">}</span>
+	  <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+	<span class="p">};</span>
+	<span class="c">/**</span>
+<span class="c">	* @method getAllActions</span>
+<span class="c">	* @description This method will try to match the classnames of the DOM element with the list of actions (literal object)</span>
+<span class="c">	* @public</span>
+<span class="c">	* @param {Node} el        element reference</span>
+<span class="c">	* @param {object} depot   object with the list of possibles actions</span>
+<span class="c">	* @return {array} a collection of strings with the name of the matching actions</span>
+<span class="c">	*/</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">getAllActions</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="nx">depot</span><span class="p">)</span> <span class="p">{</span>
+	  <span class="nx">depot</span> <span class="o">=</span> <span class="nx">depot</span> <span class="o">||</span> <span class="p">{};</span>
+	  <span class="kd">var</span> <span class="nx">b</span> <span class="o">=</span> <span class="kc">null</span><span class="o">,</span> <span class="nx">r</span> <span class="o">=</span> <span class="kc">null</span><span class="o">,</span> <span class="nx">actions</span> <span class="o">=</span> <span class="p">[]</span><span class="o">,</span>
+	      <span class="nx">f</span> <span class="o">=</span> <span class="p">(</span><span class="nx">$D</span><span class="p">.</span><span class="nx">inDocument</span><span class="p">(</span><span class="nx">el</span><span class="p">)</span><span class="o">?</span><span class="kd">function</span><span class="p">(</span><span class="nx">b</span><span class="p">){</span><span class="k">return</span> <span class="nx">$D</span><span class="p">.</span><span class="nx">hasClass</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="nx">b</span><span class="p">);}</span><span class="o">:</span><span class="kd">function</span><span class="p">(</span><span class="nx">b</span><span class="p">){</span><span class="k">return</span> <span class="nx">el</span><span class="p">.</span><span class="nx">hasClass</span><span class="p">(</span><span class="nx">b</span><span class="p">);});</span> <span class="c">// f: check is certain object has a classname</span>
+	  <span class="k">if</span> <span class="p">(</span><span class="nx">el</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">el</span><span class="p">)</span> <span class="o">||</span> <span class="p">(</span><span class="nx">el</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span> <span class="nx">el</span> <span class="p">))))</span> <span class="p">{</span>
+	  	<span class="k">try</span><span class="p">{</span>
+			<span class="nx">r</span> <span class="o">=</span> <span class="nx">el</span><span class="p">.</span><span class="nx">getAttribute</span><span class="p">(</span><span class="s2">&quot;rel&quot;</span><span class="p">);</span> <span class="c">// if rel is available...</span>
+		<span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{}</span>
+		<span class="k">for</span> <span class="p">(</span><span class="nx">b</span> <span class="k">in</span> <span class="nx">depot</span><span class="p">)</span> <span class="p">{</span> <span class="c">// behaviors in the depot...</span>
+			<span class="k">if</span> <span class="p">((</span><span class="nx">depot</span><span class="p">.</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="nx">b</span><span class="p">))</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">f</span><span class="p">(</span><span class="nx">b</span><span class="p">)</span> <span class="o">||</span> <span class="p">(</span><span class="nx">b</span> <span class="o">===</span> <span class="nx">r</span><span class="p">)))</span> <span class="p">{</span>
+				<span class="nx">actions</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">b</span><span class="p">);</span>
+			<span class="p">}</span>
+		<span class="p">}</span>
+	  <span class="p">}</span>
+	  <span class="k">return</span> <span class="nx">actions</span><span class="o">;</span>
+	<span class="p">};</span>
+	<span class="c">/**</span>
+<span class="c">	* @method getFirstChildByTagName</span>
+<span class="c">	* @description Getting the first child element based on the tagName</span>
+<span class="c">	* @public</span>
+<span class="c">	* @param {Node} el 		Child element reference</span>
+<span class="c">	* @param {object} t  	ClassName of the Ancestor</span>
+<span class="c">	* @return {Node}</span>
+<span class="c">	*/</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">getFirstChildByTagName</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="nx">t</span><span class="p">)</span> <span class="p">{</span>
+	  <span class="k">if</span> <span class="p">(</span><span class="nx">el</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">el</span><span class="p">)</span> <span class="o">||</span> <span class="p">(</span><span class="nx">el</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span> <span class="nx">el</span> <span class="p">)))</span> <span class="o">&amp;&amp;</span> <span class="nx">t</span><span class="p">)</span> <span class="p">{</span>
+	  	<span class="kd">var</span> <span class="nx">l</span> <span class="o">=</span> <span class="nx">el</span><span class="p">.</span><span class="nx">getElementsByTagName</span><span class="p">(</span><span class="nx">t</span><span class="p">);</span>
+		<span class="k">if</span> <span class="p">(</span><span class="nx">l</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+		  <span class="k">return</span> <span class="nx">l</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+		<span class="p">}</span>
+	  <span class="p">}</span>
+	  <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+	<span class="p">};</span>
+	<span class="c">/**</span>
+<span class="c">	* @method virtualTarget</span>
+<span class="c">	* @description Analyzing the target and the related target elements to see if the action was within a certain element</span>
+<span class="c">	* @public</span>
+<span class="c">	* @param {Event} e  event reference</span>
+<span class="c">	* @param {Node} el 	DOM element reference</span>
+<span class="c">	* @return {boolean}</span>
+<span class="c">	*/</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">virtualTarget</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">e</span><span class="o">,</span> <span class="nx">el</span><span class="p">)</span> <span class="p">{</span>
+	  <span class="k">if</span> <span class="p">(</span><span class="nx">el</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">el</span><span class="p">)</span> <span class="o">||</span> <span class="p">(</span><span class="nx">el</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span> <span class="nx">el</span> <span class="p">)))</span> <span class="o">&amp;&amp;</span> <span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">e</span><span class="p">))</span> <span class="p">{</span>
+	    <span class="kd">var</span> <span class="nx">t</span> <span class="o">=</span> <span class="nx">$E</span><span class="p">.</span><span class="nx">getRelatedTarget</span> <span class="p">(</span> <span class="nx">e</span> <span class="p">);</span>  <span class="c">// target element</span>
+	    <span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">t</span><span class="p">))</span> <span class="p">{</span>
+	      <span class="k">while</span><span class="p">((</span><span class="nx">t</span><span class="p">.</span><span class="nx">parentNode</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">t</span><span class="p">.</span><span class="nx">parentNode</span><span class="p">)</span> <span class="o">&amp;&amp;</span>  <span class="p">(</span><span class="nx">t</span><span class="p">.</span><span class="nx">parentNode</span><span class="p">.</span><span class="nx">tagName</span> <span class="o">!==</span> <span class="s2">&quot;BODY&quot;</span><span class="p">))</span> <span class="p">{</span>
+		    <span class="k">if</span> <span class="p">(</span><span class="nx">t</span><span class="p">.</span><span class="nx">parentNode</span> <span class="o">===</span> <span class="nx">el</span><span class="p">)</span> <span class="p">{</span>
+		      <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
+		    <span class="p">}</span>
+		    <span class="nx">t</span> <span class="o">=</span> <span class="nx">t</span><span class="p">.</span><span class="nx">parentNode</span><span class="o">;</span>
+		  <span class="p">}</span>
+		<span class="p">}</span>
+	  <span class="p">}</span>
+	  <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+	<span class="p">};</span>
+	<span class="c">/**</span>
+<span class="c">	* @method getYUIButton</span>
+<span class="c">	* @description getting the real YUI Button reference from a dom element, usually the target for a certain event</span>
+<span class="c">	* @public</span>
+<span class="c">	* @param {Node} t      dom element reference</span>
+<span class="c">	* @return {Object}</span>
+<span class="c">	*/</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">getYUIButton</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">t</span><span class="p">)</span> <span class="p">{</span>
+		<span class="kd">var</span> <span class="nx">el</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">getOwnerByClassName</span><span class="p">(</span> <span class="nx">t</span><span class="o">,</span> <span class="s1">&#39;yui-button&#39;</span> <span class="p">)</span><span class="o">,</span> <span class="nx">bt</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+		<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">el</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">widget</span><span class="p">.</span><span class="nx">Button</span><span class="p">)</span> <span class="p">{</span>
+			<span class="nx">bt</span> <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">widget</span><span class="p">.</span><span class="nx">Button</span><span class="p">.</span><span class="nx">getButton</span><span class="p">(</span><span class="nx">el</span><span class="p">.</span><span class="nx">id</span><span class="p">);</span>
+		<span class="p">}</span>
+		<span class="k">return</span> <span class="nx">bt</span><span class="o">;</span>
+	<span class="p">};</span>
+	<span class="c">/**</span>
+<span class="c">	* @method addLayer</span>
+<span class="c">	* @description Creating a new behaviors layer...</span>
+<span class="c">	* @public</span>
+<span class="c">	* @param {string||array} layers  Behaviors layers GUID</span>
+<span class="c">	* @param {object} scope  Custom  Event default execution scope</span>
+<span class="c">	* @return boolean if not exists...</span>
+<span class="c">	*/</span>
+    <span class="nx">obj</span><span class="p">.</span><span class="nx">addLayer</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">layers</span><span class="o">,</span> <span class="nx">scope</span><span class="p">)</span> <span class="p">{</span>
+		<span class="kd">var</span> <span class="nx">result</span> <span class="o">=</span> <span class="kc">false</span><span class="o">,</span> <span class="nx">i</span><span class="o">;</span>
+		<span class="nx">layers</span> <span class="o">=</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isArray</span><span class="p">(</span><span class="nx">layers</span><span class="p">)</span><span class="o">?</span><span class="nx">layers</span><span class="o">:</span><span class="p">[</span><span class="nx">layers</span><span class="p">]);</span>
+        <span class="nx">scope</span> <span class="o">=</span> <span class="nx">scope</span> <span class="o">||</span> <span class="nb">window</span><span class="o">;</span>
+		<span class="k">for</span> <span class="p">(</span><span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">layers</span><span class="p">.</span><span class="nx">length</span><span class="o">;</span> <span class="o">++</span><span class="nx">i</span><span class="p">)</span> <span class="p">{</span>
+          <span class="k">if</span> <span class="p">(</span><span class="nx">layers</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">bubble</span><span class="p">.</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="nx">layers</span><span class="p">[</span><span class="nx">i</span><span class="p">]))</span> <span class="p">{</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">bubble</span><span class="p">[</span><span class="nx">layers</span><span class="p">[</span><span class="nx">i</span><span class="p">]]</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">$Y</span><span class="p">.</span><span class="nx">CustomEvent</span><span class="p">(</span><span class="nx">layers</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span><span class="o">,</span> <span class="nx">scope</span><span class="o">,</span> <span class="kc">true</span><span class="p">);</span>
+            <span class="nx">result</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
+		<span class="k">return</span> <span class="nx">result</span><span class="o">;</span>
+    <span class="p">};</span>
+	<span class="c">/**</span>
+<span class="c">	* @method subscribe</span>
+<span class="c">	* @description Subscribing an behavior to certain behaviors layer...</span>
+<span class="c">	* @public</span>
+<span class="c">	* @param {string} layer  Behavior layer GUID</span>
+<span class="c">	* @param {object} bh     The function that represent the behavior</span>
+<span class="c">	* @return boolean if it is the first listener</span>
+<span class="c">	*/</span>
+    <span class="nx">obj</span><span class="p">.</span><span class="nx">subscribe</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">layer</span><span class="o">,</span> <span class="nx">bh</span><span class="o">,</span> <span class="nx">scope</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">first</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">addLayer</span><span class="p">(</span><span class="nx">layer</span><span class="p">);</span> <span class="c">// return true if it&#39;s the first listener</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">layer</span><span class="p">)</span> <span class="p">{</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">scope</span><span class="p">))</span> <span class="p">{</span>
+			  <span class="k">this</span><span class="p">.</span><span class="nx">bubble</span><span class="p">[</span><span class="nx">layer</span><span class="p">].</span><span class="nx">subscribe</span><span class="p">(</span><span class="nx">bh</span><span class="o">,</span> <span class="nx">scope</span><span class="o">,</span> <span class="kc">true</span><span class="p">);</span>  <span class="c">// correcting the default scope</span>
+			<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+			  <span class="k">this</span><span class="p">.</span><span class="nx">bubble</span><span class="p">[</span><span class="nx">layer</span><span class="p">].</span><span class="nx">subscribe</span><span class="p">(</span><span class="nx">bh</span><span class="p">);</span>  <span class="c">// use the default scope</span>
+			<span class="p">}</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="nx">first</span><span class="o">;</span>
+    <span class="p">};</span>
+    <span class="c">/**</span>
+<span class="c">     * YAHOO.Bubbling.on is an alias for subscribe</span>
+<span class="c">     * @method on</span>
+<span class="c">     * @see subscribe</span>
+<span class="c">     * @static</span>
+<span class="c">     */</span>
+    <span class="nx">obj</span><span class="p">.</span><span class="nx">on</span> <span class="o">=</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">subscribe</span><span class="o">;</span> <span class="c">// defining an alias...</span>
+	<span class="c">/**</span>
+<span class="c">	* @method fire</span>
+<span class="c">	* @description Broadcasting the message in the corresponding behavior layer...</span>
+<span class="c">	* @public</span>
+<span class="c">	* @param {string} layer  Behavior layer GUID</span>
+<span class="c">	* @param {object} obj    The function that represent the behavior</span>
+<span class="c">	* @return boolean if someone has claim the event</span>
+<span class="c">	*/</span>
+    <span class="nx">obj</span><span class="p">.</span><span class="nx">fire</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">layer</span><span class="o">,</span> <span class="nx">obj</span><span class="p">)</span> <span class="p">{</span>
+	    <span class="nx">obj</span> <span class="o">=</span> <span class="nx">obj</span> <span class="o">||</span> <span class="p">{};</span>
+	    <span class="nx">obj</span><span class="p">.</span><span class="nx">action</span> <span class="o">=</span> <span class="nx">layer</span><span class="o">;</span>
+	    <span class="nx">obj</span><span class="p">.</span><span class="nx">flagged</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">decrepitate</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+	    <span class="nx">obj</span><span class="p">.</span><span class="nx">stop</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+	    <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">bubble</span><span class="p">.</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="nx">layer</span><span class="p">))</span> <span class="p">{</span>
+	        <span class="k">this</span><span class="p">.</span><span class="nx">bubble</span><span class="p">[</span><span class="nx">layer</span><span class="p">].</span><span class="nx">fire</span><span class="p">(</span><span class="kc">null</span><span class="o">,</span> <span class="nx">obj</span><span class="p">);</span>
+	    <span class="p">}</span>
+	    <span class="k">return</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">stop</span><span class="o">;</span>
+    <span class="p">};</span>
+	<span class="c">/**</span>
+<span class="c">	* @method processingAction</span>
+<span class="c">	* @description Processing an action based on the classname of the target element...</span>
+<span class="c">	* @public</span>
+<span class="c">	* @param {string} layer     Behavior layer GUID</span>
+<span class="c">	* @param {object} args      Event object (extended)</span>
+<span class="c">	* @param {object} actions   List of available behaviors...</span>
+<span class="c">	* @param {boolean} force    Process the actions without worry about the flagged value...</span>
+<span class="c">	* @return void</span>
+<span class="c">	*/</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">processingAction</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">layer</span><span class="o">,</span> <span class="nx">args</span><span class="o">,</span> <span class="nx">actions</span><span class="o">,</span> <span class="nx">force</span><span class="p">)</span> <span class="p">{</span>
+      <span class="kd">var</span> <span class="nx">behavior</span> <span class="o">=</span> <span class="kc">null</span><span class="o">,</span> <span class="nx">t</span><span class="o">;</span>
+	  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">flagged</span> <span class="o">||</span> <span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">decrepitate</span><span class="p">)</span> <span class="o">||</span> <span class="nx">force</span><span class="p">)</span> <span class="p">{</span>
+	  	  <span class="c">// checking for anchor, input or button</span>
+		  <span class="nx">t</span> <span class="o">=</span> <span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">anchor</span> <span class="o">||</span> <span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">button</span> <span class="o">||</span> <span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">input</span> <span class="o">||</span> <span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">select</span><span class="o">;</span>
+		  <span class="k">if</span> <span class="p">(</span><span class="nx">t</span><span class="p">)</span> <span class="p">{</span>
+			<span class="nx">behavior</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">getActionName</span> <span class="p">(</span> <span class="nx">t</span><span class="o">,</span> <span class="nx">actions</span> <span class="p">);</span>
+			<span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">el</span> <span class="o">=</span> <span class="nx">t</span><span class="o">;</span>
+		  <span class="p">}</span>
+		  <span class="k">if</span> <span class="p">(</span><span class="nx">behavior</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">actions</span><span class="p">[</span><span class="nx">behavior</span><span class="p">].</span><span class="nx">apply</span><span class="p">(</span><span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">,</span> <span class="p">[</span><span class="nx">layer</span><span class="o">,</span> <span class="nx">args</span><span class="p">])))</span> <span class="p">{</span>
+			<span class="nx">$E</span><span class="p">.</span><span class="nx">stopEvent</span><span class="p">(</span><span class="nx">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+			<span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">flagged</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+		    <span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">decrepitate</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+		    <span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">stop</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+		  <span class="p">}</span>
+	  <span class="p">}</span>
+	<span class="p">};</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">defaultActions</span> <span class="o">=</span> <span class="p">{};</span>
+	<span class="c">/**</span>
+<span class="c">	* @method addDefaultAction</span>
+<span class="c">	* @description adding a new action to the application layer</span>
+<span class="c">	* @public</span>
+<span class="c">	* @param {string} n     	Name of the action</span>
+<span class="c">	* @param {function} f      	Listener</span>
+<span class="c">	* @param {boolean} force    Process the actions without worry about the flagged value...</span>
+<span class="c">	* @return void</span>
+<span class="c">	*/</span>
+    <span class="nx">obj</span><span class="p">.</span><span class="nx">addDefaultAction</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">n</span><span class="o">,</span> <span class="nx">f</span><span class="o">,</span> <span class="nx">force</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">if</span> <span class="p">(</span><span class="nx">n</span> <span class="o">&amp;&amp;</span> <span class="nx">f</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">defaultActions</span><span class="p">.</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="nx">n</span><span class="p">)</span> <span class="o">||</span> <span class="nx">force</span><span class="p">))</span> <span class="p">{</span>
+		  	<span class="k">this</span><span class="p">.</span><span class="nx">defaultActions</span><span class="p">[</span><span class="nx">n</span><span class="p">]</span> <span class="o">=</span> <span class="nx">f</span><span class="o">;</span>
+		<span class="p">}</span>
+    <span class="p">};</span>
+
+	<span class="c">// default Suscriptions</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;navigate&#39;</span><span class="o">,</span> <span class="nx">navRelExternal</span><span class="p">);</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;navigate&#39;</span><span class="o">,</span> <span class="nx">defaultActionsControl</span><span class="p">);</span>
+	
+	<span class="c">// initialization of the font and scroll monitors</span>
+	<span class="c">/**</span>
+<span class="c">	* @method initMonitors</span>
+<span class="c">	* @description Activation process for optional listeners (resize, repaint)</span>
+<span class="c">	* @public</span>
+<span class="c">	* @return void</span>
+<span class="c">	*/</span>
+    <span class="nx">obj</span><span class="p">.</span><span class="nx">initMonitors</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+	    <span class="kd">var</span> <span class="nx">fMonitors</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+            <span class="kd">var</span> <span class="nx">oMonitors</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">widget</span><span class="p">.</span><span class="nx">Module</span><span class="p">(</span><span class="s1">&#39;yui-cms-font-monitor&#39;</span><span class="o">,</span> <span class="p">{</span>
+                <span class="nx">monitorresize</span><span class="o">:</span><span class="kc">true</span><span class="o">,</span>
+                <span class="nx">visible</span><span class="o">:</span><span class="kc">false</span>
+            <span class="p">});</span>
+            <span class="nx">oMonitors</span><span class="p">.</span><span class="nx">render</span><span class="p">(</span><span class="nb">document</span><span class="p">.</span><span class="nx">body</span><span class="p">);</span>
+            <span class="c">// monitoring font-size...</span>
+            <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">widget</span><span class="p">.</span><span class="nx">Module</span><span class="p">.</span><span class="nx">textResizeEvent</span><span class="p">.</span><span class="nx">subscribe</span><span class="p">(</span><span class="nx">obj</span><span class="p">.</span><span class="nx">onRepaint</span><span class="o">,</span> <span class="nx">obj</span><span class="o">,</span> <span class="kc">true</span><span class="p">);</span>
+            <span class="c">// monitoring scroll actions...</span>
+            <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">widget</span><span class="p">.</span><span class="nx">Overlay</span><span class="p">.</span><span class="nx">windowScrollEvent</span><span class="p">.</span><span class="nx">subscribe</span><span class="p">(</span><span class="nx">obj</span><span class="p">.</span><span class="nx">onRepaint</span><span class="o">,</span> <span class="nx">obj</span><span class="o">,</span> <span class="kc">true</span><span class="p">);</span>
+	    <span class="p">};</span>
+	    <span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isFunction</span><span class="p">(</span><span class="nx">YAHOO</span><span class="p">.</span><span class="nx">widget</span><span class="p">.</span><span class="nx">Module</span><span class="p">))</span> <span class="p">{</span>
+	      <span class="nx">$E</span><span class="p">.</span><span class="nx">onDOMReady</span> <span class="p">(</span><span class="nx">fMonitors</span><span class="o">,</span> <span class="nx">obj</span><span class="o">,</span> <span class="kc">true</span><span class="p">);</span>
+	    <span class="p">}</span>
+    <span class="p">};</span>
+    <span class="c">/**</span>
+<span class="c">	* @method init</span>
+<span class="c">	* @description Initialization process (optional)</span>
+<span class="c">	* @public</span>
+<span class="c">	* @return void</span>
+<span class="c">	*/</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">init</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+	  <span class="kd">var</span> <span class="nx">el</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">body</span><span class="o">;</span> <span class="c">/* the top of the DOM */</span>
+	  <span class="nx">clearInterval</span><span class="p">(</span><span class="nx">_handle</span><span class="p">);</span> <span class="c">/* there is not need to keep waiting for the timer to execute this function */</span>
+	  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">ready</span><span class="p">)</span> <span class="p">{</span>
+	  	<span class="k">this</span><span class="p">.</span><span class="nx">ready</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+		
+		<span class="c">// override the default configuration object with an external configuration object</span>
+	  	<span class="nx">YAHOO</span><span class="p">.</span><span class="nx">_Bubbling</span> <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">_Bubbling</span> <span class="o">||</span> <span class="p">{};</span>
+	  	<span class="nx">$L</span><span class="p">.</span><span class="nx">augmentObject</span><span class="p">(</span><span class="nx">_config</span><span class="o">,</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">_Bubbling</span><span class="o">,</span> <span class="kc">true</span><span class="p">);</span>
+		
+		<span class="c">// hack to add the class JS to the body</span>
+		<span class="nx">$D</span><span class="p">.</span><span class="nx">addClass</span> <span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="nx">_config</span><span class="p">.</span><span class="nx">classname</span><span class="p">);</span>
+		
+		<span class="c">// default behaviors</span>
+		<span class="nx">$E</span><span class="p">.</span><span class="nx">addListener</span><span class="p">(</span><span class="nb">window</span><span class="o">,</span> <span class="s2">&quot;resize&quot;</span><span class="o">,</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">onRepaint</span><span class="o">,</span> <span class="nx">obj</span><span class="o">,</span> <span class="kc">true</span><span class="p">);</span>
+
+	    <span class="nx">$E</span><span class="p">.</span><span class="nx">addListener</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span>
+			<span class="s2">&quot;click&quot;</span><span class="o">,</span>
+			<span class="nx">obj</span><span class="p">.</span><span class="nx">onNavigate</span><span class="o">,</span>
+			<span class="nx">obj</span><span class="o">,</span>
+			<span class="kc">true</span>
+		<span class="p">);</span>
+	    <span class="c">/*</span>
+<span class="c">	        Listen for the &quot;mousedown&quot; event in Opera b/c it does not</span>
+<span class="c">	        support the &quot;contextmenu&quot; event</span>
+<span class="c">	    */</span>
+	    <span class="nx">$E</span><span class="p">.</span><span class="nx">addListener</span><span class="p">(</span>
+	        <span class="nx">el</span><span class="o">,</span>
+	        <span class="p">(</span><span class="nx">YAHOO</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">ua</span><span class="p">.</span><span class="nx">opera</span> <span class="o">?</span> <span class="s2">&quot;mousedown&quot;</span> <span class="o">:</span> <span class="s2">&quot;contextmenu&quot;</span><span class="p">)</span><span class="o">,</span>
+	        <span class="nx">obj</span><span class="p">.</span><span class="nx">onProperty</span><span class="o">,</span>
+	        <span class="nx">obj</span><span class="o">,</span>
+	        <span class="kc">true</span>
+	    <span class="p">);</span>
+	    <span class="c">/*</span>
+<span class="c">	        Assign a &quot;click&quot; event handler to the trigger element(s) for</span>
+<span class="c">	        Opera to prevent default browser behaviors.</span>
+<span class="c">	    */</span>
+	    <span class="k">if</span><span class="p">(</span><span class="nx">YAHOO</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">ua</span><span class="p">.</span><span class="nx">opera</span><span class="p">)</span> <span class="p">{</span>
+	        <span class="nx">$E</span><span class="p">.</span><span class="nx">addListener</span><span class="p">(</span>
+	            <span class="nx">el</span><span class="o">,</span>
+	            <span class="s2">&quot;click&quot;</span><span class="o">,</span>
+	            <span class="nx">obj</span><span class="p">.</span><span class="nx">onProperty</span><span class="o">,</span>
+	            <span class="nx">obj</span><span class="o">,</span>
+	            <span class="kc">true</span>
+	        <span class="p">);</span>
+	    <span class="p">}</span>
+		<span class="nx">$E</span><span class="p">.</span><span class="nx">addListener</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="s2">&quot;mouseover&quot;</span><span class="o">,</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">onRollOver</span><span class="o">,</span> <span class="nx">obj</span><span class="o">,</span> <span class="kc">true</span><span class="p">);</span>
+	    <span class="nx">$E</span><span class="p">.</span><span class="nx">addListener</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="s2">&quot;mouseout&quot;</span><span class="o">,</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">onRollOut</span><span class="o">,</span> <span class="nx">obj</span><span class="o">,</span> <span class="kc">true</span><span class="p">);</span>
+
+		<span class="c">// keys...</span>
+        <span class="nx">$E</span><span class="p">.</span><span class="nx">addListener</span><span class="p">(</span><span class="nb">document</span><span class="o">,</span> <span class="s2">&quot;keyup&quot;</span><span class="o">,</span>  <span class="nx">obj</span><span class="p">.</span><span class="nx">onKeyPressed</span><span class="o">,</span> <span class="nx">obj</span><span class="o">,</span> <span class="kc">true</span><span class="p">);</span>
+		<span class="nx">$E</span><span class="p">.</span><span class="nx">addListener</span><span class="p">(</span><span class="nb">document</span><span class="o">,</span> <span class="s2">&quot;keydown&quot;</span><span class="o">,</span>  <span class="nx">obj</span><span class="p">.</span><span class="nx">onKeyPressed</span><span class="o">,</span> <span class="nx">obj</span><span class="o">,</span> <span class="kc">true</span><span class="p">);</span>
+
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">fire</span><span class="p">(</span><span class="s1">&#39;ready&#39;</span><span class="o">,</span> <span class="p">{</span><span class="nx">module</span><span class="o">:</span><span class="s1">&#39;bubbling&#39;</span><span class="p">});</span>
+	  <span class="p">}</span>
+	<span class="p">};</span>
+	<span class="c">// creating the default layers...</span>
+	<span class="nx">obj</span><span class="p">.</span><span class="nx">addLayer</span> <span class="p">([</span><span class="s1">&#39;navigate&#39;</span><span class="o">,</span><span class="s1">&#39;god&#39;</span><span class="o">,</span><span class="s1">&#39;property&#39;</span><span class="o">,</span><span class="s1">&#39;key&#39;</span><span class="o">,</span><span class="s1">&#39;repaint&#39;</span><span class="o">,</span><span class="s1">&#39;rollover&#39;</span><span class="o">,</span> <span class="s1">&#39;rollout&#39;</span><span class="o">,</span> <span class="s1">&#39;blur&#39;</span><span class="o">,</span> <span class="s1">&#39;focus&#39;</span><span class="o">,</span> <span class="s1">&#39;change&#39;</span><span class="o">,</span> <span class="s1">&#39;ready&#39;</span><span class="p">]);</span> <span class="c">// god layer - hack: the layer after the common navigate layer...</span>
+
+    <span class="c">// all the listeners will be added to the document.body, but we need to wait until the object become available to add the listeners.</span>
+	<span class="nx">_handle</span> <span class="o">=</span> <span class="nx">setInterval</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+	    <span class="k">try</span> <span class="p">{</span>
+	        <span class="c">// throws an error if document.body is not exist</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nb">document</span><span class="p">.</span><span class="nx">body</span><span class="p">))</span> <span class="p">{</span>
+				<span class="nx">obj</span><span class="p">.</span><span class="nx">init</span> <span class="p">();</span>
+			<span class="p">}</span>
+	    <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span> 
+	    <span class="p">}</span>
+	<span class="p">}</span><span class="o">,</span> <span class="nx">$E</span><span class="p">.</span><span class="nx">POLL_INTERVAL</span><span class="p">);</span>
+	<span class="c">// if something goes wrong, we just wait for the onDOMReady...</span>
+	<span class="nx">$E</span><span class="p">.</span><span class="nx">onDOMReady</span><span class="p">(</span><span class="nx">obj</span><span class="p">.</span><span class="nx">init</span><span class="o">,</span> <span class="nx">obj</span><span class="o">,</span> <span class="kc">true</span><span class="p">);</span>
+	
+	<span class="k">return</span> <span class="nx">obj</span><span class="o">;</span>
+  <span class="p">}();</span>
+<span class="p">})();</span>
+</pre></div>
+                    </div>
+			</div>
+		</div>
+		<div class="yui-b">
+            <div class="nav">
+
+                    <div id="moduleList" class="module">
+                        <h4>Modules</h4>
+                        <ul class="content">
+                                <li class="selected"><a href="module_accordion.html" title="accordion">accordion</a></li>
+                                <li class=""><a href="module_bubbling.html" title="bubbling">bubbling</a></li>
+                                <li class=""><a href="module_dispatcher.html" title="dispatcher">dispatcher</a></li>
+                                <li class=""><a href="module_lighter.html" title="lighter">lighter</a></li>
+                                <li class=""><a href="module_loading.html" title="loading">loading</a></li>
+                                <li class=""><a href="module_navigation.html" title="navigation">navigation</a></li>
+                                <li class=""><a href="module_tooltipmanager.html" title="tooltipmanager">tooltipmanager</a></li>
+                                <li class=""><a href="module_wizard.html" title="wizard">wizard</a></li>
+                        </ul>
+                    </div>
+
+                    <div id="classList" class="module">
+                        <h4>Classes</h4>
+                        <ul class="content">
+                                <li class=""><a href="YAHOO.widget.AccordionManager.html" title="YAHOO.widget.AccordionManager">YAHOO.widget.AccordionManager</a></li>
+                        </ul>
+                    </div>
+
+                    <div id="fileList" class="module">
+                        <h4>Files</h4>
+                        <ul class="content">        
+                                <li class=""><a href="accordion.js.html" title="accordion.js">accordion.js</a></li>
+                                <li class="selected"><a href="bubbling.js.html" title="bubbling.js">bubbling.js</a></li>
+                        </ul>
+                    </div>
+
+
+
+
+
+            </div>
+		</div>
+	</div>
+	<div id="ft">
+        <hr />
+        Copyright &copy; 2009 <a href="http://www.bubbling-library.com/" title="JavaScript Bubbling Library - YUI Extension">Bubbling Library</a>. All rights reserved.
+	</div>
+</div>
+<script type="text/javascript">
+    ALL_YUI_PROPS = [{"url": "YAHOO.widget.AccordionManager.html#method_close", "access": "", "host": "YAHOO.widget.AccordionManager", "type": "method", "name": "close"}, {"url": "YAHOO.widget.AccordionManager.html#method_collapse", "access": "", "host": "YAHOO.widget.AccordionManager", "type": "method", "name": "collapse"}, {"url": "YAHOO.widget.AccordionManager.html#method_expand", "access": "", "host": "YAHOO.widget.AccordionManager", "type": "method", "name": "expand"}, {"url": "YAHOO.widget.AccordionManager.html#method_open", "access": "", "host": "YAHOO.widget.AccordionManager", "type": "method", "name": "open"}, {"url": "YAHOO.widget.AccordionManager.html#method_remove", "access": "", "host": "YAHOO.widget.AccordionManager", "type": "method", "name": "remove"}, {"url": "YAHOO.widget.AccordionManager.html#method_toggle", "access": "", "host": "YAHOO.widget.AccordionManager", "type": "method", "name": "toggle"}];
+</script>
+</body>
+</html>

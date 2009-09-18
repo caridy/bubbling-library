@@ -1,0 +1,534 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html xmlns:yui="http://yuilibrary.com/rdf/1.0/yui.rdf#">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+	<title>API: accordion   accordion.js  (YRegion Utility)</title>
+
+	<link rel="stylesheet" type="text/css" href="assets/reset-fonts-grids-min.css?stamp=" />
+	<link rel="stylesheet" type="text/css" href="assets/api.css?stamp=" />
+
+    <script type="text/javascript" src="assets/api-js?stamp="></script>
+    <script type="text/javascript" src="assets/ac-js?stamp="></script>
+</head>
+
+<body id="yahoo-com">
+
+<div id="doc3" class="yui-t2">
+	<div id="hd">
+        <h1><a href="http://www.bubbling-library.com/" title="JavaScript Bubbling Library - YUI Extension">JavaScript Bubbling Library - YUI Extension</a></h1>
+        <h3>accordion&nbsp; <span class="subtitle">2.2</span></h3>
+        <a href="./index.html" title="JavaScript Bubbling Library">Bubbling</a> 
+            &gt; <a href="./module_accordion.html" title="accordion">accordion</a>
+                
+                 &gt; accordion.js (source view) 
+        <form onsubmit="return false">
+            <div id="propertysearch">
+                Search: <input autocomplete="off" id="searchinput" />
+                <div id="searchresults">
+                    &nbsp;
+                </div>
+            </div>
+        </form>
+	</div>
+
+	<div id="bd">
+		<div id="yui-main">
+			<div class="yui-b">
+            <form action="#" name="yui-classopts-form" method="get" id="yui-classopts-form">
+                <fieldset>
+                    <legend>Filters</legend>
+                <span class="classopts"><input type="checkbox" name="show_private" id="show_private" /> <label for="show_private">Show Private</label></span>
+                <span class="classopts"><input type="checkbox" name="show_protected" id="show_protected" /> <label for="show_protected">Show Protected</label></span>
+                <span class="classopts"><input type="checkbox" name="show_deprecated" id="show_deprecated" /> <label for="show_deprecated">Show Deprecated</label></span>
+                </fieldset>
+            </form>
+
+                    <div id="srcout">
+                        <style>
+                            #doc3 .classopts { display:none; }
+                        </style>
+<div class="highlight"><pre><span class="c">/**</span>
+<span class="c"> * Accordion Definition: Create expandable and collapsible elements based on the HTML markup and few CSS rules.</span>
+<span class="c"> *</span>
+<span class="c"> * @namespace YAHOO.widget</span>
+<span class="c"> * @module accordion</span>
+<span class="c"> * @requires yahoo</span>
+<span class="c"> * @requires event</span>
+<span class="c"> * @requires dom</span>
+<span class="c"> * @requires bubbling</span>
+<span class="c"> */</span>
+<span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+
+    <span class="kd">var</span> <span class="nx">$B</span> <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">Bubbling</span><span class="o">,</span>
+		<span class="nx">$L</span> <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">lang</span><span class="o">,</span>
+        <span class="nx">$E</span> <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">Event</span><span class="o">,</span>
+	    <span class="nx">$D</span> <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">Dom</span><span class="o">;</span>
+
+	<span class="c">/**</span>
+<span class="c">	 * The Accordion Manager Widget</span>
+<span class="c">	 * @class AccordionManager</span>
+<span class="c">	 * @static</span>
+<span class="c">	 */</span>
+	<span class="nx">YAHOO</span><span class="p">.</span><span class="nx">widget</span><span class="p">.</span><span class="nx">AccordionManager</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+		<span class="kd">var</span> <span class="nx">obj</span> <span class="o">=</span> <span class="p">{}</span><span class="o">,</span>
+		    <span class="nx">_selector</span> <span class="o">=</span> <span class="s1">&#39;selected&#39;</span><span class="o">,</span>
+		    <span class="nx">_sliding</span> <span class="o">=</span> <span class="s1">&#39;sliding&#39;</span><span class="o">,</span>
+		    <span class="nx">_anims</span> <span class="o">=</span> <span class="p">{};</span>
+
+		<span class="c">// on click action behaviors...</span>
+		
+		<span class="nx">$B</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;navigate&#39;</span><span class="o">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">layer</span><span class="o">,</span> <span class="nx">args</span><span class="p">)</span> <span class="p">{</span>
+			<span class="kd">var</span> <span class="nx">el</span> <span class="o">=</span> <span class="nx">$B</span><span class="p">.</span><span class="nx">getOwnerByClassName</span> <span class="p">(</span><span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">target</span><span class="o">,</span> <span class="s1">&#39;trigger&#39;</span><span class="p">);</span>
+            <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">flagged</span> <span class="o">&amp;&amp;</span> <span class="nx">el</span><span class="p">)</span> <span class="p">{</span>
+                <span class="c">// switching the slidable area and reclaiming the behavior</span>
+                <span class="k">if</span> <span class="p">(</span><span class="nx">obj</span><span class="p">.</span><span class="nx">toggle</span><span class="p">(</span><span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">target</span><span class="p">))</span> <span class="p">{</span>
+					<span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">stop</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+					<span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">flagged</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+				<span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">});</span>
+		
+		<span class="nx">$B</span><span class="p">.</span><span class="nx">addDefaultAction</span><span class="p">(</span><span class="s1">&#39;accordionToggleItem&#39;</span><span class="o">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">layer</span><span class="o">,</span> <span class="nx">args</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">flagged</span><span class="p">)</span> <span class="p">{</span>
+                <span class="c">// switching the slidable area and reclaiming the behavior</span>
+                <span class="k">return</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">toggle</span><span class="p">(</span><span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">target</span><span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">});</span>
+		<span class="nx">$B</span><span class="p">.</span><span class="nx">addDefaultAction</span><span class="p">(</span><span class="s1">&#39;accordionRemoveItem&#39;</span><span class="o">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">layer</span><span class="o">,</span> <span class="nx">args</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">flagged</span><span class="p">)</span> <span class="p">{</span>
+                <span class="c">// removing an item from the accordion and reclaiming the behavior</span>
+                <span class="k">return</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">remove</span><span class="p">(</span><span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">target</span><span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">});</span>
+
+        <span class="c">// on event arrive</span>
+        <span class="c">// behaviors for the second accordion (ADVANCED AJAX APPLICATION)</span>
+        <span class="c">// Tagline: One behavior that will rule them all (based on the slide&#39;s rel attribute)</span>
+        <span class="nx">$B</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;accordionOpenItem&#39;</span><span class="o">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">layer</span><span class="o">,</span> <span class="nx">args</span><span class="p">)</span> <span class="p">{</span>
+          <span class="kd">var</span> <span class="nx">reLink</span> <span class="o">=</span> <span class="sr">/.*#/</span><span class="o">;</span>
+          <span class="c">// if can be loaded thru AJAX</span>
+          <span class="k">if</span> <span class="p">(</span><span class="nx">$D</span><span class="p">.</span><span class="nx">hasClass</span><span class="p">(</span><span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">slide</span><span class="o">,</span> <span class="s1">&#39;ajax&#39;</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">YAHOO</span><span class="p">.</span><span class="nx">plugin</span><span class="p">.</span><span class="nx">Dispatcher</span><span class="p">))</span> <span class="p">{</span>
+            <span class="kd">var</span> <span class="nx">trigger</span> <span class="o">=</span> <span class="nx">$D</span><span class="p">.</span><span class="nx">getElementsByClassName</span><span class="p">(</span><span class="s1">&#39;accordionToggleItem&#39;</span><span class="o">,</span><span class="s1">&#39;*&#39;</span><span class="o">,</span><span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">el</span><span class="p">);</span>
+            <span class="nx">trigger</span> <span class="o">=</span> <span class="p">(</span><span class="nx">trigger</span><span class="p">.</span><span class="nx">length</span><span class="o">&gt;</span><span class="mi">0</span><span class="o">?</span><span class="nx">trigger</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">:</span><span class="kc">null</span><span class="p">);</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">trigger</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">trigger</span> <span class="o">=</span> <span class="nx">trigger</span><span class="p">.</span><span class="nx">getAttribute</span><span class="p">(</span><span class="s1">&#39;href&#39;</span><span class="o">,</span><span class="mi">2</span><span class="p">)))</span> <span class="p">{</span>
+                <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">plugin</span><span class="p">.</span><span class="nx">Dispatcher</span><span class="p">.</span><span class="nx">fetch</span> <span class="p">(</span> <span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">slide</span><span class="o">,</span> <span class="nx">trigger</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="nx">reLink</span><span class="o">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">,</span> <span class="p">{</span>
+                    <span class="nx">onLoad</span><span class="o">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">el</span><span class="p">)</span> <span class="p">{</span>
+						<span class="c">// forcing the accordion item to expand to the correct height when the content is loaded using ajax</span>
+						<span class="nx">$D</span><span class="p">.</span><span class="nx">setStyle</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span><span class="s2">&quot;height&quot;</span><span class="o">,</span><span class="nx">el</span><span class="p">.</span><span class="nx">scrollHeight</span><span class="o">+</span><span class="s2">&quot;px&quot;</span><span class="p">);</span>
+						
+						
+						<span class="c">// TODO: apply the animation instead to apply the height/width directly</span>
+						
+						
+						<span class="c">// each accordion item can have his own cache definition, applying the class &quot;nocache&quot; to the BD element,</span>
+						<span class="c">// the accordion will reload the content everytime the accordion is opened...</span>
+						<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">$D</span><span class="p">.</span><span class="nx">hasClass</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="s1">&#39;nocache&#39;</span><span class="p">))</span> <span class="p">{</span>
+                        	<span class="nx">$D</span><span class="p">.</span><span class="nx">removeClass</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="s1">&#39;ajax&#39;</span><span class="p">);</span>
+						<span class="p">}</span>						
+                    <span class="p">}</span>
+                <span class="p">});</span>
+            <span class="p">}</span>
+          <span class="p">}</span>
+        <span class="p">});</span>
+
+        <span class="c">// on keyboad action behavior... (only works if the target element is within a trigger/class)</span>
+        <span class="nx">$B</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;key&#39;</span><span class="o">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">layer</span><span class="o">,</span> <span class="nx">args</span><span class="p">)</span> <span class="p">{</span>
+    	  <span class="kd">var</span> <span class="nx">o</span> <span class="o">=</span> <span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">,</span> <span class="nx">el</span><span class="o">;</span>
+    	  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">o</span><span class="p">.</span><span class="nx">flagged</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">o</span><span class="p">.</span><span class="nx">type</span> <span class="o">==</span> <span class="s1">&#39;keyup&#39;</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">el</span> <span class="o">=</span> <span class="nx">$B</span><span class="p">.</span><span class="nx">getOwnerByClassName</span> <span class="p">(</span><span class="nx">o</span><span class="p">.</span><span class="nx">target</span><span class="o">,</span> <span class="s1">&#39;trigger&#39;</span><span class="p">)))</span> <span class="p">{</span>
+			  <span class="k">if</span> <span class="p">(((</span><span class="nx">o</span><span class="p">.</span><span class="nx">keyCode</span> <span class="o">===</span> <span class="mi">39</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">open</span> <span class="p">(</span><span class="nx">el</span><span class="p">))</span> <span class="o">||</span>
+    	          <span class="p">((</span><span class="nx">o</span><span class="p">.</span><span class="nx">keyCode</span> <span class="o">===</span> <span class="mi">37</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">close</span> <span class="p">(</span><span class="nx">el</span><span class="p">)))</span> <span class="p">{</span> <span class="c">// Shortcut: cursor -&gt; or cursor &lt;-</span>
+        		  <span class="c">// reclaiming the event &amp; stoping the event propagation</span>
+        	      <span class="nx">o</span><span class="p">.</span><span class="nx">flagged</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+        	      <span class="nx">o</span><span class="p">.</span><span class="nx">stop</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+        	  <span class="p">}</span>
+    	  <span class="p">}</span>
+        <span class="p">});</span>
+
+        <span class="c">// on rollover action behavior...</span>
+		<span class="nx">$B</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;rollover&#39;</span><span class="o">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">layer</span><span class="o">,</span> <span class="nx">args</span><span class="p">)</span> <span class="p">{</span>
+		  <span class="kd">var</span> <span class="nx">list</span><span class="o">,</span> <span class="nx">item</span><span class="o">,</span> <span class="nx">onWayOut</span><span class="o">;</span>
+		  <span class="k">if</span> <span class="p">((</span><span class="nx">item</span> <span class="o">=</span> <span class="nx">_getItem</span><span class="p">(</span><span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">target</span><span class="p">)))</span> <span class="p">{</span>
+		    <span class="k">if</span> <span class="p">((</span><span class="nx">list</span> <span class="o">=</span> <span class="nx">_getList</span><span class="p">(</span><span class="nx">item</span><span class="p">))</span> <span class="o">&amp;&amp;</span> <span class="nx">list</span><span class="p">.</span><span class="nx">rollover</span><span class="p">)</span> <span class="p">{</span>
+				<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">list</span><span class="p">.</span><span class="nx">selected</span><span class="p">)</span> <span class="p">{</span>
+		            <span class="nx">$D</span><span class="p">.</span><span class="nx">addClass</span><span class="p">(</span><span class="nx">list</span><span class="p">.</span><span class="nx">el</span><span class="o">,</span> <span class="nx">_selector</span><span class="p">);</span>
+					<span class="nx">onWayOut</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+					    <span class="kd">var</span> <span class="nx">l</span> <span class="o">=</span> <span class="nx">_getList</span> <span class="p">({</span><span class="nx">el</span><span class="o">:</span><span class="nx">$E</span><span class="p">.</span><span class="nx">getTarget</span><span class="p">(</span><span class="nx">e</span><span class="p">)});</span>
+					    <span class="k">if</span> <span class="p">(</span><span class="nx">l</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="nx">$B</span><span class="p">.</span><span class="nx">virtualTarget</span><span class="p">(</span><span class="nx">e</span><span class="o">,</span> <span class="nx">l</span><span class="p">.</span><span class="nx">el</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="nx">l</span><span class="p">.</span><span class="nx">persistent</span><span class="p">)</span> <span class="p">{</span>
+					      <span class="nx">_reset</span><span class="p">(</span><span class="nx">l</span><span class="o">,</span> <span class="p">{</span><span class="nx">force</span><span class="o">:</span><span class="kc">true</span><span class="p">});</span>
+					    <span class="p">}</span>
+					<span class="p">};</span>
+					<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">list</span><span class="p">.</span><span class="nx">persistent</span><span class="p">)</span> <span class="p">{</span>
+					    <span class="nx">$E</span><span class="p">.</span><span class="nx">removeListener</span> <span class="p">(</span> <span class="nx">list</span><span class="p">.</span><span class="nx">el</span><span class="o">,</span> <span class="s1">&#39;mouseout&#39;</span><span class="o">,</span> <span class="nx">onWayOut</span> <span class="p">);</span>
+						<span class="nx">$E</span><span class="p">.</span><span class="nx">addListener</span> <span class="p">(</span> <span class="nx">list</span><span class="p">.</span><span class="nx">el</span><span class="o">,</span> <span class="s1">&#39;mouseout&#39;</span><span class="o">,</span> <span class="nx">onWayOut</span><span class="o">,</span> <span class="nx">obj</span><span class="o">,</span> <span class="kc">true</span> <span class="p">);</span>
+					<span class="p">}</span>
+				<span class="p">}</span>
+				<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">item</span><span class="p">.</span><span class="nx">selected</span><span class="p">)</span> <span class="p">{</span>
+					<span class="c">// is over a new item...</span>
+					<span class="nx">_openItem</span><span class="p">(</span><span class="nx">item</span><span class="o">,</span> <span class="nx">list</span><span class="p">);</span>
+				<span class="p">}</span>
+			<span class="p">}</span>
+		  <span class="p">}</span>
+	    <span class="p">});</span>
+
+        <span class="c">// creating the most common message (behavior layer)</span>
+        <span class="nx">$B</span><span class="p">.</span><span class="nx">addLayer</span> <span class="p">([</span><span class="s1">&#39;accordionOpenItem&#39;</span><span class="o">,</span> <span class="s1">&#39;accordionCloseItem&#39;</span><span class="o">,</span> <span class="s1">&#39;accordionRemoveItem&#39;</span><span class="p">]</span><span class="o">,</span> <span class="nx">obj</span><span class="p">);</span>
+
+        <span class="kd">function</span> <span class="nx">_getEffect</span> <span class="p">(</span> <span class="nx">el</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="kd">var</span> <span class="nx">effect</span> <span class="o">=</span> <span class="nx">el</span><span class="p">.</span><span class="nx">getAttribute</span><span class="p">(</span><span class="s1">&#39;rel&#39;</span><span class="p">)</span> <span class="o">||</span> <span class="kc">null</span><span class="o">;</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">effect</span><span class="p">)</span> <span class="p">{</span>
+              <span class="nx">effect</span> <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">Easing</span><span class="p">[</span><span class="nx">effect</span><span class="p">]</span> <span class="o">||</span> <span class="kc">null</span><span class="o">;</span>
+            <span class="p">}</span>
+            <span class="k">return</span> <span class="nx">effect</span><span class="o">;</span>
+        <span class="p">}</span>
+        <span class="kd">function</span> <span class="nx">_getTimer</span> <span class="p">(</span> <span class="nx">el</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="kd">var</span> <span class="nx">t</span> <span class="o">=</span> <span class="p">(</span><span class="nx">$D</span><span class="p">.</span><span class="nx">hasClass</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="s1">&#39;fast&#39;</span><span class="p">)</span><span class="o">?</span><span class="mf">0.1</span><span class="o">:</span><span class="kc">null</span><span class="p">)</span> <span class="o">||</span> <span class="p">(</span><span class="nx">$D</span><span class="p">.</span><span class="nx">hasClass</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="s1">&#39;slow&#39;</span><span class="p">)</span><span class="o">?</span><span class="mf">0.6</span><span class="o">:</span><span class="kc">null</span><span class="p">)</span> <span class="o">||</span> <span class="mf">0.4</span><span class="o">;</span>
+            <span class="k">return</span> <span class="nx">t</span><span class="o">;</span>
+        <span class="p">}</span>
+        <span class="kd">function</span> <span class="nx">_getItem</span> <span class="p">(</span> <span class="nx">elem</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="k">if</span> <span class="p">(</span><span class="nx">elem</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">elem</span><span class="p">)</span> <span class="o">||</span> <span class="p">(</span><span class="nx">elem</span> <span class="o">=</span> <span class="nx">$D</span><span class="p">.</span><span class="nx">get</span> <span class="p">(</span><span class="nx">elem</span><span class="p">))))</span> <span class="p">{</span>
+            <span class="kd">var</span> <span class="nx">item</span><span class="o">,</span> <span class="nx">el</span> <span class="o">=</span> <span class="nx">$B</span><span class="p">.</span><span class="nx">getOwnerByClassName</span> <span class="p">(</span><span class="nx">elem</span><span class="o">,</span> <span class="s1">&#39;yui-cms-item&#39;</span><span class="p">);</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">el</span><span class="p">))</span> <span class="p">{</span>
+                <span class="nx">item</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="nx">el</span><span class="o">:</span> <span class="nx">el</span><span class="o">,</span>
+                    <span class="nx">triger</span><span class="o">:</span> <span class="nx">elem</span><span class="o">,</span>
+                    <span class="nx">selected</span><span class="o">:</span> <span class="nx">$D</span><span class="p">.</span><span class="nx">hasClass</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="nx">_selector</span><span class="p">)</span><span class="o">,</span>
+                    <span class="nx">sliding</span><span class="o">:</span> <span class="nx">$D</span><span class="p">.</span><span class="nx">hasClass</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="nx">_sliding</span><span class="p">)</span><span class="o">,</span>
+                    <span class="nx">size</span><span class="o">:</span> <span class="p">{</span><span class="nx">width</span><span class="o">:</span><span class="mi">0</span><span class="o">,</span> <span class="nx">Height</span><span class="o">:</span> <span class="mi">0</span><span class="p">}</span>
+                <span class="p">};</span>
+                <span class="c">// getting the slidable element</span>
+                <span class="kd">var</span> <span class="nx">slide</span> <span class="o">=</span> <span class="nx">$D</span><span class="p">.</span><span class="nx">getElementsByClassName</span><span class="p">(</span><span class="s1">&#39;bd&#39;</span><span class="o">,</span><span class="s1">&#39;*&#39;</span><span class="o">,</span><span class="nx">el</span><span class="p">);</span>
+				<span class="c">// if there is no Body element within the item, we should try to find the next BD: Semantic Markups DL\DT\DD</span>
+                <span class="nx">slide</span> <span class="o">=</span> <span class="p">(</span><span class="nx">slide</span><span class="p">.</span><span class="nx">length</span><span class="o">&gt;</span><span class="mi">0</span><span class="o">?</span><span class="nx">slide</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">:</span><span class="nx">$D</span><span class="p">.</span><span class="nx">getNextSiblingBy</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">node</span><span class="p">){</span><span class="k">return</span> <span class="nx">$D</span><span class="p">.</span><span class="nx">hasClass</span><span class="p">(</span><span class="nx">node</span><span class="o">,</span> <span class="s1">&#39;bd&#39;</span><span class="p">);}));</span>
+                <span class="k">if</span> <span class="p">((</span><span class="nx">item</span><span class="p">.</span><span class="nx">slide</span> <span class="o">=</span> <span class="nx">slide</span><span class="p">))</span> <span class="p">{</span>
+	                <span class="kd">var</span> <span class="nx">h</span> <span class="o">=</span> <span class="nb">parseInt</span><span class="p">(</span><span class="nx">$D</span><span class="p">.</span><span class="nx">getStyle</span><span class="p">(</span><span class="nx">slide</span><span class="o">,</span> <span class="s1">&#39;height&#39;</span><span class="p">)</span><span class="o">,</span> <span class="mi">10</span><span class="p">);</span>
+	                <span class="kd">var</span> <span class="nx">w</span> <span class="o">=</span> <span class="nb">parseInt</span><span class="p">(</span><span class="nx">$D</span><span class="p">.</span><span class="nx">getStyle</span><span class="p">(</span><span class="nx">slide</span><span class="o">,</span> <span class="s1">&#39;width&#39;</span><span class="p">)</span><span class="o">,</span> <span class="mi">10</span><span class="p">);</span>
+	                <span class="c">// forcing to number... to avoid misbehavior on &quot;auto&quot; height/width...</span>
+	                <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isNumber</span><span class="p">(</span><span class="nx">h</span><span class="p">))</span> <span class="p">{</span>
+	                    <span class="nx">$D</span><span class="p">.</span><span class="nx">setStyle</span><span class="p">(</span><span class="nx">slide</span><span class="o">,</span> <span class="s1">&#39;height&#39;</span><span class="o">,</span> <span class="nx">slide</span><span class="p">.</span><span class="nx">scrollHeight</span><span class="o">+</span><span class="s1">&#39;px&#39;</span><span class="p">);</span>
+	                <span class="p">}</span>
+	                <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isNumber</span><span class="p">(</span><span class="nx">w</span><span class="p">))</span> <span class="p">{</span>
+	                    <span class="nx">$D</span><span class="p">.</span><span class="nx">setStyle</span><span class="p">(</span><span class="nx">slide</span><span class="o">,</span> <span class="s1">&#39;width&#39;</span><span class="o">,</span> <span class="nx">slide</span><span class="p">.</span><span class="nx">scrollWidth</span><span class="o">+</span><span class="s1">&#39;px&#39;</span><span class="p">);</span>
+	                <span class="p">}</span>
+	                <span class="nx">item</span><span class="p">.</span><span class="nx">size</span><span class="p">.</span><span class="nx">height</span> <span class="o">=</span> <span class="nx">slide</span><span class="p">.</span><span class="nx">scrollHeight</span><span class="o">;</span>
+	                <span class="nx">item</span><span class="p">.</span><span class="nx">size</span><span class="p">.</span><span class="nx">width</span> <span class="o">=</span> <span class="nx">slide</span><span class="p">.</span><span class="nx">scrollWidth</span><span class="o">;</span>
+				<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+					<span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+				<span class="p">}</span>
+            <span class="p">}</span>
+            <span class="k">return</span> <span class="nx">item</span><span class="o">;</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="kd">function</span> <span class="nx">_getList</span> <span class="p">(</span> <span class="nx">item</span> <span class="p">)</span> <span class="p">{</span>
+          <span class="kd">var</span> <span class="nx">list</span> <span class="o">=</span> <span class="kc">null</span><span class="o">,</span> <span class="nx">el</span> <span class="o">=</span> <span class="nx">item</span><span class="p">.</span><span class="nx">el</span><span class="o">;</span>
+          <span class="k">if</span> <span class="p">(</span><span class="nx">el</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">el</span><span class="p">)</span> <span class="o">||</span> <span class="p">(</span><span class="nx">el</span> <span class="o">=</span> <span class="nx">$D</span><span class="p">.</span><span class="nx">get</span> <span class="p">(</span><span class="nx">el</span><span class="p">))))</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">((</span><span class="nx">el</span> <span class="o">=</span> <span class="nx">$B</span><span class="p">.</span><span class="nx">getOwnerByClassName</span> <span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="s1">&#39;yui-cms-accordion&#39;</span><span class="p">)))</span> <span class="p">{</span>
+                <span class="c">// creating the list literal based on the classnames defined for the accordion wrapper</span>
+                <span class="nx">list</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="nx">el</span><span class="o">:</span> <span class="nx">el</span><span class="o">,</span>
+                    <span class="nx">effect</span><span class="o">:</span> <span class="nx">_getEffect</span><span class="p">(</span><span class="nx">el</span><span class="p">)</span><span class="o">,</span>
+                    <span class="nx">orientation</span><span class="o">:</span> <span class="p">(</span><span class="nx">$D</span><span class="p">.</span><span class="nx">hasClass</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="s1">&#39;vertical&#39;</span><span class="p">)</span><span class="o">?</span><span class="s1">&#39;width&#39;</span><span class="o">:</span><span class="s1">&#39;height&#39;</span><span class="p">)</span><span class="o">,</span>
+                    <span class="nx">selected</span><span class="o">:</span> <span class="nx">$D</span><span class="p">.</span><span class="nx">hasClass</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="nx">_selector</span><span class="p">)</span><span class="o">,</span>
+                    <span class="nx">fade</span><span class="o">:</span> <span class="nx">$D</span><span class="p">.</span><span class="nx">hasClass</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="s1">&#39;fade&#39;</span><span class="p">)</span><span class="o">,</span>
+                    <span class="nx">manually</span><span class="o">:</span> <span class="nx">$D</span><span class="p">.</span><span class="nx">hasClass</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="s1">&#39;manually&#39;</span><span class="p">)</span><span class="o">,</span>
+                    <span class="nx">fixIE</span><span class="o">:</span> <span class="p">(</span><span class="nx">$E</span><span class="p">.</span><span class="nx">isIE</span> <span class="o">&amp;&amp;</span> <span class="nx">$D</span><span class="p">.</span><span class="nx">hasClass</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="s1">&#39;fixIE&#39;</span><span class="p">))</span><span class="o">,</span> <span class="c">// hack for IE and quirk mode...</span>
+                    <span class="nx">multiple</span><span class="o">:</span> <span class="nx">$D</span><span class="p">.</span><span class="nx">hasClass</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="s1">&#39;multiple&#39;</span><span class="p">)</span><span class="o">,</span>
+                    <span class="nx">rollover</span><span class="o">:</span> <span class="nx">$D</span><span class="p">.</span><span class="nx">hasClass</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="s1">&#39;rollover&#39;</span><span class="p">)</span><span class="o">,</span>
+                    <span class="nx">persistent</span><span class="o">:</span> <span class="nx">$D</span><span class="p">.</span><span class="nx">hasClass</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="s1">&#39;persistent&#39;</span><span class="p">)</span><span class="o">,</span>
+                    <span class="nx">liquid</span><span class="o">:</span> <span class="nx">$D</span><span class="p">.</span><span class="nx">hasClass</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="s1">&#39;liquid&#39;</span><span class="p">)</span><span class="o">,</span>
+                    <span class="nx">dispatcher</span><span class="o">:</span> <span class="nx">$D</span><span class="p">.</span><span class="nx">hasClass</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="s1">&#39;dispatcher&#39;</span><span class="p">)</span><span class="o">,</span>
+                    <span class="nx">wizard</span><span class="o">:</span> <span class="nx">$D</span><span class="p">.</span><span class="nx">hasClass</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="s1">&#39;wizard&#39;</span><span class="p">)</span><span class="o">,</span>
+                    <span class="nx">timer</span><span class="o">:</span> <span class="nx">_getTimer</span><span class="p">(</span><span class="nx">el</span><span class="p">)</span><span class="o">,</span>
+                    <span class="nx">items</span><span class="o">:</span> <span class="p">[]</span>
+                <span class="p">};</span>
+                <span class="c">// searching for items childs...</span>
+                <span class="nx">$D</span><span class="p">.</span><span class="nx">batch</span> <span class="p">(</span><span class="nx">$D</span><span class="p">.</span><span class="nx">getElementsByClassName</span><span class="p">(</span><span class="s1">&#39;bd&#39;</span><span class="o">,</span><span class="s1">&#39;*&#39;</span><span class="o">,</span><span class="nx">el</span><span class="p">)</span><span class="o">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">elem</span><span class="p">){</span>
+                    <span class="c">// adding an item to the list</span>
+                    <span class="nx">list</span><span class="p">.</span><span class="nx">items</span><span class="p">.</span><span class="nx">push</span> <span class="p">(</span><span class="nx">_getItem</span><span class="p">(</span><span class="nx">elem</span><span class="p">));</span>
+                <span class="p">});</span>
+            <span class="p">}</span>
+            <span class="k">return</span> <span class="nx">list</span><span class="o">;</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="kd">function</span> <span class="nx">_reset</span> <span class="p">(</span> <span class="nx">list</span><span class="o">,</span> <span class="nx">params</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="nx">params</span> <span class="o">=</span> <span class="nx">params</span> <span class="o">||</span> <span class="p">{};</span>
+            <span class="kd">var</span> <span class="nx">i</span><span class="o">,</span> <span class="nx">force</span> <span class="o">=</span> <span class="nx">params</span><span class="p">.</span><span class="nx">force</span> <span class="o">||</span> <span class="kc">false</span><span class="o">,</span>
+                <span class="nx">item</span> <span class="o">=</span> <span class="nx">params</span><span class="p">.</span><span class="nx">item</span> <span class="o">||</span> <span class="kc">null</span><span class="o">;</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">list</span><span class="p">)</span> <span class="p">{</span>
+              <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">list</span><span class="p">.</span><span class="nx">multiple</span> <span class="o">||</span> <span class="nx">force</span><span class="p">)</span> <span class="p">{</span>
+	            <span class="c">// closing all the selected items</span>
+		        <span class="k">for</span> <span class="p">(</span><span class="nx">i</span><span class="o">=</span><span class="mi">0</span><span class="o">;</span> <span class="nx">i</span><span class="o">&lt;</span><span class="nx">list</span><span class="p">.</span><span class="nx">items</span><span class="p">.</span><span class="nx">length</span><span class="o">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+		          <span class="c">// is the element is not equal to item, or if the item is under an animation...</span>
+				  <span class="k">if</span> <span class="p">((</span><span class="o">!</span><span class="nx">item</span> <span class="o">||</span> <span class="p">(</span><span class="nx">list</span><span class="p">.</span><span class="nx">items</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nx">el</span> <span class="o">!==</span> <span class="nx">item</span><span class="p">.</span><span class="nx">el</span><span class="p">))</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">list</span><span class="p">.</span><span class="nx">items</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nx">selected</span> <span class="o">||</span> <span class="nx">list</span><span class="p">.</span><span class="nx">items</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nx">sliding</span> <span class="o">||</span> <span class="nx">params</span><span class="p">.</span><span class="nx">expand</span><span class="p">))</span> <span class="p">{</span>
+				     <span class="k">if</span> <span class="p">(</span><span class="nx">params</span><span class="p">.</span><span class="nx">expand</span><span class="p">)</span> <span class="p">{</span>
+				       <span class="nx">_openItem</span> <span class="p">(</span><span class="nx">list</span><span class="p">.</span><span class="nx">items</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span><span class="o">,</span> <span class="nx">list</span><span class="o">,</span> <span class="nx">params</span><span class="p">.</span><span class="nx">grouping</span><span class="p">);</span>
+				     <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+				       <span class="nx">_closeItem</span> <span class="p">(</span><span class="nx">list</span><span class="p">.</span><span class="nx">items</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span><span class="o">,</span> <span class="nx">list</span><span class="o">,</span> <span class="nx">params</span><span class="p">.</span><span class="nx">grouping</span><span class="p">);</span>
+				       <span class="k">if</span> <span class="p">(</span><span class="nx">params</span><span class="p">.</span><span class="nx">mirror</span><span class="p">)</span> <span class="p">{</span>
+				          <span class="c">// hack for get the mirror element in persistent and !mutiples accordions</span>
+				          <span class="nx">params</span><span class="p">.</span><span class="nx">mirror</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">list</span><span class="p">.</span><span class="nx">items</span><span class="p">[</span><span class="nx">i</span><span class="p">]);</span>
+				       <span class="p">}</span>
+				     <span class="p">}</span>
+			      <span class="p">}</span>
+	            <span class="p">}</span>
+	          <span class="p">}</span>
+	        <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="kd">function</span> <span class="nx">_openItem</span> <span class="p">(</span> <span class="nx">item</span><span class="o">,</span> <span class="nx">list</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="kd">var</span> <span class="nx">conf</span> <span class="o">=</span> <span class="p">{}</span><span class="o">,</span> <span class="nx">anim</span><span class="o">,</span> <span class="nx">i</span><span class="o">,</span> <span class="nx">g</span> <span class="o">=</span> <span class="p">[]</span><span class="o">,</span> <span class="nx">m</span> <span class="o">=</span> <span class="p">[]</span><span class="o">,</span> <span class="nx">fs</span><span class="o">,</span> <span class="nx">onFinish</span><span class="o">;</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">list</span> <span class="o">||</span> <span class="p">(</span><span class="nx">list</span> <span class="o">=</span> <span class="nx">_getList</span> <span class="p">(</span><span class="nx">item</span><span class="p">)))</span> <span class="p">{</span>
+              <span class="c">// if the item is not already opened</span>
+              <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">item</span><span class="p">.</span><span class="nx">selected</span><span class="p">)</span> <span class="p">{</span>
+                  <span class="c">// closing all the selected items if neccesary</span>
+                  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">list</span><span class="p">.</span><span class="nx">multiple</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="nx">_reset</span> <span class="p">(</span> <span class="nx">list</span><span class="o">,</span> <span class="p">{</span><span class="nx">item</span><span class="o">:</span> <span class="nx">item</span><span class="o">,</span> <span class="nx">grouping</span><span class="o">:</span> <span class="nx">g</span><span class="o">,</span> <span class="nx">mirror</span><span class="o">:</span> <span class="nx">m</span><span class="p">}</span> <span class="p">);</span>
+                  <span class="p">}</span>
+    	          <span class="c">// if the animation is underway: we need to stop it...</span>
+                  <span class="nx">anim</span> <span class="o">=</span> <span class="nx">_anims</span><span class="p">[</span><span class="nx">$E</span><span class="p">.</span><span class="nx">generateId</span><span class="p">(</span><span class="nx">item</span><span class="p">.</span><span class="nx">slide</span><span class="p">)];</span>
+                  <span class="k">if</span> <span class="p">((</span><span class="nx">anim</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">anim</span><span class="p">.</span><span class="nx">isAnimated</span><span class="p">()))</span> <span class="p">{</span><span class="nx">anim</span><span class="p">.</span><span class="nx">stop</span><span class="p">();}</span>
+    	          <span class="c">// opening the selected element, based on the list&#39;s orientation, timer and effect attribute...</span>
+    	          <span class="nx">conf</span><span class="p">[</span><span class="nx">list</span><span class="p">.</span><span class="nx">orientation</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="nx">to</span><span class="o">:</span> <span class="nx">item</span><span class="p">.</span><span class="nx">size</span><span class="p">[</span><span class="nx">list</span><span class="p">.</span><span class="nx">orientation</span><span class="p">]};</span>
+    	          <span class="c">// scrolling effect</span>
+    	          <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">list</span><span class="p">.</span><span class="nx">manually</span><span class="p">)</span> <span class="p">{</span>
+    	            <span class="nx">conf</span><span class="p">.</span><span class="nx">scroll</span> <span class="o">=</span> <span class="p">{</span><span class="nx">from</span><span class="o">:</span> <span class="p">(</span><span class="nx">list</span><span class="p">.</span><span class="nx">orientation</span><span class="o">==</span><span class="s1">&#39;width&#39;</span><span class="o">?</span><span class="p">[</span><span class="nx">item</span><span class="p">.</span><span class="nx">size</span><span class="p">[</span><span class="nx">list</span><span class="p">.</span><span class="nx">orientation</span><span class="p">]</span><span class="o">,</span><span class="mi">0</span><span class="p">]</span><span class="o">:</span><span class="p">[</span><span class="mi">0</span><span class="o">,</span><span class="nx">item</span><span class="p">.</span><span class="nx">size</span><span class="p">[</span><span class="nx">list</span><span class="p">.</span><span class="nx">orientation</span><span class="p">]])</span><span class="o">,</span> <span class="nx">to</span><span class="o">:</span> <span class="p">[</span><span class="mi">0</span><span class="o">,</span><span class="mi">0</span><span class="p">]};</span>
+    	          <span class="p">}</span>
+    	          <span class="k">if</span> <span class="p">(</span><span class="nx">list</span><span class="p">.</span><span class="nx">fade</span><span class="p">)</span> <span class="p">{</span> <span class="c">// appliying fadeIn</span>
+    	            <span class="nx">conf</span><span class="p">.</span><span class="nx">opacity</span> <span class="o">=</span> <span class="p">{</span><span class="nx">to</span><span class="o">:</span> <span class="mi">1</span><span class="p">};</span>
+    	          <span class="p">}</span>
+    	          <span class="nx">anim</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">Scroll</span><span class="p">(</span><span class="nx">item</span><span class="p">.</span><span class="nx">slide</span><span class="o">,</span> <span class="nx">conf</span><span class="o">,</span> <span class="nx">list</span><span class="p">.</span><span class="nx">timer</span><span class="o">,</span> <span class="nx">list</span><span class="p">.</span><span class="nx">effect</span><span class="p">);</span>
+            	  <span class="nx">$D</span><span class="p">.</span><span class="nx">addClass</span><span class="p">(</span><span class="nx">item</span><span class="p">.</span><span class="nx">el</span><span class="o">,</span> <span class="nx">_sliding</span><span class="p">);</span>
+            	  <span class="nx">onFinish</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+            		  <span class="nx">$D</span><span class="p">.</span><span class="nx">removeClass</span><span class="p">(</span><span class="nx">item</span><span class="p">.</span><span class="nx">el</span><span class="o">,</span> <span class="nx">_sliding</span><span class="p">);</span>
+            		  <span class="nx">$D</span><span class="p">.</span><span class="nx">addClass</span><span class="p">(</span><span class="nx">item</span><span class="p">.</span><span class="nx">el</span><span class="o">,</span> <span class="nx">_selector</span><span class="p">);</span>
+            		  <span class="c">// checking if the element is liquid</span>
+            		  <span class="k">if</span> <span class="p">(</span><span class="nx">list</span><span class="p">.</span><span class="nx">liquid</span><span class="p">)</span> <span class="p">{</span>
+            			  <span class="nx">$D</span><span class="p">.</span><span class="nx">setStyle</span><span class="p">(</span><span class="nx">item</span><span class="p">.</span><span class="nx">slide</span><span class="o">,</span> <span class="s1">&#39;height&#39;</span><span class="o">,</span> <span class="s1">&#39;100%&#39;</span><span class="p">);</span>
+            		  <span class="p">}</span>
+            		  <span class="c">// broadcasting the corresponding event (open)...</span>
+            		  <span class="nx">$B</span><span class="p">.</span><span class="nx">fire</span> <span class="p">(</span><span class="s1">&#39;accordionOpenItem&#39;</span><span class="o">,</span> <span class="nx">item</span><span class="p">);</span>
+            	  <span class="p">};</span>
+            	  <span class="nx">anim</span><span class="p">.</span><span class="nx">onComplete</span><span class="p">.</span><span class="nx">subscribe</span><span class="p">(</span><span class="nx">onFinish</span><span class="p">);</span>
+            	  <span class="nx">_anims</span><span class="p">[</span><span class="nx">$E</span><span class="p">.</span><span class="nx">generateId</span><span class="p">(</span><span class="nx">item</span><span class="p">.</span><span class="nx">slide</span><span class="p">)]</span> <span class="o">=</span> <span class="nx">anim</span><span class="o">;</span>
+            	  <span class="k">if</span> <span class="p">(</span><span class="nx">list</span><span class="p">.</span><span class="nx">manually</span><span class="p">)</span> <span class="p">{</span>
+            	    <span class="c">// manually animation...</span>
+            	    <span class="nx">m</span> <span class="o">=</span> <span class="nx">m</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">||</span> <span class="kc">null</span><span class="o">;</span>
+            	    <span class="c">// getting the desired dimension from the mirror or from the current item</span>
+            	    <span class="nx">fs</span> <span class="o">=</span> <span class="p">(</span><span class="nx">m</span><span class="o">?</span><span class="nx">m</span><span class="p">.</span><span class="nx">size</span><span class="p">[</span><span class="nx">list</span><span class="p">.</span><span class="nx">orientation</span><span class="p">]</span><span class="o">:</span><span class="nx">item</span><span class="p">.</span><span class="nx">size</span><span class="p">[</span><span class="nx">list</span><span class="p">.</span><span class="nx">orientation</span><span class="p">]);</span>
+            	    <span class="k">for</span> <span class="p">(</span><span class="nx">i</span><span class="o">=</span><span class="mi">1</span><span class="o">;</span><span class="nx">i</span><span class="o">&lt;=</span><span class="nx">fs</span><span class="o">;</span><span class="nx">i</span><span class="o">++</span><span class="p">){</span>
+            	        <span class="k">if</span> <span class="p">(</span><span class="nx">m</span><span class="p">)</span> <span class="p">{</span>
+            	          <span class="nx">$D</span><span class="p">.</span><span class="nx">setStyle</span> <span class="p">(</span><span class="nx">m</span><span class="p">.</span><span class="nx">slide</span><span class="o">,</span> <span class="nx">list</span><span class="p">.</span><span class="nx">orientation</span><span class="o">,</span> <span class="p">(</span><span class="nx">fs</span><span class="o">-</span><span class="nx">i</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;px&#39;</span><span class="p">);</span>
+            	        <span class="p">}</span>
+            	        <span class="nx">$D</span><span class="p">.</span><span class="nx">setStyle</span> <span class="p">(</span><span class="nx">item</span><span class="p">.</span><span class="nx">slide</span><span class="o">,</span> <span class="nx">list</span><span class="p">.</span><span class="nx">orientation</span><span class="o">,</span> <span class="nx">i</span><span class="o">+</span><span class="s1">&#39;px&#39;</span><span class="p">);</span>
+            	    <span class="p">}</span>
+            	    <span class="nx">onFinish</span><span class="p">();</span>
+            	  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+            	    <span class="c">// creating an animation thread</span>
+            	    <span class="k">for</span> <span class="p">(</span><span class="nx">i</span><span class="o">=</span><span class="mi">0</span><span class="o">;</span> <span class="nx">i</span><span class="o">&lt;</span><span class="nx">g</span><span class="p">.</span><span class="nx">length</span><span class="o">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+            	      <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">AnimMgr</span><span class="p">.</span><span class="nx">registerElement</span><span class="p">(</span><span class="nx">g</span><span class="p">[</span><span class="nx">i</span><span class="p">]);</span>
+            	    <span class="p">}</span>
+            	    <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">AnimMgr</span><span class="p">.</span><span class="nx">registerElement</span><span class="p">(</span><span class="nx">anim</span><span class="p">);</span>
+            	  <span class="p">}</span>
+              <span class="p">}</span>
+        	  <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
+	        <span class="p">}</span>
+	        <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+        <span class="p">}</span>
+        <span class="kd">function</span> <span class="nx">_closeItem</span> <span class="p">(</span> <span class="nx">item</span><span class="o">,</span> <span class="nx">list</span><span class="o">,</span> <span class="nx">grouping</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="kd">var</span> <span class="nx">conf</span> <span class="o">=</span> <span class="p">{}</span><span class="o">,</span> <span class="nx">anim</span><span class="o">,</span> <span class="nx">fs</span><span class="o">;</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">item</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">list</span> <span class="o">||</span> <span class="p">(</span><span class="nx">list</span> <span class="o">=</span> <span class="nx">_getList</span> <span class="p">(</span><span class="nx">item</span><span class="p">))))</span> <span class="p">{</span>
+	            <span class="c">// closing the item, based on the list&#39;s orientation, timer and effect attribute...</span>
+	            <span class="nx">conf</span><span class="p">[</span><span class="nx">list</span><span class="p">.</span><span class="nx">orientation</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="nx">to</span><span class="o">:</span> <span class="p">((</span><span class="nx">list</span><span class="p">.</span><span class="nx">orientation</span><span class="o">==</span><span class="s1">&#39;width&#39;</span><span class="o">||</span><span class="nx">list</span><span class="p">.</span><span class="nx">fixIE</span><span class="p">)</span><span class="o">?</span><span class="mi">1</span><span class="o">:</span><span class="mi">0</span><span class="p">)};</span> <span class="c">// hack for vertical accordion issue on Safari and Opera</span>
+	            <span class="k">if</span> <span class="p">(</span><span class="nx">list</span><span class="p">.</span><span class="nx">fade</span><span class="p">)</span> <span class="p">{</span> <span class="c">// appliying fadeIn</span>
+	              <span class="nx">conf</span><span class="p">.</span><span class="nx">opacity</span> <span class="o">=</span> <span class="p">{</span><span class="nx">to</span><span class="o">:</span> <span class="mi">0</span><span class="p">};</span>
+	            <span class="p">}</span>
+    	        <span class="c">// scrolling effect</span>
+    	        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">list</span><span class="p">.</span><span class="nx">manually</span><span class="p">)</span> <span class="p">{</span>
+    	          <span class="nx">conf</span><span class="p">.</span><span class="nx">scroll</span> <span class="o">=</span> <span class="p">{</span><span class="nx">to</span><span class="o">:</span> <span class="p">(</span><span class="nx">list</span><span class="p">.</span><span class="nx">orientation</span><span class="o">==</span><span class="s1">&#39;width&#39;</span><span class="o">?</span><span class="p">[</span><span class="nx">item</span><span class="p">.</span><span class="nx">size</span><span class="p">[</span><span class="nx">list</span><span class="p">.</span><span class="nx">orientation</span><span class="p">]</span><span class="o">,</span><span class="mi">0</span><span class="p">]</span><span class="o">:</span><span class="p">[</span><span class="mi">0</span><span class="o">,</span><span class="nx">item</span><span class="p">.</span><span class="nx">size</span><span class="p">[</span><span class="nx">list</span><span class="p">.</span><span class="nx">orientation</span><span class="p">]])};</span>
+    	        <span class="p">}</span>
+                <span class="c">// if the animation is underway: we need to stop it...</span>
+                <span class="nx">anim</span> <span class="o">=</span> <span class="nx">_anims</span><span class="p">[</span><span class="nx">$E</span><span class="p">.</span><span class="nx">generateId</span><span class="p">(</span><span class="nx">item</span><span class="p">.</span><span class="nx">slide</span><span class="p">)];</span>
+                <span class="k">if</span> <span class="p">((</span><span class="nx">anim</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">anim</span><span class="p">.</span><span class="nx">isAnimated</span><span class="p">()))</span> <span class="p">{</span><span class="nx">anim</span><span class="p">.</span><span class="nx">stop</span><span class="p">();}</span>
+        	    <span class="nx">anim</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">Scroll</span><span class="p">(</span><span class="nx">item</span><span class="p">.</span><span class="nx">slide</span><span class="o">,</span> <span class="nx">conf</span><span class="o">,</span> <span class="nx">list</span><span class="p">.</span><span class="nx">timer</span><span class="o">,</span> <span class="nx">list</span><span class="p">.</span><span class="nx">effect</span><span class="p">);</span>
+        		<span class="nx">$D</span><span class="p">.</span><span class="nx">addClass</span><span class="p">(</span><span class="nx">item</span><span class="p">.</span><span class="nx">el</span><span class="o">,</span> <span class="nx">_sliding</span><span class="p">);</span>
+            	<span class="nx">onFinish</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+                    <span class="nx">$D</span><span class="p">.</span><span class="nx">removeClass</span><span class="p">(</span><span class="nx">item</span><span class="p">.</span><span class="nx">el</span><span class="o">,</span> <span class="nx">_sliding</span><span class="p">);</span>
+        		    <span class="nx">$D</span><span class="p">.</span><span class="nx">removeClass</span><span class="p">(</span><span class="nx">item</span><span class="p">.</span><span class="nx">el</span><span class="o">,</span> <span class="nx">_selector</span><span class="p">);</span>
+            		<span class="c">// broadcasting the corresponding event (close)...</span>
+            		<span class="nx">$B</span><span class="p">.</span><span class="nx">fire</span> <span class="p">(</span><span class="s1">&#39;accordionCloseItem&#39;</span><span class="o">,</span> <span class="nx">item</span><span class="p">);</span>
+            	<span class="p">};</span>
+        		<span class="nx">anim</span><span class="p">.</span><span class="nx">onComplete</span><span class="p">.</span><span class="nx">subscribe</span><span class="p">(</span><span class="nx">onFinish</span><span class="p">);</span>
+        		<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isArray</span><span class="p">(</span><span class="nx">grouping</span><span class="p">))</span> <span class="p">{</span>
+        		    <span class="nx">grouping</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">anim</span><span class="p">);</span>
+        	    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        		    <span class="nx">anim</span><span class="p">.</span><span class="nx">animate</span><span class="p">();</span>
+        		<span class="p">}</span>
+        		<span class="k">if</span> <span class="p">(</span><span class="nx">list</span><span class="p">.</span><span class="nx">manually</span><span class="p">)</span> <span class="p">{</span>
+        	        <span class="c">// animation manually</span>
+        	        <span class="nx">fs</span> <span class="o">=</span> <span class="nx">item</span><span class="p">.</span><span class="nx">size</span><span class="p">[</span><span class="nx">list</span><span class="p">.</span><span class="nx">orientation</span><span class="p">];</span>
+            	    <span class="k">for</span> <span class="p">(</span><span class="nx">i</span><span class="o">=</span><span class="nx">fs</span><span class="o">;</span><span class="nx">i</span><span class="o">&gt;=</span><span class="nx">conf</span><span class="p">[</span><span class="nx">list</span><span class="p">.</span><span class="nx">orientation</span><span class="p">].</span><span class="nx">to</span><span class="o">;</span><span class="nx">i</span><span class="o">--</span><span class="p">){</span>
+            	        <span class="nx">$D</span><span class="p">.</span><span class="nx">setStyle</span> <span class="p">(</span><span class="nx">item</span><span class="p">.</span><span class="nx">slide</span><span class="o">,</span> <span class="nx">list</span><span class="p">.</span><span class="nx">orientation</span><span class="o">,</span> <span class="nx">i</span><span class="o">+</span><span class="s1">&#39;px&#39;</span><span class="p">);</span>
+            	    <span class="p">}</span>
+            	    <span class="nx">onFinish</span><span class="p">();</span>
+        		<span class="p">}</span>
+        		<span class="nx">_anims</span><span class="p">[</span><span class="nx">$E</span><span class="p">.</span><span class="nx">generateId</span><span class="p">(</span><span class="nx">item</span><span class="p">.</span><span class="nx">slide</span><span class="p">)]</span> <span class="o">=</span> <span class="nx">anim</span><span class="o">;</span>
+        		<span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
+	        <span class="p">}</span>
+	        <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+        <span class="p">}</span>
+        <span class="kd">function</span> <span class="nx">_removeItem</span> <span class="p">(</span> <span class="nx">item</span><span class="o">,</span> <span class="nx">list</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">item</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">list</span> <span class="o">||</span> <span class="p">(</span><span class="nx">list</span> <span class="o">=</span> <span class="nx">_getList</span> <span class="p">(</span><span class="nx">item</span><span class="p">))))</span> <span class="p">{</span>
+                <span class="c">// closing element</span>
+                <span class="nx">_closeItem</span> <span class="p">(</span><span class="nx">item</span><span class="o">,</span> <span class="nx">list</span><span class="p">);</span>
+                <span class="c">// removing listeners...</span>
+    			<span class="nx">$E</span><span class="p">.</span><span class="nx">purgeElement</span> <span class="p">(</span> <span class="nx">item</span><span class="p">.</span><span class="nx">el</span><span class="o">,</span> <span class="kc">true</span> <span class="p">);</span>
+    			<span class="c">// hack, removing the element after close it...</span>
+    			<span class="nb">window</span><span class="p">.</span><span class="nx">setTimeout</span> <span class="p">(</span><span class="kd">function</span><span class="p">(){</span>
+    			      <span class="nx">item</span><span class="p">.</span><span class="nx">el</span><span class="p">.</span><span class="nx">parentNode</span><span class="p">.</span><span class="nx">removeChild</span><span class="p">(</span><span class="nx">item</span><span class="p">.</span><span class="nx">el</span><span class="p">);</span>
+    			      <span class="nx">$B</span><span class="p">.</span><span class="nx">fire</span> <span class="p">(</span><span class="s1">&#39;accordionRemoveItem&#39;</span><span class="o">,</span> <span class="nx">item</span><span class="p">);</span>
+    			   <span class="p">}</span><span class="o">,</span> <span class="nx">list</span><span class="p">.</span><span class="nx">timer</span><span class="o">+</span><span class="mf">0.1</span><span class="p">);</span>
+        		<span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
+	        <span class="p">}</span>
+	        <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+        <span class="p">}</span>
+
+		<span class="c">/**</span>
+<span class="c">		* @method expand</span>
+<span class="c">		* @description Expanding all the elements in the accordion...</span>
+<span class="c">		* @public</span>
+<span class="c">		* @param {Node} el   DOM reference</span>
+<span class="c">		* @return boolean</span>
+<span class="c">		*/</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">expand</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">el</span> <span class="p">)</span> <span class="p">{</span>
+		    <span class="kd">var</span> <span class="nx">list</span><span class="o">;</span>
+		    <span class="k">if</span> <span class="p">((</span><span class="nx">list</span> <span class="o">=</span> <span class="nx">_getList</span> <span class="p">({</span><span class="nx">el</span><span class="o">:</span><span class="nx">el</span><span class="p">})))</span> <span class="p">{</span>
+		        <span class="k">return</span> <span class="nx">_reset</span> <span class="p">(</span><span class="nx">list</span><span class="o">,</span> <span class="p">{</span><span class="nx">force</span><span class="o">:</span><span class="kc">true</span><span class="o">,</span> <span class="nx">expand</span><span class="o">:</span><span class="kc">true</span><span class="p">});</span>
+		    <span class="p">}</span>
+		<span class="p">};</span>
+		<span class="c">/**</span>
+<span class="c">		* @method collapse</span>
+<span class="c">		* @description Collapsing all the elements in the accordion...</span>
+<span class="c">		* @public</span>
+<span class="c">		* @param {Node} el   DOM reference</span>
+<span class="c">		* @return boolean</span>
+<span class="c">		*/</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">collapse</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">el</span> <span class="p">)</span> <span class="p">{</span>
+		    <span class="kd">var</span> <span class="nx">list</span><span class="o">;</span>
+		    <span class="k">if</span> <span class="p">((</span><span class="nx">list</span> <span class="o">=</span> <span class="nx">_getList</span> <span class="p">({</span><span class="nx">el</span><span class="o">:</span><span class="nx">el</span><span class="p">})))</span> <span class="p">{</span>
+		        <span class="k">return</span> <span class="nx">_reset</span> <span class="p">(</span><span class="nx">list</span><span class="o">,</span> <span class="p">{</span><span class="nx">force</span><span class="o">:</span><span class="kc">true</span><span class="p">});</span>
+		    <span class="p">}</span>
+		<span class="p">};</span>
+		<span class="c">/**</span>
+<span class="c">		* @method open</span>
+<span class="c">		* @description Open a certain item inside an area...</span>
+<span class="c">		* @public</span>
+<span class="c">		* @param {Node} el   DOM reference</span>
+<span class="c">		* @return boolean</span>
+<span class="c">		*/</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">open</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">el</span> <span class="p">)</span> <span class="p">{</span>
+		    <span class="kd">var</span> <span class="nx">item</span><span class="o">;</span>
+		    <span class="k">if</span> <span class="p">((</span><span class="nx">item</span> <span class="o">=</span> <span class="nx">_getItem</span><span class="p">(</span><span class="nx">el</span><span class="p">)))</span> <span class="p">{</span>
+		        <span class="k">return</span> <span class="nx">_openItem</span> <span class="p">(</span><span class="nx">item</span><span class="p">);</span>
+		    <span class="p">}</span>
+		<span class="p">};</span>
+		<span class="c">/**</span>
+<span class="c">		* @method close</span>
+<span class="c">		* @description Close a certain item inside an area...</span>
+<span class="c">		* @public</span>
+<span class="c">		* @param {Node} el   DOM reference</span>
+<span class="c">		* @return boolean</span>
+<span class="c">		*/</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">close</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">el</span> <span class="p">)</span> <span class="p">{</span>
+		    <span class="kd">var</span> <span class="nx">item</span><span class="o">,</span> <span class="nx">list</span><span class="o">;</span>
+		    <span class="k">if</span> <span class="p">((</span><span class="nx">item</span> <span class="o">=</span> <span class="nx">_getItem</span><span class="p">(</span><span class="nx">el</span><span class="p">)))</span> <span class="p">{</span>
+		        <span class="k">if</span> <span class="p">((</span><span class="nx">list</span> <span class="o">=</span> <span class="nx">_getList</span> <span class="p">(</span><span class="nx">item</span><span class="p">)))</span> <span class="p">{</span>
+		          <span class="c">// if the item is already opened, and is multiple and not persistent</span>
+		          <span class="k">return</span> <span class="p">((</span><span class="nx">item</span><span class="p">.</span><span class="nx">selected</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">list</span><span class="p">.</span><span class="nx">multiple</span> <span class="o">||</span> <span class="o">!</span><span class="nx">list</span><span class="p">.</span><span class="nx">persistent</span><span class="p">))</span><span class="o">?</span><span class="nx">_closeItem</span> <span class="p">(</span><span class="nx">item</span><span class="o">,</span> <span class="nx">list</span><span class="p">)</span><span class="o">:</span><span class="kc">false</span><span class="p">);</span>
+		        <span class="p">}</span>
+		    <span class="p">}</span>
+		<span class="p">};</span>
+		<span class="c">/**</span>
+<span class="c">		* @method toggle</span>
+<span class="c">		* @description toggle a certain item inside an area...</span>
+<span class="c">		* @public</span>
+<span class="c">		* @param {Node} el   DOM reference</span>
+<span class="c">		* @return boolean</span>
+<span class="c">		*/</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">toggle</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">el</span> <span class="p">)</span> <span class="p">{</span>
+		    <span class="kd">var</span> <span class="nx">item</span><span class="o">,</span> <span class="nx">list</span><span class="o">;</span>
+		    <span class="k">if</span> <span class="p">((</span><span class="nx">item</span> <span class="o">=</span> <span class="nx">_getItem</span><span class="p">(</span><span class="nx">el</span><span class="p">)))</span> <span class="p">{</span>
+				<span class="k">if</span> <span class="p">((</span><span class="nx">list</span> <span class="o">=</span> <span class="nx">_getList</span> <span class="p">(</span><span class="nx">item</span><span class="p">)))</span> <span class="p">{</span>
+				  <span class="c">// if the item is already opened, and is multiple and not persistent</span>
+		          <span class="k">return</span> <span class="p">((</span><span class="nx">item</span><span class="p">.</span><span class="nx">selected</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">list</span><span class="p">.</span><span class="nx">multiple</span> <span class="o">||</span> <span class="o">!</span><span class="nx">list</span><span class="p">.</span><span class="nx">persistent</span><span class="p">))</span><span class="o">?</span><span class="nx">_closeItem</span> <span class="p">(</span><span class="nx">item</span><span class="o">,</span> <span class="nx">list</span><span class="p">)</span><span class="o">:</span><span class="nx">_openItem</span> <span class="p">(</span><span class="nx">item</span><span class="o">,</span> <span class="nx">list</span><span class="p">));</span>
+		        <span class="p">}</span>
+		    <span class="p">}</span>
+		<span class="p">};</span>
+		<span class="c">/**</span>
+<span class="c">		* @method remove</span>
+<span class="c">		* @description remove a certain item from the area...</span>
+<span class="c">		* @public</span>
+<span class="c">		* @param {Node} el   DOM reference</span>
+<span class="c">		* @return boolean</span>
+<span class="c">		*/</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">remove</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">el</span> <span class="p">)</span> <span class="p">{</span>
+		    <span class="kd">var</span> <span class="nx">item</span><span class="o">,</span> <span class="nx">list</span><span class="o">;</span>
+		    <span class="k">if</span> <span class="p">((</span><span class="nx">item</span> <span class="o">=</span> <span class="nx">_getItem</span><span class="p">(</span><span class="nx">el</span><span class="p">)))</span> <span class="p">{</span>
+		        <span class="k">if</span> <span class="p">((</span><span class="nx">list</span> <span class="o">=</span> <span class="nx">_getList</span> <span class="p">(</span><span class="nx">item</span><span class="p">)))</span> <span class="p">{</span>
+		          <span class="k">return</span> <span class="nx">_removeItem</span> <span class="p">(</span><span class="nx">item</span><span class="o">,</span> <span class="nx">list</span><span class="p">);</span>
+		        <span class="p">}</span>
+		    <span class="p">}</span>
+		<span class="p">};</span>
+		<span class="k">return</span> <span class="nx">obj</span><span class="o">;</span>
+	<span class="p">}();</span>
+<span class="p">})();</span>
+</pre></div>
+                    </div>
+			</div>
+		</div>
+		<div class="yui-b">
+            <div class="nav">
+
+                    <div id="moduleList" class="module">
+                        <h4>Modules</h4>
+                        <ul class="content">
+                                <li class="selected"><a href="module_accordion.html" title="accordion">accordion</a></li>
+                                <li class=""><a href="module_bubbling.html" title="bubbling">bubbling</a></li>
+                                <li class=""><a href="module_dispatcher.html" title="dispatcher">dispatcher</a></li>
+                                <li class=""><a href="module_lighter.html" title="lighter">lighter</a></li>
+                                <li class=""><a href="module_loading.html" title="loading">loading</a></li>
+                                <li class=""><a href="module_navigation.html" title="navigation">navigation</a></li>
+                                <li class=""><a href="module_tooltipmanager.html" title="tooltipmanager">tooltipmanager</a></li>
+                                <li class=""><a href="module_wizard.html" title="wizard">wizard</a></li>
+                        </ul>
+                    </div>
+
+                    <div id="classList" class="module">
+                        <h4>Classes</h4>
+                        <ul class="content">
+                                <li class=""><a href="YAHOO.widget.AccordionManager.html" title="YAHOO.widget.AccordionManager">YAHOO.widget.AccordionManager</a></li>
+                        </ul>
+                    </div>
+
+                    <div id="fileList" class="module">
+                        <h4>Files</h4>
+                        <ul class="content">        
+                                <li class="selected"><a href="accordion.js.html" title="accordion.js">accordion.js</a></li>
+                                <li class=""><a href="bubbling.js.html" title="bubbling.js">bubbling.js</a></li>
+                        </ul>
+                    </div>
+
+
+
+
+
+            </div>
+		</div>
+	</div>
+	<div id="ft">
+        <hr />
+        Copyright &copy; 2009 <a href="http://www.bubbling-library.com/" title="JavaScript Bubbling Library - YUI Extension">Bubbling Library</a>. All rights reserved.
+	</div>
+</div>
+<script type="text/javascript">
+    ALL_YUI_PROPS = [{"url": "YAHOO.widget.AccordionManager.html#method_close", "access": "", "host": "YAHOO.widget.AccordionManager", "type": "method", "name": "close"}, {"url": "YAHOO.widget.AccordionManager.html#method_collapse", "access": "", "host": "YAHOO.widget.AccordionManager", "type": "method", "name": "collapse"}, {"url": "YAHOO.widget.AccordionManager.html#method_expand", "access": "", "host": "YAHOO.widget.AccordionManager", "type": "method", "name": "expand"}, {"url": "YAHOO.widget.AccordionManager.html#method_open", "access": "", "host": "YAHOO.widget.AccordionManager", "type": "method", "name": "open"}, {"url": "YAHOO.widget.AccordionManager.html#method_remove", "access": "", "host": "YAHOO.widget.AccordionManager", "type": "method", "name": "remove"}, {"url": "YAHOO.widget.AccordionManager.html#method_toggle", "access": "", "host": "YAHOO.widget.AccordionManager", "type": "method", "name": "toggle"}];
+</script>
+</body>
+</html>

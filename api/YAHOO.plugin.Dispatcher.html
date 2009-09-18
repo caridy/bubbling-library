@@ -1,0 +1,1035 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html xmlns:yui="http://yuilibrary.com/rdf/1.0/yui.rdf#">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+	<title>API: dispatcher  YAHOO.plugin.Dispatcher   (YRegion Utility)</title>
+
+	<link rel="stylesheet" type="text/css" href="assets/reset-fonts-grids-min.css?stamp=" />
+	<link rel="stylesheet" type="text/css" href="assets/api.css?stamp=" />
+
+    <script type="text/javascript" src="assets/api-js?stamp="></script>
+    <script type="text/javascript" src="assets/ac-js?stamp="></script>
+</head>
+
+<body id="yahoo-com">
+
+<div id="doc3" class="yui-t2">
+	<div id="hd">
+        <h1><a href="http://www.bubbling-library.com/" title="JavaScript Bubbling Library - YUI Extension">JavaScript Bubbling Library - YUI Extension</a></h1>
+        <h3>dispatcher&nbsp; <span class="subtitle">2.2</span></h3>
+        <a href="./index.html" title="JavaScript Bubbling Library">Bubbling</a> 
+            &gt; <a href="./module_dispatcher.html" title="dispatcher">dispatcher</a>
+                 &gt; YAHOO.plugin.Dispatcher 
+                
+        <form onsubmit="return false">
+            <div id="propertysearch">
+                Search: <input autocomplete="off" id="searchinput" />
+                <div id="searchresults">
+                    &nbsp;
+                </div>
+            </div>
+        </form>
+	</div>
+
+	<div id="bd">
+		<div id="yui-main">
+			<div class="yui-b">
+            <form action="#" name="yui-classopts-form" method="get" id="yui-classopts-form">
+                <fieldset>
+                    <legend>Filters</legend>
+                <span class="classopts"><input type="checkbox" name="show_private" id="show_private" /> <label for="show_private">Show Private</label></span>
+                <span class="classopts"><input type="checkbox" name="show_protected" id="show_protected" /> <label for="show_protected">Show Protected</label></span>
+                <span class="classopts"><input type="checkbox" name="show_deprecated" id="show_deprecated" /> <label for="show_deprecated">Show Deprecated</label></span>
+                </fieldset>
+            </form>
+
+                    <h2>
+                        
+
+                        <code>static</code>
+                        
+                            Class <b property="yui:name">YAHOO.plugin.Dispatcher</b>
+                        <span class="extends">
+                        </span>
+
+                    </h2>
+                    <!-- class tree goes here -->
+                    
+                
+  
+
+                    <div class="summary description" property="yui:description">
+                        The Dispatcher Plugin
+                    </div>
+
+                    
+                    <div rel="yui:properties" resource="#properties">
+
+                    </div>
+
+                    <div rel="yui:methods" resource="#methods">
+                        <div class="section method details">
+                            <h3 id="methods">Methods</h3>
+                            <div class="content">
+                                    <div class="" rel="yui:method" resource="#method_addUnit">
+                                    <h4>
+                                        <a name="method_addUnit">addUnit</a></h4>
+                                    <div class="detail" >
+                                        <code>
+                                        
+                                        
+                                        
+                                        
+                                            <strong property="yui:name">addUnit</strong>
+                                           (
+                                                
+                                                        
+                                                         unit
+                                                    
+                                                
+                                                        , 
+                                                         layout
+                                                    
+                                                
+                                                        , 
+                                                         config
+                                                    
+                                                
+                                            )
+                                        </code>
+                                        
+                                        <div class="description" property="yui:description">
+                                            delegate the addUnit layout method...
+                                        </div>
+
+                                        <div class="description">
+
+                                                <dl rel="yui:parameters">
+                                                    <dt>Parameters:</dt>
+                                                        <dd rel="yui:parameter">
+                                                        <code><span property="yui:name">unit</span>
+                                                        &lt;<span property="yui:type">object</span>&gt;
+                                                        </code>
+                                                        <span property="yui:description">         reference to the unit...</span>
+                                                        </dd>
+                                                        <dd rel="yui:parameter">
+                                                        <code><span property="yui:name">layout</span>
+                                                        &lt;<span property="yui:type">object</span>&gt;
+                                                        </code>
+                                                        <span property="yui:description">       reference to the layout...</span>
+                                                        </dd>
+                                                        <dd rel="yui:parameter">
+                                                        <code><span property="yui:name">config</span>
+                                                        &lt;<span property="yui:type">object</span>&gt;
+                                                        </code>
+                                                        <span property="yui:description">       Literal object with the user configuration vars</span>
+                                                        </dd>
+                                                </dl>
+
+
+
+             
+
+                                        </div>
+
+                                    </div>
+                                    <hr />
+                                    </div>
+                                    <div class="" rel="yui:method" resource="#method_applyCSS">
+                                    <h4>
+                                        <a name="method_applyCSS">applyCSS</a></h4>
+                                    <div class="detail" >
+                                        <code>
+                                        
+                                        
+                                        
+                                        
+                                            <strong property="yui:name">applyCSS</strong>
+                                           (
+                                                
+                                                        
+                                                         cssCode
+                                                    
+                                                
+                                                        , 
+                                                         params
+                                                    
+                                                
+                                                        , 
+                                                         config
+                                                    
+                                                
+                                            )
+                                        </code>
+                                        
+                                        <div class="description" property="yui:description">
+                                            Injecting CSS in the current page
+                                        </div>
+
+                                        <div class="description">
+
+                                                <dl rel="yui:parameters">
+                                                    <dt>Parameters:</dt>
+                                                        <dd rel="yui:parameter">
+                                                        <code><span property="yui:name">cssCode</span>
+                                                        &lt;<span property="yui:type">string</span>&gt;
+                                                        </code>
+                                                        <span property="yui:description">   CSS content that will be injected</span>
+                                                        </dd>
+                                                        <dd rel="yui:parameter">
+                                                        <code><span property="yui:name">params</span>
+                                                        &lt;<span property="yui:type">object</span>&gt;
+                                                        </code>
+                                                        <span property="yui:description">    Literal object with the tag configuration params</span>
+                                                        </dd>
+                                                        <dd rel="yui:parameter">
+                                                        <code><span property="yui:name">config</span>
+                                                        &lt;<span property="yui:type">object</span>&gt;
+                                                        </code>
+                                                        <span property="yui:description">    Literal object with the dispatcher configuration values</span>
+                                                        </dd>
+                                                </dl>
+
+
+
+             
+
+                                        </div>
+
+                                    </div>
+                                    <hr />
+                                    </div>
+                                    <div class="" rel="yui:method" resource="#method_augmentURI">
+                                    <h4>
+                                        <a name="method_augmentURI">augmentURI</a></h4>
+                                    <div class="detail" >
+                                        <code>
+                                        
+                                        
+                                        
+                                        
+                                            <strong property="yui:name">augmentURI</strong>
+                                           (
+                                                
+                                                        
+                                                         url
+                                                    
+                                                
+                                                        , 
+                                                         m
+                                                    
+                                                
+                                            )
+                                        </code>
+                                        
+                                        <div class="description" property="yui:description">
+                                            augment an url with more parameters, overriding...
+                                        </div>
+
+                                        <div class="description">
+
+                                                <dl rel="yui:parameters">
+                                                    <dt>Parameters:</dt>
+                                                        <dd rel="yui:parameter">
+                                                        <code><span property="yui:name">url</span>
+                                                        &lt;<span property="yui:type">string</span>&gt;
+                                                        </code>
+                                                        <span property="yui:description">   url that should be expanded with new arguments</span>
+                                                        </dd>
+                                                        <dd rel="yui:parameter">
+                                                        <code><span property="yui:name">m</span>
+                                                        &lt;<span property="yui:type">string|array</span>&gt;
+                                                        </code>
+                                                        <span property="yui:description">   MoreParams: string: param1=value1&param2=value2 or associative array</span>
+                                                        </dd>
+                                                </dl>
+
+
+
+             
+
+                                        </div>
+
+                                    </div>
+                                    <hr />
+                                    </div>
+                                    <div class="" rel="yui:method" resource="#method_cssLoader">
+                                    <h4>
+                                        <a name="method_cssLoader">cssLoader</a></h4>
+                                    <div class="detail" >
+                                        <code>
+                                        
+                                        
+                                        
+                                        
+                                            <strong property="yui:name">cssLoader</strong>
+                                           (
+                                                
+                                                        
+                                                         uri
+                                                    
+                                                
+                                                        , 
+                                                         config
+                                                    
+                                                
+                                            )
+                                        </code>
+                                        
+                                        <div class="description" property="yui:description">
+                                            Fetching a remote CSS file that will be processed thru this object...
+                                        </div>
+
+                                        <div class="description">
+
+                                                <dl rel="yui:parameters">
+                                                    <dt>Parameters:</dt>
+                                                        <dd rel="yui:parameter">
+                                                        <code><span property="yui:name">uri</span>
+                                                        &lt;<span property="yui:type">object</span>&gt;
+                                                        </code>
+                                                        <span property="yui:description">       Remote CSS file that will be loaded using AJAX</span>
+                                                        </dd>
+                                                        <dd rel="yui:parameter">
+                                                        <code><span property="yui:name">config</span>
+                                                        &lt;<span property="yui:type">object</span>&gt;
+                                                        </code>
+                                                        <span property="yui:description">    Literal object with the user configuration vars</span>
+                                                        </dd>
+                                                </dl>
+
+
+
+             
+
+                                        </div>
+
+                                    </div>
+                                    <hr />
+                                    </div>
+                                    <div class="" rel="yui:method" resource="#method_delegate">
+                                    <h4>
+                                        <a name="method_delegate">delegate</a></h4>
+                                    <div class="detail" >
+                                        <code>
+                                        
+                                        
+                                        
+                                        
+                                            <strong property="yui:name">delegate</strong>
+                                           (
+                                                
+                                                        
+                                                         tab
+                                                    
+                                                
+                                                        , 
+                                                         tabview
+                                                    
+                                                
+                                                        , 
+                                                         config
+                                                    
+                                                
+                                            )
+                                        </code>
+                                        
+                                        <div class="description" property="yui:description">
+                                            delegate the set content method...
+                                        </div>
+
+                                        <div class="description">
+
+                                                <dl rel="yui:parameters">
+                                                    <dt>Parameters:</dt>
+                                                        <dd rel="yui:parameter">
+                                                        <code><span property="yui:name">tab</span>
+                                                        &lt;<span property="yui:type">object</span>&gt;
+                                                        </code>
+                                                        <span property="yui:description">		reference to the tab...</span>
+                                                        </dd>
+                                                        <dd rel="yui:parameter">
+                                                        <code><span property="yui:name">tabview</span>
+                                                        &lt;<span property="yui:type">object</span>&gt;
+                                                        </code>
+                                                        <span property="yui:description">   reference to the tabview...</span>
+                                                        </dd>
+                                                        <dd rel="yui:parameter">
+                                                        <code><span property="yui:name">config</span>
+                                                        &lt;<span property="yui:type">object</span>&gt;
+                                                        </code>
+                                                        <span property="yui:description">    Literal object with the user configuration vars</span>
+                                                        </dd>
+                                                </dl>
+
+
+
+             
+
+                                        </div>
+
+                                    </div>
+                                    <hr />
+                                    </div>
+                                    <div class="" rel="yui:method" resource="#method_destroy">
+                                    <h4>
+                                        <a name="method_destroy">destroy</a></h4>
+                                    <div class="detail" >
+                                        <code>
+                                        
+                                        
+                                        
+                                        
+                                            <strong property="yui:name">destroy</strong>
+                                           (
+                                                
+                                                        
+                                                         handle
+                                                    
+                                                
+                                            )
+                                        </code>
+                                        
+                                        <div class="description" property="yui:description">
+                                            Destroy an area...
+                                        </div>
+
+                                        <div class="description">
+
+                                                <dl rel="yui:parameters">
+                                                    <dt>Parameters:</dt>
+                                                        <dd rel="yui:parameter">
+                                                        <code><span property="yui:name">handle</span>
+                                                        &lt;<span property="yui:type">object</span>&gt;
+                                                        </code>
+                                                        <span property="yui:description">   Process handle</span>
+                                                        </dd>
+                                                </dl>
+
+
+
+             
+
+                                        </div>
+
+                                    </div>
+                                    <hr />
+                                    </div>
+                                    <div class="" rel="yui:method" resource="#method_fetch">
+                                    <h4>
+                                        <a name="method_fetch">fetch</a></h4>
+                                    <div class="detail" >
+                                        <code>
+                                        
+                                        
+                                        
+                                        
+                                            <strong property="yui:name">fetch</strong>
+                                           (
+                                                
+                                                        
+                                                         The
+                                                    
+                                                
+                                                        , 
+                                                         uri
+                                                    
+                                                
+                                                        , 
+                                                         config
+                                                    
+                                                
+                                            )
+                                        </code>
+                                        
+                                        <div class="description" property="yui:description">
+                                            Fetching a remote file that will be processed thru this object...
+                                        </div>
+
+                                        <div class="description">
+
+                                                <dl rel="yui:parameters">
+                                                    <dt>Parameters:</dt>
+                                                        <dd rel="yui:parameter">
+                                                        <code><span property="yui:name">The</span>
+                                                        &lt;<span property="yui:type">Node} el     		{HTMLElement | String | Object</span>&gt;
+                                                        </code>
+                                                        <span property="yui:description"> html element that represents the dynamic area.</span>
+                                                        </dd>
+                                                        <dd rel="yui:parameter">
+                                                        <code><span property="yui:name">uri</span>
+                                                        &lt;<span property="yui:type">object</span>&gt;
+                                                        </code>
+                                                        <span property="yui:description">       Remote file that will be loaded using AJAX</span>
+                                                        </dd>
+                                                        <dd rel="yui:parameter">
+                                                        <code><span property="yui:name">config</span>
+                                                        &lt;<span property="yui:type">object</span>&gt;
+                                                        </code>
+                                                        <span property="yui:description">    Literal object with the user configuration vars</span>
+                                                        </dd>
+                                                </dl>
+
+
+
+             
+
+                                        </div>
+
+                                    </div>
+                                    <hr />
+                                    </div>
+                                    <div class="" rel="yui:method" resource="#method_firewall">
+                                    <h4>
+                                        <a name="method_firewall">firewall</a></h4>
+                                    <div class="detail" >
+                                        <code>
+                                        
+                                        
+                                        
+                                        
+                                            <strong property="yui:name">firewall</strong>
+                                           (
+                                                
+                                                        
+                                                         uri
+                                                    
+                                                
+                                                        , 
+                                                         config
+                                                    
+                                                
+                                                        , 
+                                                         monolitic
+                                                    
+                                                
+                                            )
+                                        </code>
+                                        
+                                        <div class="description" property="yui:description">
+                                            Analyze the uri before start the downloading process (if the uri isn't in over the current domain name, the dispatcher can use a proxy)
+                                        </div>
+
+                                        <div class="description">
+
+                                                <dl rel="yui:parameters">
+                                                    <dt>Parameters:</dt>
+                                                        <dd rel="yui:parameter">
+                                                        <code><span property="yui:name">uri</span>
+                                                        &lt;<span property="yui:type">String</span>&gt;
+                                                        </code>
+                                                        <span property="yui:description">     	  Remote URL</span>
+                                                        </dd>
+                                                        <dd rel="yui:parameter">
+                                                        <code><span property="yui:name">config</span>
+                                                        &lt;<span property="yui:type">Object</span>&gt;
+                                                        </code>
+                                                        <span property="yui:description">      Used to pass the user configuration thru the chain of execution</span>
+                                                        </dd>
+                                                        <dd rel="yui:parameter">
+                                                        <code><span property="yui:name">monolitic</span>
+                                                        &lt;<span property="yui:type">Boolean</span>&gt;
+                                                        </code>
+                                                        <span property="yui:description">  Do not use proxy</span>
+                                                        </dd>
+                                                </dl>
+
+
+
+             
+
+                                        </div>
+
+                                    </div>
+                                    <hr />
+                                    </div>
+                                    <div class="" rel="yui:method" resource="#method_init">
+                                    <h4>
+                                        <a name="method_init">init</a></h4>
+                                    <div class="detail" >
+                                        <code>
+                                        
+                                        
+                                        
+                                        
+                                            <strong property="yui:name">init</strong>
+                                           (
+                                                
+                                                        
+                                                         c
+                                                    
+                                                
+                                            )
+                                        </code>
+                                        
+                                        <div class="description" property="yui:description">
+                                            Initialization routine (optional)
+                                        </div>
+
+                                        <div class="description">
+
+                                                <dl rel="yui:parameters">
+                                                    <dt>Parameters:</dt>
+                                                        <dd rel="yui:parameter">
+                                                        <code><span property="yui:name">c</span>
+                                                        &lt;<span property="yui:type">object</span>&gt;
+                                                        </code>
+                                                        <span property="yui:description">   	default configuration object</span>
+                                                        </dd>
+                                                </dl>
+
+
+
+             
+
+                                        </div>
+
+                                    </div>
+                                    <hr />
+                                    </div>
+                                    <div class="" rel="yui:method" resource="#method_isAlive">
+                                    <h4>
+                                        <a name="method_isAlive">isAlive</a></h4>
+                                    <div class="detail" >
+                                        <code>
+                                        
+                                        
+                                        
+                                        
+                                            <strong property="yui:name">isAlive</strong>
+                                           (
+                                                
+                                                        
+                                                         hd
+                                                    
+                                                
+                                            )
+                                        </code>
+                                        
+                                        <div class="description" property="yui:description">
+                                            Verify if the a process is still alive
+                                        </div>
+
+                                        <div class="description">
+
+                                                <dl rel="yui:parameters">
+                                                    <dt>Parameters:</dt>
+                                                        <dd rel="yui:parameter">
+                                                        <code><span property="yui:name">hd</span>
+                                                        &lt;<span property="yui:type">object</span>&gt;
+                                                        </code>
+                                                        <span property="yui:description">   Process handle</span>
+                                                        </dd>
+                                                </dl>
+
+
+
+             
+
+                                        </div>
+
+                                    </div>
+                                    <hr />
+                                    </div>
+                                    <div class="" rel="yui:method" resource="#method_jsLoader">
+                                    <h4>
+                                        <a name="method_jsLoader">jsLoader</a></h4>
+                                    <div class="detail" >
+                                        <code>
+                                        
+                                        
+                                        
+                                        
+                                            <strong property="yui:name">jsLoader</strong>
+                                           (
+                                                
+                                                        
+                                                         uri
+                                                    
+                                                
+                                                        , 
+                                                         config
+                                                    
+                                                
+                                            )
+                                        </code>
+                                        
+                                        <div class="description" property="yui:description">
+                                            Fetching a remote javascript file that will be processed thru this object...
+                                        </div>
+
+                                        <div class="description">
+
+                                                <dl rel="yui:parameters">
+                                                    <dt>Parameters:</dt>
+                                                        <dd rel="yui:parameter">
+                                                        <code><span property="yui:name">uri</span>
+                                                        &lt;<span property="yui:type">object</span>&gt;
+                                                        </code>
+                                                        <span property="yui:description">       Remote js file that will be loaded using AJAX</span>
+                                                        </dd>
+                                                        <dd rel="yui:parameter">
+                                                        <code><span property="yui:name">config</span>
+                                                        &lt;<span property="yui:type">object</span>&gt;
+                                                        </code>
+                                                        <span property="yui:description">    Literal object with the user configuration vars</span>
+                                                        </dd>
+                                                </dl>
+
+
+
+             
+
+                                        </div>
+
+                                    </div>
+                                    <hr />
+                                    </div>
+                                    <div class="" rel="yui:method" resource="#method_kill">
+                                    <h4>
+                                        <a name="method_kill">kill</a></h4>
+                                    <div class="detail" >
+                                        <code>
+                                        
+                                        
+                                        
+                                        
+                                            <strong property="yui:name">kill</strong>
+                                           (
+                                                
+                                                        
+                                                         handle
+                                                    
+                                                
+                                            )
+                                        </code>
+                                        
+                                        <div class="description" property="yui:description">
+                                            Kill a process...
+                                        </div>
+
+                                        <div class="description">
+
+                                                <dl rel="yui:parameters">
+                                                    <dt>Parameters:</dt>
+                                                        <dd rel="yui:parameter">
+                                                        <code><span property="yui:name">handle</span>
+                                                        &lt;<span property="yui:type">object</span>&gt;
+                                                        </code>
+                                                        <span property="yui:description">   Process handle</span>
+                                                        </dd>
+                                                </dl>
+
+
+
+             
+
+                                        </div>
+
+                                    </div>
+                                    <hr />
+                                    </div>
+                                    <div class="" rel="yui:method" resource="#method_obj2query">
+                                    <h4>
+                                        <a name="method_obj2query">obj2query</a></h4>
+                                    <div class="detail" >
+                                        <code>
+                                        
+                                        
+                                        
+                                        
+                                            <strong property="yui:name">obj2query</strong>
+                                           (
+                                                
+                                                        
+                                                         params
+                                                    
+                                                
+                                            )
+                                        </code>
+                                        
+                                        <div class="description" property="yui:description">
+                                            converting a literal object into a query string
+                                        </div>
+
+                                        <div class="description">
+
+                                                <dl rel="yui:parameters">
+                                                    <dt>Parameters:</dt>
+                                                        <dd rel="yui:parameter">
+                                                        <code><span property="yui:name">params</span>
+                                                        &lt;<span property="yui:type">object</span>&gt;
+                                                        </code>
+                                                        <span property="yui:description">       Literal object to create the url querystring</span>
+                                                        </dd>
+                                                </dl>
+
+
+
+             
+
+                                        </div>
+
+                                    </div>
+                                    <hr />
+                                    </div>
+                                    <div class="" rel="yui:method" resource="#method_onDestroy">
+                                    <h4>
+                                        <a name="method_onDestroy">onDestroy</a></h4>
+                                    <div class="detail" >
+                                        <code>
+                                        
+                                        
+                                        
+                                        
+                                            <strong property="yui:name">onDestroy</strong>
+                                           (
+                                                
+                                                        
+                                                         hd
+                                                    
+                                                
+                                                        , 
+                                                         bh
+                                                    
+                                                
+                                                        , 
+                                                         scope
+                                                    
+                                                
+                                            )
+                                        </code>
+                                        
+                                        <div class="description" property="yui:description">
+                                            subscribe a new destroyer for a certain area...
+                                        </div>
+
+                                        <div class="description">
+
+                                                <dl rel="yui:parameters">
+                                                    <dt>Parameters:</dt>
+                                                        <dd rel="yui:parameter">
+                                                        <code><span property="yui:name">hd</span>
+                                                        &lt;<span property="yui:type">string</span>&gt;
+                                                        </code>
+                                                        <span property="yui:description">   	Unique id for the area to be monitored</span>
+                                                        </dd>
+                                                        <dd rel="yui:parameter">
+                                                        <code><span property="yui:name">bh</span>
+                                                        &lt;<span property="yui:type">function</span>&gt;
+                                                        </code>
+                                                        <span property="yui:description">   	Listener</span>
+                                                        </dd>
+                                                        <dd rel="yui:parameter">
+                                                        <code><span property="yui:name">scope</span>
+                                                        &lt;<span property="yui:type">object</span>&gt;
+                                                        </code>
+                                                        <span property="yui:description">   	Execution scope</span>
+                                                        </dd>
+                                                </dl>
+
+
+
+             
+
+                                        </div>
+
+                                    </div>
+                                    <hr />
+                                    </div>
+                                    <div class="" rel="yui:method" resource="#method_process">
+                                    <h4>
+                                        <a name="method_process">process</a></h4>
+                                    <div class="detail" >
+                                        <code>
+                                        
+                                        
+                                        
+                                        
+                                            <strong property="yui:name">process</strong>
+                                           (
+                                                
+                                                        
+                                                         The
+                                                    
+                                                
+                                                        , 
+                                                         content
+                                                    
+                                                
+                                                        , 
+                                                         config
+                                                    
+                                                
+                                                        , 
+                                                         flag
+                                                    
+                                                
+                                            )
+                                        </code>
+                                        
+                                        <div class="description" property="yui:description">
+                                            Starting the process for a content...
+                                        </div>
+
+                                        <div class="description">
+
+                                                <dl rel="yui:parameters">
+                                                    <dt>Parameters:</dt>
+                                                        <dd rel="yui:parameter">
+                                                        <code><span property="yui:name">The</span>
+                                                        &lt;<span property="yui:type">Node} el     			{HTMLElement | String | Object</span>&gt;
+                                                        </code>
+                                                        <span property="yui:description"> html element that represents the dynamic area.</span>
+                                                        </dd>
+                                                        <dd rel="yui:parameter">
+                                                        <code><span property="yui:name">content</span>
+                                                        &lt;<span property="yui:type">string</span>&gt;
+                                                        </code>
+                                                        <span property="yui:description">       Content to be processed</span>
+                                                        </dd>
+                                                        <dd rel="yui:parameter">
+                                                        <code><span property="yui:name">config</span>
+                                                        &lt;<span property="yui:type">object</span>&gt;
+                                                        </code>
+                                                        <span property="yui:description">    	Literal object with the user configuration vars</span>
+                                                        </dd>
+                                                        <dd rel="yui:parameter">
+                                                        <code><span property="yui:name">flag</span>
+                                                        &lt;<span property="yui:type">boolean</span>&gt;
+                                                        </code>
+                                                        <span property="yui:description">    	    If the call was internal or external</span>
+                                                        </dd>
+                                                </dl>
+
+
+
+             
+
+                                        </div>
+
+                                    </div>
+                                    <hr />
+                                    </div>
+                                    <div class="" rel="yui:method" resource="#method_toString">
+                                    <h4>
+                                        <a name="method_toString">toString</a></h4>
+                                    <div class="detail" >
+                                        <code>
+                                        
+                                        
+                                        
+                                        String
+                                            <strong property="yui:name">toString</strong>
+                                           (
+                                            )
+                                        </code>
+                                        
+                                        <div class="description" property="yui:description">
+                                            Returns a string representing the dispatcher plugin.
+                                        </div>
+
+                                        <div class="description">
+
+
+                                                <dl>
+                                                    <dt>Returns:
+                                                    <code property="yui:return">
+                                                        String
+                                                    </code></dt>
+                                                    <dd property="yui:returnInfo"></dd>
+                                                </dl>
+
+
+             
+
+                                        </div>
+
+                                    </div>
+                                    <hr />
+                                    </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div rel="yui:events" resource="#events">
+
+
+                    </div>
+
+                    <div rel="yui:attributes" resource="#configattributes">
+
+                    </div>
+
+			</div>
+		</div>
+		<div class="yui-b">
+            <div class="nav">
+
+                    <div id="moduleList" class="module">
+                        <h4>Modules</h4>
+                        <ul class="content">
+                                <li class=""><a href="module_accordion.html" title="accordion">accordion</a></li>
+                                <li class=""><a href="module_bubbling.html" title="bubbling">bubbling</a></li>
+                                <li class="selected"><a href="module_dispatcher.html" title="dispatcher">dispatcher</a></li>
+                                <li class=""><a href="module_lighter.html" title="lighter">lighter</a></li>
+                                <li class=""><a href="module_loading.html" title="loading">loading</a></li>
+                                <li class=""><a href="module_navigation.html" title="navigation">navigation</a></li>
+                                <li class=""><a href="module_tooltipmanager.html" title="tooltipmanager">tooltipmanager</a></li>
+                                <li class=""><a href="module_wizard.html" title="wizard">wizard</a></li>
+                        </ul>
+                    </div>
+
+                    <div id="classList" class="module">
+                        <h4>Classes</h4>
+                        <ul class="content">
+                                <li class="selected"><a href="YAHOO.plugin.Dispatcher.html" title="YAHOO.plugin.Dispatcher">YAHOO.plugin.Dispatcher</a></li>
+                        </ul>
+                    </div>
+
+                    <div id="fileList" class="module">
+                        <h4>Files</h4>
+                        <ul class="content">        
+                                <li class=""><a href="lighter.js.html" title="lighter.js">lighter.js</a></li>
+                        </ul>
+                    </div>
+
+
+                    <div id="methodsList" class="module">
+                        <h4>Methods</h4>
+                        <ul class="content">        
+                                <li class=""><a href="#method_addUnit" title="addUnit">addUnit</a></li>
+                                <li class=""><a href="#method_applyCSS" title="applyCSS">applyCSS</a></li>
+                                <li class=""><a href="#method_augmentURI" title="augmentURI">augmentURI</a></li>
+                                <li class=""><a href="#method_cssLoader" title="cssLoader">cssLoader</a></li>
+                                <li class=""><a href="#method_delegate" title="delegate">delegate</a></li>
+                                <li class=""><a href="#method_destroy" title="destroy">destroy</a></li>
+                                <li class=""><a href="#method_fetch" title="fetch">fetch</a></li>
+                                <li class=""><a href="#method_firewall" title="firewall">firewall</a></li>
+                                <li class=""><a href="#method_init" title="init">init</a></li>
+                                <li class=""><a href="#method_isAlive" title="isAlive">isAlive</a></li>
+                                <li class=""><a href="#method_jsLoader" title="jsLoader">jsLoader</a></li>
+                                <li class=""><a href="#method_kill" title="kill">kill</a></li>
+                                <li class=""><a href="#method_obj2query" title="obj2query">obj2query</a></li>
+                                <li class=""><a href="#method_onDestroy" title="onDestroy">onDestroy</a></li>
+                                <li class=""><a href="#method_process" title="process">process</a></li>
+                                <li class=""><a href="#method_toString" title="toString">toString</a></li>
+                        </ul>
+                    </div>
+
+
+
+            </div>
+		</div>
+	</div>
+	<div id="ft">
+        <hr />
+        Copyright &copy; 2009 <a href="http://www.bubbling-library.com/" title="JavaScript Bubbling Library - YUI Extension">Bubbling Library</a>. All rights reserved.
+	</div>
+</div>
+<script type="text/javascript">
+    ALL_YUI_PROPS = [{"url": "YAHOO.plugin.Dispatcher.html#method_addUnit", "access": "", "host": "YAHOO.plugin.Dispatcher", "type": "method", "name": "addUnit"}, {"url": "YAHOO.plugin.Dispatcher.html#method_applyCSS", "access": "", "host": "YAHOO.plugin.Dispatcher", "type": "method", "name": "applyCSS"}, {"url": "YAHOO.plugin.Dispatcher.html#method_augmentURI", "access": "", "host": "YAHOO.plugin.Dispatcher", "type": "method", "name": "augmentURI"}, {"url": "YAHOO.plugin.Dispatcher.html#method_cssLoader", "access": "", "host": "YAHOO.plugin.Dispatcher", "type": "method", "name": "cssLoader"}, {"url": "YAHOO.plugin.Dispatcher.html#method_delegate", "access": "", "host": "YAHOO.plugin.Dispatcher", "type": "method", "name": "delegate"}, {"url": "YAHOO.plugin.Dispatcher.html#method_destroy", "access": "", "host": "YAHOO.plugin.Dispatcher", "type": "method", "name": "destroy"}, {"url": "YAHOO.plugin.Dispatcher.html#method_fetch", "access": "", "host": "YAHOO.plugin.Dispatcher", "type": "method", "name": "fetch"}, {"url": "YAHOO.plugin.Dispatcher.html#method_firewall", "access": "", "host": "YAHOO.plugin.Dispatcher", "type": "method", "name": "firewall"}, {"url": "YAHOO.plugin.Dispatcher.html#method_init", "access": "", "host": "YAHOO.plugin.Dispatcher", "type": "method", "name": "init"}, {"url": "YAHOO.plugin.Dispatcher.html#method_isAlive", "access": "", "host": "YAHOO.plugin.Dispatcher", "type": "method", "name": "isAlive"}, {"url": "YAHOO.plugin.Dispatcher.html#method_jsLoader", "access": "", "host": "YAHOO.plugin.Dispatcher", "type": "method", "name": "jsLoader"}, {"url": "YAHOO.plugin.Dispatcher.html#method_kill", "access": "", "host": "YAHOO.plugin.Dispatcher", "type": "method", "name": "kill"}, {"url": "YAHOO.plugin.Dispatcher.html#method_obj2query", "access": "", "host": "YAHOO.plugin.Dispatcher", "type": "method", "name": "obj2query"}, {"url": "YAHOO.plugin.Dispatcher.html#method_onDestroy", "access": "", "host": "YAHOO.plugin.Dispatcher", "type": "method", "name": "onDestroy"}, {"url": "YAHOO.plugin.Dispatcher.html#method_process", "access": "", "host": "YAHOO.plugin.Dispatcher", "type": "method", "name": "process"}, {"url": "YAHOO.plugin.Dispatcher.html#method_toString", "access": "", "host": "YAHOO.plugin.Dispatcher", "type": "method", "name": "toString"}];
+</script>
+</body>
+</html>

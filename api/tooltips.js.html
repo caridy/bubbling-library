@@ -1,0 +1,433 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html xmlns:yui="http://yuilibrary.com/rdf/1.0/yui.rdf#">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+	<title>API: navigation   tooltips.js  (YRegion Utility)</title>
+
+	<link rel="stylesheet" type="text/css" href="assets/reset-fonts-grids-min.css?stamp=" />
+	<link rel="stylesheet" type="text/css" href="assets/api.css?stamp=" />
+
+    <script type="text/javascript" src="assets/api-js?stamp="></script>
+    <script type="text/javascript" src="assets/ac-js?stamp="></script>
+</head>
+
+<body id="yahoo-com">
+
+<div id="doc3" class="yui-t2">
+	<div id="hd">
+        <h1><a href="http://www.bubbling-library.com/" title="JavaScript Bubbling Library - YUI Extension">JavaScript Bubbling Library - YUI Extension</a></h1>
+        <h3>navigation&nbsp; <span class="subtitle">2.2</span></h3>
+        <a href="./index.html" title="JavaScript Bubbling Library">Bubbling</a> 
+            &gt; <a href="./module_navigation.html" title="navigation">navigation</a>
+                
+                 &gt; tooltips.js (source view) 
+        <form onsubmit="return false">
+            <div id="propertysearch">
+                Search: <input autocomplete="off" id="searchinput" />
+                <div id="searchresults">
+                    &nbsp;
+                </div>
+            </div>
+        </form>
+	</div>
+
+	<div id="bd">
+		<div id="yui-main">
+			<div class="yui-b">
+            <form action="#" name="yui-classopts-form" method="get" id="yui-classopts-form">
+                <fieldset>
+                    <legend>Filters</legend>
+                <span class="classopts"><input type="checkbox" name="show_private" id="show_private" /> <label for="show_private">Show Private</label></span>
+                <span class="classopts"><input type="checkbox" name="show_protected" id="show_protected" /> <label for="show_protected">Show Protected</label></span>
+                <span class="classopts"><input type="checkbox" name="show_deprecated" id="show_deprecated" /> <label for="show_deprecated">Show Deprecated</label></span>
+                </fieldset>
+            </form>
+
+                    <div id="srcout">
+                        <style>
+                            #doc3 .classopts { display:none; }
+                        </style>
+<div class="highlight"><pre><span class="c">/**</span>
+<span class="c"> * Tooltip Manager Definition: Create floating element to display hints/information based on the trigger element.</span>
+<span class="c"> *</span>
+<span class="c"> * @namespace YAHOO.widget</span>
+<span class="c"> * @module tooltipmanager</span>
+<span class="c"> * @requires yahoo</span>
+<span class="c"> * @requires event</span>
+<span class="c"> * @requires dom</span>
+<span class="c"> * @requires bubbling</span>
+<span class="c"> */</span>
+<span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+
+    <span class="kd">var</span> <span class="nx">$B</span> <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">Bubbling</span><span class="o">,</span>
+  	    <span class="nx">$L</span> <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">lang</span><span class="o">,</span>
+	    <span class="nx">$E</span> <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">Event</span><span class="o">,</span>
+	    <span class="nx">$D</span> <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">Dom</span><span class="o">,</span>
+	    <span class="nx">$</span> <span class="o">=</span>  <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">Dom</span><span class="p">.</span><span class="nx">get</span><span class="o">;</span>
+
+	<span class="c">/**</span>
+<span class="c">	 * The Tooltips Manager Widget</span>
+<span class="c">	 * @class TooltipManager</span>
+<span class="c">	 * @static </span>
+<span class="c">	 */</span>
+	<span class="nx">YAHOO</span><span class="p">.</span><span class="nx">widget</span><span class="p">.</span><span class="nx">TooltipManager</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+		<span class="kd">var</span> <span class="nx">obj</span> <span class="o">=</span> <span class="p">{}</span><span class="o">,</span>
+			<span class="nx">_areas</span> <span class="o">=</span> <span class="p">{}</span><span class="o">,</span>
+			<span class="nx">_handle</span> <span class="o">=</span> <span class="s1">&#39;yui-cms-snap&#39;</span><span class="o">,</span>
+			<span class="nx">_className</span> <span class="o">=</span> <span class="s1">&#39;yui-cms-tt&#39;</span><span class="o">,</span>
+			<span class="nx">_loadingClass</span> <span class="o">=</span> <span class="s1">&#39;loading&#39;</span><span class="o">,</span>
+			<span class="nx">_status</span> <span class="o">=</span> <span class="kc">false</span><span class="o">,</span>
+			<span class="nx">_ready</span> <span class="o">=</span> <span class="kc">false</span><span class="o">,</span>
+			<span class="nx">_timer</span> <span class="o">=</span> <span class="kc">null</span><span class="o">,</span>
+			<span class="nx">_delayTimer</span> <span class="o">=</span> <span class="kc">null</span><span class="o">,</span>
+			<span class="nx">_pos</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="o">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">,</span>
+			<span class="nx">_defConf</span>   <span class="o">=</span> <span class="p">{</span>
+							<span class="nx">zIndex</span><span class="o">:</span> <span class="mi">1000</span><span class="o">,</span>
+							<span class="nx">opacity</span><span class="o">:</span> <span class="mf">0.9</span><span class="o">,</span>
+							<span class="nx">preventoverlap</span><span class="o">:</span> <span class="kc">true</span><span class="o">,</span>
+							<span class="nx">showdelay</span><span class="o">:</span> <span class="mi">200</span><span class="o">,</span>
+							<span class="nx">effect</span><span class="o">:</span> <span class="kc">null</span><span class="o">,</span>
+							<span class="nx">autodismissdelay</span><span class="o">:</span> <span class="mi">5000</span><span class="o">,</span>
+							<span class="nx">text</span><span class="o">:</span> <span class="s1">&#39;&#39;</span><span class="o">,</span>
+							<span class="nx">underlay</span><span class="o">:</span> <span class="s2">&quot;shadow&quot;</span><span class="o">,</span>
+							<span class="nx">width</span><span class="o">:</span> <span class="s1">&#39;auto&#39;</span><span class="o">,</span>
+							<span class="nx">height</span><span class="o">:</span> <span class="s1">&#39;auto&#39;</span><span class="o">,</span>
+							<span class="nx">close</span><span class="o">:</span> <span class="kc">false</span>
+						 <span class="p">};</span>
+		<span class="c">// private stuff</span>
+		<span class="c">// pasive behavior...</span>
+	    <span class="kd">var</span> <span class="nx">actionControl</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">layer</span><span class="o">,</span> <span class="nx">args</span><span class="p">)</span> <span class="p">{</span>
+	  	  <span class="kd">var</span> <span class="nx">el</span> <span class="o">=</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">finder</span><span class="p">(</span><span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">target</span><span class="p">)</span> <span class="o">||</span> <span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">anchor</span><span class="o">;</span>
+	      <span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">el</span><span class="p">))</span> <span class="p">{</span>
+	      	<span class="c">// discard forbbiden areas</span>
+	   		<span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span><span class="o">=</span><span class="mi">0</span><span class="o">;</span> <span class="nx">i</span><span class="o">&lt;</span><span class="nx">obj</span><span class="p">.</span><span class="nx">forbbiden</span><span class="p">.</span><span class="nx">length</span><span class="o">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+		      <span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span> <span class="nx">$B</span><span class="p">.</span><span class="nx">getOwnerByClassName</span><span class="p">(</span> <span class="nx">el</span><span class="o">,</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">forbbiden</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="p">)))</span> <span class="p">{</span>
+		         <span class="k">return</span><span class="o">;</span>
+		      <span class="p">}</span>
+			<span class="p">}</span>
+		    <span class="c">// the tooltip will be showed... and the event continue...</span>
+	      	<span class="nx">obj</span><span class="p">.</span><span class="nx">check</span> <span class="p">(</span> <span class="nx">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">,</span> <span class="nx">el</span> <span class="p">);</span>
+		  <span class="p">}</span>
+	    <span class="p">};</span>
+  		<span class="kd">var</span> <span class="nx">_save</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+			<span class="nx">obj</span><span class="p">.</span><span class="nx">backup</span> <span class="o">=</span> <span class="p">{</span><span class="nx">title</span><span class="o">:</span><span class="nx">obj</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">getAttribute</span><span class="p">(</span><span class="s1">&#39;title&#39;</span><span class="p">)};</span>
+			<span class="nx">obj</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">setAttribute</span><span class="p">(</span><span class="s1">&#39;title&#39;</span><span class="o">,</span> <span class="s1">&#39;&#39;</span><span class="p">);</span>
+		<span class="p">};</span>
+		<span class="kd">var</span> <span class="nx">_restore</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">obj</span><span class="p">.</span><span class="nx">element</span> <span class="o">&amp;&amp;</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">backup</span><span class="p">.</span><span class="nx">title</span><span class="p">)</span> <span class="p">{</span>
+			  <span class="nx">obj</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">setAttribute</span> <span class="p">(</span><span class="s1">&#39;title&#39;</span><span class="o">,</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">backup</span><span class="p">.</span><span class="nx">title</span><span class="p">);</span>
+			<span class="p">}</span>
+		<span class="p">};</span>
+		<span class="kd">var</span> <span class="nx">_generatePath</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">path</span><span class="o">,</span> <span class="nx">limit</span> <span class="p">)</span> <span class="p">{</span>
+			<span class="nx">limit</span> <span class="o">=</span> <span class="nx">limit</span> <span class="o">||</span> <span class="mi">30</span><span class="o">;</span>
+			<span class="c">// based on the full URL parser RE: new RegExp(&quot;^((?:http|https)://)((?:\\w+[\.|-]?)*\\w+)(/.*)$&quot;, &#39;i&#39;) or /^((?:http|https):\/\/)((?:\w+[\.|-]?)*\w+)(\/.*)/i</span>
+			<span class="kd">var</span> <span class="nx">reURI</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">RegExp</span><span class="p">(</span><span class="s1">&#39;^((?:http|https)://)(&#39;</span><span class="o">+</span><span class="nb">document</span><span class="p">.</span><span class="nx">domain</span><span class="o">+</span><span class="s1">&#39;)(/.*)$&#39;</span><span class="o">,</span> <span class="s1">&#39;i&#39;</span><span class="p">)</span><span class="o">,</span>  <span class="c">// checking if the URL if internal</span>
+			    <span class="nx">reClearUri</span> <span class="o">=</span> <span class="sr">/#.*/</span><span class="o">,</span>
+				<span class="nx">uri</span> <span class="o">=</span> <span class="nx">path</span> <span class="o">||</span> <span class="s1">&#39;&#39;</span><span class="o">,</span>
+				<span class="nx">current</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">String</span><span class="p">(</span><span class="nb">document</span><span class="p">.</span><span class="nx">location</span><span class="p">);</span>
+			<span class="c">// discarding the #part....</span>
+			<span class="nx">uri</span> <span class="o">=</span> <span class="nx">uri</span><span class="p">.</span><span class="nx">replace</span> <span class="p">(</span><span class="nx">reClearUri</span><span class="o">,</span> <span class="s1">&#39;&#39;</span><span class="p">);</span>
+			<span class="nx">current</span> <span class="o">=</span> <span class="nx">current</span><span class="p">.</span><span class="nx">replace</span> <span class="p">(</span><span class="nx">reClearUri</span><span class="o">,</span> <span class="s1">&#39;&#39;</span><span class="p">);</span>
+			<span class="kd">var</span> <span class="nx">m</span> <span class="o">=</span> <span class="nx">uri</span><span class="p">.</span><span class="nx">match</span><span class="p">(</span><span class="nx">reURI</span><span class="p">);</span> <span class="c">// checking the RE to verify if the url is internal...</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">m</span><span class="p">)</span> <span class="p">{</span>
+				<span class="c">// the uri is internal, discard the protocol and the domain...</span>
+				<span class="c">// checking if is different of the current page...</span>
+				<span class="nx">uri</span> <span class="o">=</span> <span class="p">((</span><span class="nx">uri</span> <span class="o">==</span> <span class="nx">current</span><span class="p">)</span><span class="o">?</span><span class="s1">&#39;&#39;</span><span class="o">:</span><span class="nx">m</span><span class="p">[</span><span class="mi">3</span><span class="p">]);</span>
+			<span class="p">}</span>
+			<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">uri</span> <span class="o">||</span> <span class="p">(</span><span class="nx">uri</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="s1">&#39;javascript:&#39;</span><span class="p">)</span> <span class="o">===</span> <span class="mi">0</span><span class="p">)</span> <span class="o">||</span> <span class="p">(</span><span class="nx">uri</span> <span class="o">==</span> <span class="s1">&#39;/&#39;</span><span class="p">))</span> <span class="p">{</span>
+			  <span class="nx">uri</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">;</span> <span class="c">// remove the anchor links if empty or null</span>
+			<span class="p">}</span>
+			<span class="k">else</span> <span class="p">{</span>
+			  <span class="nx">uri</span> <span class="o">=</span> <span class="p">(</span><span class="nx">uri</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="nx">limit</span> <span class="o">?</span> <span class="nx">uri</span><span class="p">.</span><span class="nx">substring</span><span class="p">(</span><span class="mi">0</span><span class="o">,</span><span class="nx">limit</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;...&quot;</span> <span class="o">:</span> <span class="nx">uri</span><span class="p">);</span> <span class="c">// trimming long strings</span>
+			<span class="p">}</span>
+			<span class="k">return</span> <span class="nx">uri</span><span class="o">;</span>
+		<span class="p">};</span>
+		<span class="c">// public vars</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">handleOverlay</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">element</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">body</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">;</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">header</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">footer</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">onCompile</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">onRender</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">destructible</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">backup</span> <span class="o">=</span> <span class="p">{};</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">forbbiden</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;yuimenu&#39;</span><span class="o">,</span> <span class="s1">&#39;yuimenubar&#39;</span><span class="o">,</span> <span class="s1">&#39;yui-nav&#39;</span><span class="o">,</span> <span class="s1">&#39;notips&#39;</span><span class="p">];</span>
+		<span class="c">// public methods</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">config</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">userConfig</span> <span class="p">)</span> <span class="p">{</span>
+			<span class="nx">c</span> <span class="o">=</span> <span class="nx">userConfig</span> <span class="o">||</span> <span class="p">{};</span>
+			<span class="nx">_defConf</span><span class="p">.</span><span class="nx">constraintoviewport</span> <span class="o">=</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isBoolean</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">constraintoviewport</span><span class="p">)</span><span class="o">?</span><span class="nx">c</span><span class="p">.</span><span class="nx">constraintoviewport</span><span class="o">:</span><span class="nx">_defConf</span><span class="p">.</span><span class="nx">constraintoviewport</span><span class="p">);</span>
+			<span class="nx">_defConf</span><span class="p">.</span><span class="nx">zIndex</span> <span class="o">=</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isNumber</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">zIndex</span><span class="p">)</span><span class="o">?</span><span class="nx">c</span><span class="p">.</span><span class="nx">zIndex</span><span class="o">:</span><span class="nx">_defConf</span><span class="p">.</span><span class="nx">zIndex</span><span class="p">);</span>
+			<span class="nx">_defConf</span><span class="p">.</span><span class="nx">underlay</span> <span class="o">=</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isString</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">underlay</span><span class="p">)</span><span class="o">?</span><span class="nx">c</span><span class="p">.</span><span class="nx">underlay</span><span class="o">:</span><span class="nx">_defConf</span><span class="p">.</span><span class="nx">underlay</span><span class="p">);</span>
+			<span class="nx">_defConf</span><span class="p">.</span><span class="nx">preventoverlap</span> <span class="o">=</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isBoolean</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">preventoverlap</span><span class="p">)</span><span class="o">?</span><span class="nx">c</span><span class="p">.</span><span class="nx">preventoverlap</span><span class="o">:</span><span class="nx">_defConf</span><span class="p">.</span><span class="nx">preventoverlap</span><span class="p">);</span>
+			<span class="nx">_defConf</span><span class="p">.</span><span class="nx">width</span> <span class="o">=</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isNumber</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">width</span><span class="p">)</span><span class="o">||</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isString</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">width</span><span class="p">)</span><span class="o">?</span><span class="nx">c</span><span class="p">.</span><span class="nx">width</span><span class="o">:</span><span class="nx">_defConf</span><span class="p">.</span><span class="nx">width</span><span class="p">);</span>
+			<span class="nx">_defConf</span><span class="p">.</span><span class="nx">height</span> <span class="o">=</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isNumber</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">height</span><span class="p">)</span><span class="o">||</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isString</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">height</span><span class="p">)</span><span class="o">?</span><span class="nx">c</span><span class="p">.</span><span class="nx">height</span><span class="o">:</span><span class="nx">_defConf</span><span class="p">.</span><span class="nx">height</span><span class="p">);</span>
+			<span class="nx">_defConf</span><span class="p">.</span><span class="nx">close</span> <span class="o">=</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isBoolean</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">close</span><span class="p">)</span><span class="o">?</span><span class="nx">c</span><span class="p">.</span><span class="nx">close</span><span class="o">:</span><span class="nx">_defConf</span><span class="p">.</span><span class="nx">close</span><span class="p">);</span>
+			<span class="nx">_defConf</span><span class="p">.</span><span class="nx">effect</span> <span class="o">=</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">effect</span><span class="p">)</span><span class="o">?</span><span class="nx">c</span><span class="p">.</span><span class="nx">effect</span><span class="o">:</span><span class="nx">_defConf</span><span class="p">.</span><span class="nx">effect</span><span class="p">);</span>
+			<span class="nx">_defConf</span><span class="p">.</span><span class="nx">opacity</span> <span class="o">=</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isNumber</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">opacity</span><span class="p">)</span><span class="o">?</span><span class="nx">c</span><span class="p">.</span><span class="nx">opacity</span><span class="o">:</span><span class="nx">_defConf</span><span class="p">.</span><span class="nx">opacity</span><span class="p">);</span>
+			<span class="nx">_defConf</span><span class="p">.</span><span class="nx">showdelay</span> <span class="o">=</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isNumber</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">showdelay</span><span class="p">)</span><span class="o">?</span><span class="nx">c</span><span class="p">.</span><span class="nx">showdelay</span><span class="o">:</span><span class="nx">_defConf</span><span class="p">.</span><span class="nx">showdelay</span><span class="p">);</span>
+		<span class="p">};</span>
+		<span class="c">/**</span>
+<span class="c">		 * @method init</span>
+<span class="c">		 * @description Initialization process (optional).</span>
+<span class="c">		 * @return void</span>
+<span class="c">		 */</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">init</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+			<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">_ready</span><span class="p">)</span> <span class="p">{</span>
+				<span class="nx">_ready</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+				<span class="nx">$B</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;rollover&#39;</span><span class="o">,</span> <span class="nx">actionControl</span><span class="p">);</span>
+			<span class="p">}</span>
+		<span class="p">};</span>
+		<span class="c">/**</span>
+<span class="c">		 * @method check</span>
+<span class="c">		 * @description Analyzing the event and the target</span>
+<span class="c">		 * @param {Event} 			e DOM Event</span>
+<span class="c">		 * @param {HTMLElement} 	el DOM Element</span>
+<span class="c">		 * @return void</span>
+<span class="c">		 */</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">check</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span> <span class="nx">e</span><span class="o">,</span> <span class="nx">el</span> <span class="p">)</span> <span class="p">{</span>
+			<span class="k">this</span><span class="p">.</span><span class="nx">init</span><span class="p">();</span>
+		    <span class="c">// Remove any existing mouseover/mouseout listeners from the old element and restoring the values</span>
+			<span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">element</span><span class="p">)</span> <span class="p">{</span>
+	            <span class="nx">$E</span><span class="p">.</span><span class="nx">removeListener</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">element</span><span class="o">,</span> <span class="s2">&quot;mouseout&quot;</span><span class="o">,</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">hide</span><span class="p">);</span>
+			<span class="p">}</span>
+			<span class="k">this</span><span class="p">.</span><span class="nx">element</span> <span class="o">=</span> <span class="nx">el</span><span class="o">;</span>
+			<span class="nx">_save</span> <span class="p">();</span> <span class="c">// saving values...</span>
+			<span class="nx">_pos</span> <span class="o">=</span> <span class="nx">$E</span><span class="p">.</span><span class="nx">getXY</span><span class="p">(</span><span class="nx">e</span><span class="p">);</span> <span class="c">// computing the mouse position...</span>
+			<span class="c">// Add mouseover/mouseout listeners to context elements</span>
+            <span class="nx">$E</span><span class="p">.</span><span class="nx">addListener</span><span class="p">(</span><span class="nx">obj</span><span class="p">.</span><span class="nx">element</span><span class="o">,</span> <span class="s2">&quot;mouseout&quot;</span><span class="o">,</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">dismiss</span><span class="o">,</span> <span class="nx">obj</span><span class="o">,</span> <span class="kc">true</span><span class="p">);</span>
+			<span class="c">// reseting the current values</span>
+			<span class="k">this</span><span class="p">.</span><span class="nx">body</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">;</span>
+		    <span class="k">this</span><span class="p">.</span><span class="nx">header</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+		    <span class="k">this</span><span class="p">.</span><span class="nx">footer</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+			<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isFunction</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">onCompile</span><span class="p">)</span> <span class="o">||</span> <span class="o">!</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">onCompile</span><span class="p">.</span><span class="nx">apply</span> <span class="p">(</span> <span class="nx">obj</span><span class="o">,</span> <span class="p">[</span><span class="k">this</span><span class="p">.</span><span class="nx">element</span><span class="p">]</span> <span class="p">)))</span> <span class="p">{</span>
+				<span class="k">this</span><span class="p">.</span><span class="nx">compileBody</span> <span class="p">(</span> <span class="nx">el</span> <span class="p">);</span>
+			<span class="p">}</span>
+			<span class="c">// verifing if we really have text to display in the tooltip</span>
+			<span class="k">if</span> <span class="p">((</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isString</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">body</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">body</span> <span class="o">!==</span> <span class="s1">&#39;&#39;</span><span class="p">))</span> <span class="o">||</span> <span class="nx">$L</span><span class="p">.</span><span class="nx">isString</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">header</span><span class="p">)</span> <span class="o">||</span> <span class="nx">$L</span><span class="p">.</span><span class="nx">isString</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">footer</span><span class="p">))</span> <span class="p">{</span>
+			  <span class="c">// Eliminando todos los ATL de las imagenes que estan dentro del Anchor - for IE</span>
+			  <span class="k">try</span> <span class="p">{</span>
+				<span class="kd">var</span> <span class="nx">childs</span> <span class="o">=</span> <span class="nx">el</span><span class="p">.</span><span class="nx">getElementsByTagName</span><span class="p">(</span><span class="s2">&quot;img&quot;</span><span class="p">);</span>
+				<span class="k">if</span> <span class="p">(</span><span class="nx">childs</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">childs</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">))</span> <span class="p">{</span>
+				  <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span><span class="o">=</span><span class="mi">0</span><span class="o">;</span> <span class="nx">i</span><span class="o">&lt;</span><span class="nx">childs</span><span class="p">.</span><span class="nx">length</span><span class="o">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+				    <span class="nx">childs</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nx">alt</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">;</span>
+				  <span class="p">}</span>
+			    <span class="p">}</span>
+			  <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">e1</span><span class="p">)</span> <span class="p">{}</span>
+			  <span class="c">// applying delay before show</span>
+			  <span class="nx">obj</span><span class="p">.</span><span class="nx">delay</span><span class="p">();</span>
+		    <span class="p">}</span>
+		<span class="p">};</span>
+		<span class="c">/**</span>
+<span class="c">		 * @method render</span>
+<span class="c">		 * @description Rendering the current tooltip.</span>
+<span class="c">		 * @return void</span>
+<span class="c">		 */</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">render</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+		    <span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">handleOverlay</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">destructible</span><span class="p">))</span> <span class="p">{</span>
+			   <span class="k">this</span><span class="p">.</span><span class="nx">handleOverlay</span><span class="p">.</span><span class="nx">destroy</span><span class="p">();</span>
+			<span class="p">}</span>
+			<span class="k">this</span><span class="p">.</span><span class="nx">destructible</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+			<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isFunction</span><span class="p">(</span><span class="nx">YAHOO</span><span class="p">.</span><span class="nx">widget</span><span class="p">.</span><span class="nx">Panel</span><span class="p">))</span> <span class="p">{</span>
+				<span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+			<span class="p">}</span>
+			<span class="c">// Build overlay based on markup</span>
+			<span class="k">this</span><span class="p">.</span><span class="nx">handleOverlay</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">widget</span><span class="p">.</span><span class="nx">Panel</span><span class="p">(</span><span class="nx">_handle</span><span class="o">,</span> <span class="p">{</span>
+			  <span class="nx">visible</span><span class="o">:</span><span class="kc">false</span><span class="o">,</span>
+			  <span class="nx">constraintoviewport</span><span class="o">:</span><span class="kc">true</span><span class="o">,</span>
+			  <span class="nx">zIndex</span><span class="o">:</span> <span class="nx">_defConf</span><span class="p">.</span><span class="nx">zIndex</span><span class="o">,</span>
+			  <span class="nx">underlay</span><span class="o">:</span> <span class="nx">_defConf</span><span class="p">.</span><span class="nx">underlay</span><span class="o">,</span>
+			  <span class="nx">preventoverlap</span><span class="o">:</span> <span class="nx">_defConf</span><span class="p">.</span><span class="nx">preventoverlap</span><span class="o">,</span>
+			  <span class="nx">width</span><span class="o">:</span> <span class="nx">_defConf</span><span class="p">.</span><span class="nx">width</span><span class="o">,</span>
+			  <span class="nx">close</span><span class="o">:</span> <span class="nx">_defConf</span><span class="p">.</span><span class="nx">close</span><span class="o">,</span>
+			  <span class="nx">context</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">element</span><span class="o">,</span>
+			  <span class="nx">xy</span><span class="o">:</span> <span class="p">[</span><span class="nx">_pos</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="mi">10</span><span class="o">,</span> <span class="nx">_pos</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mi">10</span><span class="p">]</span>
+			<span class="p">});</span>
+			<span class="nx">$D</span><span class="p">.</span><span class="nx">addClass</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">handleOverlay</span><span class="p">.</span><span class="nx">element</span><span class="o">,</span> <span class="nx">_className</span><span class="p">);</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">_defConf</span><span class="p">.</span><span class="nx">close</span><span class="p">)</span> <span class="p">{</span> <span class="c">// if have close button, put the bar</span>
+			  <span class="k">this</span><span class="p">.</span><span class="nx">handleOverlay</span><span class="p">.</span><span class="nx">setHeader</span> <span class="p">(</span> <span class="s1">&#39; &amp;nbsp; &#39;</span> <span class="p">);</span>
+			  <span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isFunction</span><span class="p">(</span><span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">DD</span><span class="p">))</span> <span class="p">{</span>
+			  	<span class="k">this</span><span class="p">.</span><span class="nx">handleOverlay</span><span class="p">.</span><span class="nx">cfg</span><span class="p">.</span><span class="nx">setProperty</span><span class="p">(</span><span class="s2">&quot;dragable&quot;</span><span class="o">,</span> <span class="kc">true</span><span class="p">);</span>
+			  <span class="p">}</span>
+			<span class="p">}</span>
+			<span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">body</span><span class="p">)</span> <span class="p">{</span>
+				<span class="k">this</span><span class="p">.</span><span class="nx">handleOverlay</span><span class="p">.</span><span class="nx">setBody</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">body</span><span class="p">);</span>
+			<span class="p">}</span>
+			<span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">header</span><span class="p">)</span> <span class="p">{</span>
+				<span class="k">this</span><span class="p">.</span><span class="nx">handleOverlay</span><span class="p">.</span><span class="nx">setHeader</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">header</span><span class="p">);</span>
+			<span class="p">}</span>
+			<span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">footer</span><span class="p">)</span> <span class="p">{</span>
+				<span class="k">this</span><span class="p">.</span><span class="nx">handleOverlay</span><span class="p">.</span><span class="nx">setFooter</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">footer</span><span class="p">);</span>
+			<span class="p">}</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">$D</span><span class="p">.</span><span class="nx">inDocument</span><span class="p">(</span><span class="nx">_handle</span><span class="p">))</span> <span class="p">{</span> <span class="c">// is the panel is already in the DOM</span>
+	            <span class="k">this</span><span class="p">.</span><span class="nx">handleOverlay</span><span class="p">.</span><span class="nx">render</span><span class="p">();</span>
+	        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+	            <span class="k">this</span><span class="p">.</span><span class="nx">handleOverlay</span><span class="p">.</span><span class="nx">render</span><span class="p">(</span><span class="nb">document</span><span class="p">.</span><span class="nx">body</span><span class="p">);</span>
+	        <span class="p">}</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">_defConf</span><span class="p">.</span><span class="nx">effect</span><span class="p">)</span> <span class="p">{</span>
+				<span class="k">this</span><span class="p">.</span><span class="nx">handleOverlay</span><span class="p">.</span><span class="nx">cfg</span><span class="p">.</span><span class="nx">setProperty</span><span class="p">(</span><span class="s1">&#39;effect&#39;</span><span class="o">,</span> <span class="nx">_defConf</span><span class="p">.</span><span class="nx">effect</span><span class="p">);</span>
+			<span class="p">}</span>
+			<span class="k">this</span><span class="p">.</span><span class="nx">handleOverlay</span><span class="p">.</span><span class="nx">showEvent</span><span class="p">.</span><span class="nx">subscribe</span><span class="p">(</span><span class="kd">function</span><span class="p">(){</span>
+			  <span class="nx">obj</span><span class="p">.</span><span class="nx">destructible</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+			  <span class="c">// applying the correct opacity...</span>
+			  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">$E</span><span class="p">.</span><span class="nx">isIE</span> <span class="o">||</span> <span class="nx">$B</span><span class="p">.</span><span class="nx">force2alfa</span><span class="p">)</span> <span class="p">{</span>
+			  	<span class="nx">$D</span><span class="p">.</span><span class="nx">setStyle</span><span class="p">(</span><span class="nx">obj</span><span class="p">.</span><span class="nx">handleOverlay</span><span class="p">.</span><span class="nx">element</span><span class="o">,</span> <span class="s1">&#39;opacity&#39;</span><span class="o">,</span> <span class="nx">_defConf</span><span class="p">.</span><span class="nx">opacity</span><span class="p">);</span>
+			  <span class="p">}</span>
+			<span class="p">}</span><span class="o">,</span> <span class="nx">obj</span><span class="o">,</span> <span class="kc">true</span><span class="p">);</span>
+			<span class="k">this</span><span class="p">.</span><span class="nx">handleOverlay</span><span class="p">.</span><span class="nx">hideEvent</span><span class="p">.</span><span class="nx">subscribe</span><span class="p">(</span><span class="kd">function</span><span class="p">(){</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">destructible</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span> <span class="p">}</span><span class="o">,</span> <span class="nx">obj</span><span class="o">,</span> <span class="kc">true</span><span class="p">);</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isFunction</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">onRender</span><span class="p">))</span> <span class="p">{</span>
+				<span class="k">this</span><span class="p">.</span><span class="nx">onRender</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="nx">obj</span><span class="o">,</span> <span class="p">[</span><span class="k">this</span><span class="p">.</span><span class="nx">element</span><span class="o">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">handleOverlay</span><span class="p">]);</span>
+			<span class="p">}</span>
+			<span class="nx">obj</span><span class="p">.</span><span class="nx">show</span> <span class="p">();</span>
+		<span class="p">};</span>
+		<span class="c">/**</span>
+<span class="c">		 * @method dismiss</span>
+<span class="c">		 * @description Hiding the current tooltip</span>
+<span class="c">		 * @return void</span>
+<span class="c">		 */</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">dismiss</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+		    <span class="nx">$E</span><span class="p">.</span><span class="nx">removeListener</span><span class="p">(</span><span class="nx">obj</span><span class="p">.</span><span class="nx">element</span><span class="o">,</span> <span class="s2">&quot;mouseout&quot;</span><span class="o">,</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">dismiss</span><span class="p">);</span>
+			<span class="nb">window</span><span class="p">.</span><span class="nx">clearTimeout</span><span class="p">(</span><span class="nx">_timer</span><span class="p">);</span>
+		    <span class="nb">window</span><span class="p">.</span><span class="nx">clearTimeout</span><span class="p">(</span><span class="nx">_delayTimer</span><span class="p">);</span>
+			<span class="nx">_restore</span> <span class="p">();</span>
+			<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">_defConf</span><span class="p">.</span><span class="nx">close</span><span class="p">)</span> <span class="p">{</span> <span class="c">// if don&#39;t have close button</span>
+			  <span class="nx">obj</span><span class="p">.</span><span class="nx">hide</span><span class="p">();</span>
+			<span class="p">}</span>
+		<span class="p">};</span>
+		<span class="c">/**</span>
+<span class="c">		 * @method delay</span>
+<span class="c">		 * @description Delay the tooltip show action few miliseconds</span>
+<span class="c">		 * @return void</span>
+<span class="c">		 */</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">delay</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+		   <span class="c">// applying the delay before show the tooltip...</span>
+		   <span class="nb">window</span><span class="p">.</span><span class="nx">clearTimeout</span><span class="p">(</span><span class="nx">_timer</span><span class="p">);</span>
+		   <span class="nb">window</span><span class="p">.</span><span class="nx">clearTimeout</span><span class="p">(</span><span class="nx">_delayTimer</span><span class="p">);</span>
+		   <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">destructible</span><span class="p">)</span> <span class="p">{</span>
+			 <span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">handleOverlay</span><span class="p">))</span> <span class="p">{</span>
+			   <span class="k">this</span><span class="p">.</span><span class="nx">handleOverlay</span><span class="p">.</span><span class="nx">hideEvent</span><span class="p">.</span><span class="nx">subscribe</span><span class="p">(</span><span class="nx">obj</span><span class="p">.</span><span class="nx">delay</span><span class="o">,</span> <span class="nx">obj</span><span class="o">,</span> <span class="kc">true</span><span class="p">);</span>
+			   <span class="k">this</span><span class="p">.</span><span class="nx">handleOverlay</span><span class="p">.</span><span class="nx">showEvent</span><span class="p">.</span><span class="nx">subscribe</span><span class="p">(</span><span class="nx">obj</span><span class="p">.</span><span class="nx">delay</span><span class="o">,</span> <span class="nx">obj</span><span class="o">,</span> <span class="kc">true</span><span class="p">);</span>
+			 <span class="p">}</span>
+		   <span class="p">}</span>
+		   <span class="k">else</span> <span class="p">{</span>
+			   <span class="nx">_delayTimer</span> <span class="o">=</span> <span class="nb">window</span><span class="p">.</span><span class="nx">setTimeout</span><span class="p">(</span><span class="kd">function</span><span class="p">(){</span>
+		            <span class="nx">obj</span><span class="p">.</span><span class="nx">render</span> <span class="p">();</span>
+		        <span class="p">}</span><span class="o">,</span> <span class="nx">_defConf</span><span class="p">.</span><span class="nx">showdelay</span><span class="p">);</span>
+		   <span class="p">}</span>
+		<span class="p">};</span>
+		<span class="c">/**</span>
+<span class="c">		 * @method show</span>
+<span class="c">		 * @description Show the current tooltip</span>
+<span class="c">		 * @return void</span>
+<span class="c">		 */</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">show</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+		  <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">handleOverlay</span> <span class="o">&amp;&amp;</span> <span class="k">this</span><span class="p">.</span><span class="nx">element</span><span class="p">)</span> <span class="p">{</span>
+		  	<span class="k">this</span><span class="p">.</span><span class="nx">destructible</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+		    <span class="k">this</span><span class="p">.</span><span class="nx">handleOverlay</span><span class="p">.</span><span class="nx">show</span><span class="p">();</span>
+			<span class="c">// setting the autodismis timer...</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isNumber</span><span class="p">(</span><span class="nx">_defConf</span><span class="p">.</span><span class="nx">autodismissdelay</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">_defConf</span><span class="p">.</span><span class="nx">autodismissdelay</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">))</span> <span class="p">{</span>
+			  <span class="nb">window</span><span class="p">.</span><span class="nx">clearTimeout</span><span class="p">(</span><span class="nx">_timer</span><span class="p">);</span>
+			  <span class="nx">_timer</span> <span class="o">=</span> <span class="nb">window</span><span class="p">.</span><span class="nx">setTimeout</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+				<span class="nx">obj</span><span class="p">.</span><span class="nx">dismiss</span><span class="p">();</span>
+			  <span class="p">}</span><span class="o">,</span> <span class="nb">Math</span><span class="p">.</span><span class="nx">abs</span><span class="p">(</span><span class="nx">_defConf</span><span class="p">.</span><span class="nx">autodismissdelay</span><span class="p">));</span>
+			<span class="p">}</span>
+		  <span class="p">}</span>
+		<span class="p">};</span>
+		<span class="c">/**</span>
+<span class="c">		 * @method hide</span>
+<span class="c">		 * @description Hide the current tooltip</span>
+<span class="c">		 * @return void</span>
+<span class="c">		 */</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">hide</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+		  <span class="k">if</span> <span class="p">((</span><span class="k">this</span><span class="p">.</span><span class="nx">handleOverlay</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">element</span><span class="p">))</span> <span class="p">{</span>
+			<span class="k">this</span><span class="p">.</span><span class="nx">handleOverlay</span><span class="p">.</span><span class="nx">hide</span><span class="p">();</span>
+		  <span class="p">}</span>
+		<span class="p">};</span>
+		<span class="c">/**</span>
+<span class="c">		 * @method compilePath</span>
+<span class="c">		 * @description Analyze a path </span>
+<span class="c">		 * @param {String} uri   	url that should be analyzed</span>
+<span class="c">		 * @param {Number} limit 	maximum number of characters </span>
+<span class="c">		 * @return {String}</span>
+<span class="c">		 */</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">compilePath</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">uri</span><span class="o">,</span> <span class="nx">limit</span> <span class="p">)</span> <span class="p">{</span>
+			<span class="k">return</span> <span class="nx">_generatePath</span><span class="p">(</span><span class="nx">uri</span><span class="o">,</span> <span class="nx">limit</span><span class="p">);</span>
+		<span class="p">};</span>
+		<span class="c">/**</span>
+<span class="c">		 * @method compileBody</span>
+<span class="c">		 * @description Analyze a dom element, and build the body of the tooltip based on the title, access-key and title</span>
+<span class="c">		 * @param {Node} el 	DOM Element</span>
+<span class="c">		 * @return void</span>
+<span class="c">		 */</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">compileBody</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">el</span> <span class="p">)</span> <span class="p">{</span>
+			<span class="kd">var</span> <span class="nx">path</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">compilePath</span><span class="p">(</span> <span class="nx">el</span><span class="p">.</span><span class="nx">getAttribute</span><span class="p">(</span><span class="s1">&#39;href&#39;</span><span class="o">,</span><span class="mi">2</span><span class="p">)</span> <span class="p">)</span><span class="o">,</span>
+				<span class="nx">access</span> <span class="o">=</span> <span class="p">(</span> <span class="nx">el</span><span class="p">.</span><span class="nx">accessKey</span> <span class="o">?</span> <span class="s2">&quot; [&quot;</span><span class="o">+</span><span class="nx">el</span><span class="p">.</span><span class="nx">accessKey</span><span class="o">+</span><span class="s2">&quot;]&quot;</span> <span class="o">:</span> <span class="s2">&quot;&quot;</span> <span class="p">)</span><span class="o">,</span>
+			 	<span class="nx">tip</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">backup</span><span class="p">.</span><span class="nx">title</span><span class="o">;</span>
+			<span class="nx">tip</span> <span class="o">=</span> <span class="p">(</span><span class="nx">tip</span><span class="o">?</span><span class="nx">tip</span> <span class="o">+</span> <span class="s1">&#39;&lt;br /&gt;&#39;</span> <span class="o">:</span> <span class="s1">&#39;&#39;</span> <span class="p">);</span>
+			<span class="k">this</span><span class="p">.</span><span class="nx">body</span> <span class="o">=</span> <span class="p">(</span><span class="nx">tip</span><span class="o">+</span><span class="nx">access</span><span class="o">+</span><span class="nx">path</span> <span class="o">!==</span> <span class="s1">&#39;&#39;</span><span class="o">?</span><span class="nx">tip</span><span class="o">+</span><span class="s1">&#39;&lt;em&gt;&#39;</span><span class="o">+</span><span class="nx">access</span><span class="o">+</span><span class="s1">&#39;&lt;/em&gt;&lt;strong&gt;&#39;</span><span class="o">+</span><span class="nx">path</span><span class="o">+</span><span class="s1">&#39;&lt;/strong&gt;&#39;</span><span class="o">:</span><span class="s1">&#39;&#39;</span><span class="p">);</span>
+		<span class="p">};</span>
+		<span class="c">/**</span>
+<span class="c">		 * @method finder</span>
+<span class="c">		 * @description Returns a node element that represent the first parent with the class yui-tip or null.</span>
+<span class="c">		 * @param {Node} el		DOM Element</span>
+<span class="c">		 * @return {Node}</span>
+<span class="c">		 */</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">finder</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">el</span> <span class="p">)</span> <span class="p">{</span>
+		    <span class="k">return</span> <span class="nx">$B</span><span class="p">.</span><span class="nx">getOwnerByClassName</span><span class="p">(</span> <span class="nx">el</span><span class="o">,</span> <span class="s1">&#39;yui-tip&#39;</span> <span class="p">);</span>
+		<span class="p">};</span>
+		<span class="nx">$E</span><span class="p">.</span><span class="nx">onDOMReady</span><span class="p">(</span><span class="nx">obj</span><span class="p">.</span><span class="nx">init</span><span class="o">,</span> <span class="nx">obj</span><span class="o">,</span> <span class="kc">true</span><span class="p">);</span>
+		<span class="k">return</span> <span class="nx">obj</span><span class="o">;</span>
+	<span class="p">}();</span>
+<span class="p">})();</span>
+</pre></div>
+                    </div>
+			</div>
+		</div>
+		<div class="yui-b">
+            <div class="nav">
+
+                    <div id="moduleList" class="module">
+                        <h4>Modules</h4>
+                        <ul class="content">
+                                <li class=""><a href="module_accordion.html" title="accordion">accordion</a></li>
+                                <li class=""><a href="module_bubbling.html" title="bubbling">bubbling</a></li>
+                                <li class=""><a href="module_dispatcher.html" title="dispatcher">dispatcher</a></li>
+                                <li class=""><a href="module_lighter.html" title="lighter">lighter</a></li>
+                                <li class=""><a href="module_loading.html" title="loading">loading</a></li>
+                                <li class="selected"><a href="module_navigation.html" title="navigation">navigation</a></li>
+                                <li class=""><a href="module_tooltipmanager.html" title="tooltipmanager">tooltipmanager</a></li>
+                                <li class=""><a href="module_wizard.html" title="wizard">wizard</a></li>
+                        </ul>
+                    </div>
+
+                    <div id="classList" class="module">
+                        <h4>Classes</h4>
+                        <ul class="content">
+                                <li class=""><a href="YAHOO.plugin.Navigation.html" title="YAHOO.plugin.Navigation">YAHOO.plugin.Navigation</a></li>
+                        </ul>
+                    </div>
+
+                    <div id="fileList" class="module">
+                        <h4>Files</h4>
+                        <ul class="content">        
+                                <li class="selected"><a href="tooltips.js.html" title="tooltips.js">tooltips.js</a></li>
+                        </ul>
+                    </div>
+
+
+
+
+
+            </div>
+		</div>
+	</div>
+	<div id="ft">
+        <hr />
+        Copyright &copy; 2009 <a href="http://www.bubbling-library.com/" title="JavaScript Bubbling Library - YUI Extension">Bubbling Library</a>. All rights reserved.
+	</div>
+</div>
+<script type="text/javascript">
+    ALL_YUI_PROPS = [{"url": "YAHOO.plugin.Navigation.html#method_add", "access": "", "host": "YAHOO.plugin.Navigation", "type": "method", "name": "add"}, {"url": "YAHOO.plugin.Navigation.html#method_init", "access": "", "host": "YAHOO.plugin.Navigation", "type": "method", "name": "init"}, {"url": "YAHOO.plugin.Navigation.html#method_navigate", "access": "", "host": "YAHOO.plugin.Navigation", "type": "method", "name": "navigate"}, {"url": "YAHOO.plugin.Navigation.html#method_restore", "access": "", "host": "YAHOO.plugin.Navigation", "type": "method", "name": "restore"}, {"url": "YAHOO.plugin.Navigation.html#method_setDefaultState", "access": "", "host": "YAHOO.plugin.Navigation", "type": "method", "name": "setDefaultState"}, {"url": "YAHOO.plugin.Navigation.html#method_tabView", "access": "", "host": "YAHOO.plugin.Navigation", "type": "method", "name": "tabView"}];
+</script>
+</body>
+</html>

@@ -1,5 +1,5 @@
 /**
- * Accordion Definition.
+ * Accordion Definition: Create expandable and collapsible elements based on the HTML markup and few CSS rules.
  *
  * @namespace YAHOO.widget
  * @module accordion
@@ -16,8 +16,10 @@
 	    $D = YAHOO.util.Dom;
 
 	/**
-	* @class AccordionManager
-	*/
+	 * The Accordion Manager Widget
+	 * @class AccordionManager
+	 * @static
+	 */
 	YAHOO.widget.AccordionManager = function() {
 		var obj = {},
 		    _selector = 'selected',
@@ -339,12 +341,11 @@
 	        return false;
         }
 
-		// public vars
-		// public methods
 		/**
-		* * Expanding all the elements in the accordion...
+		* @method expand
+		* @description Expanding all the elements in the accordion...
 		* @public
-		* @param {object} el   DOM reference
+		* @param {Node} el   DOM reference
 		* @return boolean
 		*/
 		obj.expand = function ( el ) {
@@ -354,9 +355,10 @@
 		    }
 		};
 		/**
-		* * Collapsing all the elements in the accordion...
+		* @method collapse
+		* @description Collapsing all the elements in the accordion...
 		* @public
-		* @param {object} el   DOM reference
+		* @param {Node} el   DOM reference
 		* @return boolean
 		*/
 		obj.collapse = function ( el ) {
@@ -366,9 +368,10 @@
 		    }
 		};
 		/**
-		* * Open a certain item inside an area...
+		* @method open
+		* @description Open a certain item inside an area...
 		* @public
-		* @param {object} el   DOM reference
+		* @param {Node} el   DOM reference
 		* @return boolean
 		*/
 		obj.open = function ( el ) {
@@ -378,9 +381,10 @@
 		    }
 		};
 		/**
-		* * Close a certain item inside an area...
+		* @method close
+		* @description Close a certain item inside an area...
 		* @public
-		* @param {object} el   DOM reference
+		* @param {Node} el   DOM reference
 		* @return boolean
 		*/
 		obj.close = function ( el ) {
@@ -393,9 +397,10 @@
 		    }
 		};
 		/**
-		* * toggle a certain item inside an area...
+		* @method toggle
+		* @description toggle a certain item inside an area...
 		* @public
-		* @param {object} el   DOM reference
+		* @param {Node} el   DOM reference
 		* @return boolean
 		*/
 		obj.toggle = function ( el ) {
@@ -408,9 +413,10 @@
 		    }
 		};
 		/**
-		* * remove a certain item from the area...
+		* @method remove
+		* @description remove a certain item from the area...
 		* @public
-		* @param {object} el   DOM reference
+		* @param {Node} el   DOM reference
 		* @return boolean
 		*/
 		obj.remove = function ( el ) {
@@ -424,4 +430,3 @@
 		return obj;
 	}();
 })();
-YAHOO.register("accordion", YAHOO.widget.AccordionManager, {version: "2.2", build: "222"});

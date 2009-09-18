@@ -1,0 +1,360 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html xmlns:yui="http://yuilibrary.com/rdf/1.0/yui.rdf#">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+	<title>API: lighter   loading.js  (YRegion Utility)</title>
+
+	<link rel="stylesheet" type="text/css" href="assets/reset-fonts-grids-min.css?stamp=" />
+	<link rel="stylesheet" type="text/css" href="assets/api.css?stamp=" />
+
+    <script type="text/javascript" src="assets/api-js?stamp="></script>
+    <script type="text/javascript" src="assets/ac-js?stamp="></script>
+</head>
+
+<body id="yahoo-com">
+
+<div id="doc3" class="yui-t2">
+	<div id="hd">
+        <h1><a href="http://www.bubbling-library.com/" title="JavaScript Bubbling Library - YUI Extension">JavaScript Bubbling Library - YUI Extension</a></h1>
+        <h3>lighter&nbsp; <span class="subtitle">2.2</span></h3>
+        <a href="./index.html" title="JavaScript Bubbling Library">Bubbling</a> 
+            &gt; <a href="./module_lighter.html" title="lighter">lighter</a>
+                
+                 &gt; loading.js (source view) 
+        <form onsubmit="return false">
+            <div id="propertysearch">
+                Search: <input autocomplete="off" id="searchinput" />
+                <div id="searchresults">
+                    &nbsp;
+                </div>
+            </div>
+        </form>
+	</div>
+
+	<div id="bd">
+		<div id="yui-main">
+			<div class="yui-b">
+            <form action="#" name="yui-classopts-form" method="get" id="yui-classopts-form">
+                <fieldset>
+                    <legend>Filters</legend>
+                <span class="classopts"><input type="checkbox" name="show_private" id="show_private" /> <label for="show_private">Show Private</label></span>
+                <span class="classopts"><input type="checkbox" name="show_protected" id="show_protected" /> <label for="show_protected">Show Protected</label></span>
+                <span class="classopts"><input type="checkbox" name="show_deprecated" id="show_deprecated" /> <label for="show_deprecated">Show Deprecated</label></span>
+                </fieldset>
+            </form>
+
+                    <div id="srcout">
+                        <style>
+                            #doc3 .classopts { display:none; }
+                        </style>
+<div class="highlight"><pre><span class="c">/**</span>
+<span class="c"> * Loading Mask Definition: A transparent mask to avoids weird effects during the rendering and loading process for a page, also including support for AJAX requests.</span>
+<span class="c"> *</span>
+<span class="c"> * @namespace YAHOO.widget</span>
+<span class="c"> * @module loading</span>
+<span class="c"> * @requires yahoo</span>
+<span class="c"> * @requires event</span>
+<span class="c"> * @requires dom</span>
+<span class="c"> * @requires bubbling</span>
+<span class="c"> */</span>
+<span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+
+    <span class="kd">var</span> <span class="nx">$B</span> <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">Bubbling</span><span class="o">,</span>
+  	    <span class="nx">$L</span> <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">lang</span><span class="o">,</span>
+	    <span class="nx">$E</span> <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">Event</span><span class="o">,</span>
+	    <span class="nx">$D</span> <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">Dom</span><span class="o">,</span>
+	    <span class="nx">$</span> <span class="o">=</span>  <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">Dom</span><span class="p">.</span><span class="nx">get</span><span class="o">;</span>
+
+	<span class="c">/**</span>
+<span class="c">	 * The Loading Mask Widget</span>
+<span class="c">	 * @class Loading</span>
+<span class="c">	 * @static</span>
+<span class="c">	 */</span>
+	<span class="nx">YAHOO</span><span class="p">.</span><span class="nx">widget</span><span class="p">.</span><span class="nx">Loading</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+		<span class="kd">var</span> <span class="nx">obj</span> <span class="o">=</span> <span class="p">{}</span><span class="o">,</span>
+			<span class="nx">_handle</span> <span class="o">=</span> <span class="s1">&#39;yui-cms-loading&#39;</span><span class="o">,</span>
+			<span class="nx">_content</span> <span class="o">=</span> <span class="s1">&#39;yui-cms-float&#39;</span><span class="o">,</span>
+			<span class="nx">_visible</span> <span class="o">=</span> <span class="kc">false</span><span class="o">,</span>
+			<span class="nx">_ready</span> <span class="o">=</span> <span class="kc">false</span><span class="o">,</span>
+			<span class="nx">_first</span> <span class="o">=</span> <span class="kc">true</span><span class="o">,</span>
+			<span class="nx">_timer</span> <span class="o">=</span> <span class="kc">null</span><span class="o">,</span>
+			<span class="nx">_backup</span> <span class="o">=</span> <span class="p">{}</span><span class="o">,</span>
+			<span class="nx">_defStyle</span> <span class="o">=</span> <span class="p">{</span>
+							<span class="nx">zIndex</span><span class="o">:</span> <span class="mi">10000</span><span class="o">,</span>
+							<span class="nx">left</span><span class="o">:</span> <span class="mi">0</span><span class="o">,</span>
+							<span class="nx">top</span><span class="o">:</span> <span class="mi">0</span><span class="o">,</span>
+							<span class="nx">margin</span><span class="o">:</span> <span class="mi">0</span><span class="o">,</span>
+							<span class="nx">padding</span><span class="o">:</span> <span class="mi">0</span><span class="o">,</span>
+							<span class="nx">opacity</span><span class="o">:</span> <span class="mi">0</span><span class="o">,</span>
+							<span class="nx">overflow</span><span class="o">:</span> <span class="s1">&#39;hidden&#39;</span><span class="o">,</span>
+							<span class="nx">visibility</span><span class="o">:</span> <span class="s1">&#39;visible&#39;</span><span class="o">,</span>
+							<span class="nx">position</span><span class="o">:</span> <span class="s1">&#39;absolute&#39;</span><span class="o">,</span>
+							<span class="nx">display</span><span class="o">:</span> <span class="s1">&#39;block&#39;</span>
+						 <span class="p">};</span>
+			<span class="nx">_defConf</span> <span class="o">=</span> <span class="p">{</span>
+							<span class="nx">autodismissdelay</span><span class="o">:</span> <span class="mi">0</span><span class="o">,</span>
+							<span class="nx">opacity</span><span class="o">:</span> <span class="mi">1</span><span class="o">,</span>
+							<span class="nx">closeOnDOMReady</span><span class="o">:</span> <span class="kc">false</span><span class="o">,</span>
+							<span class="nx">closeOnLoad</span><span class="o">:</span> <span class="kc">true</span><span class="o">,</span>
+							<span class="nx">close</span><span class="o">:</span> <span class="kc">false</span><span class="o">,</span>
+							<span class="nx">effect</span><span class="o">:</span> <span class="kc">false</span><span class="o">,</span>
+							<span class="nx">simple</span><span class="o">:</span> <span class="kc">false</span><span class="o">,</span>
+							<span class="nx">fullscreen</span><span class="o">:</span> <span class="kc">false</span>
+						 <span class="p">};</span>
+		<span class="c">// private stuff</span>
+		<span class="kd">function</span> <span class="nx">_onHide</span> <span class="p">()</span> <span class="p">{</span>
+		  <span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">obj</span><span class="p">.</span><span class="nx">element</span><span class="p">))</span> <span class="p">{</span>
+		    <span class="nx">$D</span><span class="p">.</span><span class="nx">setStyle</span><span class="p">(</span><span class="nx">obj</span><span class="p">.</span><span class="nx">element</span><span class="o">,</span> <span class="s1">&#39;opacity&#39;</span><span class="o">,</span> <span class="mi">0</span><span class="p">);</span>
+		    <span class="nx">$D</span><span class="p">.</span><span class="nx">setStyle</span><span class="p">(</span><span class="nx">obj</span><span class="p">.</span><span class="nx">element</span><span class="o">,</span> <span class="s1">&#39;display&#39;</span><span class="o">,</span> <span class="s1">&#39;none&#39;</span><span class="p">);</span>
+		  <span class="p">}</span>
+		 <span class="c">// obj.counter = 0;</span>
+		<span class="p">}</span>
+		<span class="kd">function</span> <span class="nx">_onShow</span> <span class="p">()</span> <span class="p">{</span>
+		  <span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">obj</span><span class="p">.</span><span class="nx">element</span><span class="p">))</span> <span class="p">{</span>
+		    <span class="nx">$D</span><span class="p">.</span><span class="nx">setStyle</span><span class="p">(</span><span class="nx">obj</span><span class="p">.</span><span class="nx">element</span><span class="o">,</span> <span class="s1">&#39;opacity&#39;</span><span class="o">,</span> <span class="nx">_defConf</span><span class="p">.</span><span class="nx">opacity</span><span class="p">);</span>
+		  <span class="p">}</span>
+		<span class="p">}</span>
+		<span class="c">// pasive behavior...</span>
+	    <span class="kd">var</span> <span class="nx">actionControl</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">layer</span><span class="o">,</span> <span class="nx">args</span><span class="p">)</span> <span class="p">{</span>
+	      <span class="k">if</span> <span class="p">(</span><span class="nx">_visible</span> <span class="o">&amp;&amp;</span> <span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">obj</span><span class="p">.</span><span class="nx">element</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">((</span><span class="nx">obj</span><span class="p">.</span><span class="nx">element</span> <span class="o">===</span> <span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">target</span><span class="p">)</span> <span class="o">||</span> <span class="nx">$D</span><span class="p">.</span><span class="nx">isAncestor</span> <span class="p">(</span><span class="nx">obj</span><span class="p">.</span><span class="nx">element</span><span class="o">,</span> <span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">target</span><span class="p">)))</span> <span class="p">{</span>
+	      	<span class="c">// the user try to do something...</span>
+	      	<span class="c">// alert...</span>
+	      	<span class="k">if</span> <span class="p">(</span><span class="nb">window</span><span class="p">.</span><span class="nx">confirm</span> <span class="p">(</span><span class="s1">&#39;Do you want to hide the loading mask?&#39;</span><span class="p">))</span> <span class="p">{</span>
+	      	    <span class="c">// closing the mask...</span>
+	      	    <span class="nx">obj</span><span class="p">.</span><span class="nx">hide</span> <span class="p">();</span>
+	      	<span class="p">}</span>
+		  <span class="p">}</span>
+	    <span class="p">};</span>
+	    <span class="nx">$B</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;navigate&#39;</span><span class="o">,</span> <span class="nx">actionControl</span><span class="p">);</span>
+	    <span class="nx">$B</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;property&#39;</span><span class="o">,</span> <span class="nx">actionControl</span><span class="p">);</span>
+		<span class="c">// public vars</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">counter</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">element</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">content</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">proxy</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">anim</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+		<span class="c">// public methods</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">config</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">userConfig</span> <span class="p">)</span> <span class="p">{</span>
+			<span class="nx">userConfig</span> <span class="o">=</span> <span class="nx">userConfig</span> <span class="o">||</span> <span class="p">{};</span>
+			<span class="nx">$L</span><span class="p">.</span><span class="nx">augmentObject</span><span class="p">(</span><span class="nx">_defConf</span><span class="o">,</span> <span class="nx">userConfig</span><span class="o">,</span> <span class="kc">true</span><span class="p">);</span>
+			<span class="c">// adjusting the mask...</span>
+			<span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">element</span> <span class="o">&amp;&amp;</span> <span class="nx">_visible</span><span class="p">)</span> <span class="p">{</span>
+				<span class="nx">_onShow</span> <span class="p">();</span>
+			<span class="p">}</span>
+		<span class="p">};</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">backup</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+		    <span class="kd">var</span> <span class="nx">el</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">body</span><span class="o">;</span>
+		    <span class="nx">_backup</span><span class="p">.</span><span class="nx">padding</span> <span class="o">=</span> <span class="nx">$D</span><span class="p">.</span><span class="nx">getStyle</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="s1">&#39;padding&#39;</span><span class="p">);</span>
+		    <span class="nx">_backup</span><span class="p">.</span><span class="nx">margin</span> <span class="o">=</span> <span class="nx">$D</span><span class="p">.</span><span class="nx">getStyle</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="s1">&#39;margin&#39;</span><span class="p">);</span>
+		    <span class="nx">_backup</span><span class="p">.</span><span class="nx">overflow</span> <span class="o">=</span> <span class="nx">$D</span><span class="p">.</span><span class="nx">getStyle</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="s1">&#39;overflow&#39;</span><span class="p">);</span>
+		<span class="p">};</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">restore</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+	       <span class="kd">var</span> <span class="nx">el</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">body</span><span class="o">,</span> 
+			   <span class="nx">p</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">documentElement</span><span class="o">;</span>
+		   <span class="c">// the restoration trick: from overflow hidden to overflow auto, to height auto and to height body.size</span>
+	       <span class="nx">$D</span><span class="p">.</span><span class="nx">setStyle</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="s1">&#39;padding&#39;</span><span class="o">,</span> <span class="nx">_backup</span><span class="p">.</span><span class="nx">padding</span><span class="p">);</span>
+	       <span class="nx">$D</span><span class="p">.</span><span class="nx">setStyle</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="s1">&#39;padding&#39;</span><span class="o">,</span> <span class="nx">_backup</span><span class="p">.</span><span class="nx">padding</span><span class="p">);</span>
+	       <span class="nx">$D</span><span class="p">.</span><span class="nx">setStyle</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="s1">&#39;overflow&#39;</span><span class="o">,</span> <span class="nx">_backup</span><span class="p">.</span><span class="nx">overflow</span><span class="p">);</span>
+		   <span class="nx">$D</span><span class="p">.</span><span class="nx">setStyle</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="s1">&#39;height&#39;</span><span class="o">,</span> <span class="s1">&#39;auto&#39;</span><span class="p">);</span>
+		   <span class="nx">$D</span><span class="p">.</span><span class="nx">setStyle</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="s1">&#39;width&#39;</span><span class="o">,</span>  <span class="s1">&#39;auto&#39;</span><span class="p">);</span>
+	       <span class="nx">$D</span><span class="p">.</span><span class="nx">setStyle</span><span class="p">(</span><span class="nx">p</span><span class="o">,</span>  <span class="s1">&#39;overflow&#39;</span><span class="o">,</span> <span class="s1">&#39;auto&#39;</span><span class="p">);</span>
+		   <span class="nx">$D</span><span class="p">.</span><span class="nx">setStyle</span><span class="p">(</span><span class="nx">p</span><span class="o">,</span>  <span class="s1">&#39;height&#39;</span><span class="o">,</span> <span class="s1">&#39;auto&#39;</span><span class="p">);</span>
+		   <span class="nx">$D</span><span class="p">.</span><span class="nx">setStyle</span><span class="p">(</span><span class="nx">p</span><span class="o">,</span>  <span class="s1">&#39;width&#39;</span><span class="o">,</span>  <span class="s1">&#39;auto&#39;</span><span class="p">);</span>
+		   <span class="kd">var</span> <span class="nx">h</span> <span class="o">=</span> <span class="nb">Math</span><span class="p">.</span><span class="nx">max</span><span class="p">(</span><span class="nx">$D</span><span class="p">.</span><span class="nx">getViewportHeight</span> <span class="p">()</span><span class="o">,</span> <span class="nx">el</span><span class="p">.</span><span class="nx">offsetHeight</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;px&#39;</span><span class="o">;</span>
+		   <span class="nx">$D</span><span class="p">.</span><span class="nx">setStyle</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="s1">&#39;height&#39;</span><span class="o">,</span> <span class="nx">h</span><span class="p">);</span>
+		   <span class="nx">$D</span><span class="p">.</span><span class="nx">setStyle</span><span class="p">(</span><span class="nx">p</span><span class="o">,</span>  <span class="s1">&#39;height&#39;</span><span class="o">,</span> <span class="nx">h</span><span class="p">);</span>
+		   <span class="c">// using setTimeout to restore the body height to auto, the trick to avoid the flash issue</span>
+		   <span class="nb">window</span><span class="p">.</span><span class="nx">setTimeout</span><span class="p">(</span><span class="kd">function</span><span class="p">(){</span> 
+                <span class="nx">$D</span><span class="p">.</span><span class="nx">setStyle</span><span class="p">(</span><span class="nx">el</span><span class="o">,</span> <span class="s1">&#39;height&#39;</span><span class="o">,</span> <span class="s1">&#39;auto&#39;</span><span class="p">);</span>
+		  		<span class="nx">$D</span><span class="p">.</span><span class="nx">setStyle</span><span class="p">(</span><span class="nx">p</span><span class="o">,</span>  <span class="s1">&#39;height&#39;</span><span class="o">,</span> <span class="s1">&#39;auto&#39;</span><span class="p">);</span>
+           <span class="p">}</span><span class="o">,</span> <span class="mi">1</span><span class="p">);</span>
+		<span class="p">};</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">init</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+		    <span class="kd">var</span> <span class="nx">item</span><span class="o">;</span>
+		    <span class="k">this</span><span class="p">.</span><span class="nx">element</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="nx">_handle</span><span class="p">);</span>
+		    <span class="k">this</span><span class="p">.</span><span class="nx">content</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="nx">_content</span><span class="p">);</span>
+			<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">_ready</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">element</span><span class="p">)))</span> <span class="p">{</span>
+				<span class="nx">_ready</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+        		<span class="k">for</span> <span class="p">(</span><span class="nx">item</span> <span class="k">in</span> <span class="nx">_defStyle</span><span class="p">)</span> <span class="p">{</span>
+        			<span class="k">if</span> <span class="p">(</span><span class="nx">_defStyle</span><span class="p">.</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="nx">item</span><span class="p">))</span> <span class="p">{</span>
+        				<span class="nx">$D</span><span class="p">.</span><span class="nx">setStyle</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">element</span><span class="o">,</span> <span class="nx">item</span><span class="o">,</span> <span class="nx">_defStyle</span><span class="p">[</span><span class="nx">item</span><span class="p">]);</span>
+        			<span class="p">}</span>
+        		<span class="p">}</span>
+        		<span class="nx">obj</span><span class="p">.</span><span class="nx">show</span> <span class="p">();</span>
+			<span class="p">}</span>
+		<span class="p">};</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">adjust</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+			<span class="kd">var</span> <span class="nx">vp</span><span class="o">;</span>
+			<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">_defConf</span><span class="p">.</span><span class="nx">fullscreen</span> <span class="o">&amp;&amp;</span> <span class="k">this</span><span class="p">.</span><span class="nx">proxy</span> <span class="o">&amp;&amp;</span> <span class="nx">$D</span><span class="p">.</span><span class="nx">inDocument</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">proxy</span><span class="p">))</span> <span class="p">{</span>
+				<span class="c">// cover a certain element in the DOM</span>
+				<span class="nx">vp</span> <span class="o">=</span> <span class="nx">$D</span><span class="p">.</span><span class="nx">getRegion</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">proxy</span><span class="p">);</span>
+				<span class="nx">vp</span><span class="p">.</span><span class="nx">height</span> <span class="o">=</span> <span class="nx">vp</span><span class="p">.</span><span class="nx">bottom</span><span class="o">-</span><span class="nx">vp</span><span class="p">.</span><span class="nx">top</span><span class="o">;</span><span class="nx">vp</span><span class="p">.</span><span class="nx">width</span> <span class="o">=</span> <span class="nx">vp</span><span class="p">.</span><span class="nx">right</span><span class="o">-</span><span class="nx">vp</span><span class="p">.</span><span class="nx">left</span><span class="o">;</span>
+			<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+				<span class="c">// cover the full viewport</span>
+				<span class="c">// getting the current viewport position and dimentions</span>
+				<span class="nx">vp</span> <span class="o">=</span> <span class="p">{</span><span class="nx">top</span><span class="o">:</span> <span class="nx">$D</span><span class="p">.</span><span class="nx">getDocumentScrollTop</span><span class="p">()</span><span class="o">,</span> <span class="nx">left</span><span class="o">:</span> <span class="nx">$D</span><span class="p">.</span><span class="nx">getDocumentScrollLeft</span><span class="p">()</span><span class="o">,</span> <span class="nx">width</span><span class="o">:</span><span class="nx">$D</span><span class="p">.</span><span class="nx">getViewportWidth</span> <span class="p">()</span><span class="o">,</span> <span class="nx">height</span><span class="o">:</span> <span class="nx">$D</span><span class="p">.</span><span class="nx">getViewportHeight</span> <span class="p">()};</span>
+			<span class="p">}</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">_visible</span><span class="p">)</span> <span class="p">{</span>
+			   <span class="nx">$D</span><span class="p">.</span><span class="nx">setStyle</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">element</span><span class="o">,</span> <span class="s1">&#39;height&#39;</span><span class="o">,</span> <span class="nx">vp</span><span class="p">.</span><span class="nx">height</span><span class="o">+</span><span class="s1">&#39;px&#39;</span><span class="p">);</span>
+	           <span class="nx">$D</span><span class="p">.</span><span class="nx">setStyle</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">element</span><span class="o">,</span> <span class="s1">&#39;width&#39;</span><span class="o">,</span> <span class="nx">vp</span><span class="p">.</span><span class="nx">width</span><span class="o">+</span><span class="s1">&#39;px&#39;</span><span class="p">);</span>
+		       <span class="nx">$D</span><span class="p">.</span><span class="nx">setXY</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">element</span><span class="o">,</span> <span class="p">[</span><span class="nx">vp</span><span class="p">.</span><span class="nx">left</span><span class="o">,</span> <span class="nx">vp</span><span class="p">.</span><span class="nx">top</span><span class="p">]);</span>
+	           <span class="c">// adjust the content...</span>
+	           <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">content</span><span class="p">)</span> <span class="p">{</span>
+	              <span class="c">// applying the corresponding position: centering the content...</span>
+	              <span class="kd">var</span> <span class="nx">size</span> <span class="o">=</span> <span class="nx">$D</span><span class="p">.</span><span class="nx">getRegion</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">content</span><span class="p">);</span>
+                  <span class="kd">var</span> <span class="nx">oHeight</span> <span class="o">=</span> <span class="nx">size</span><span class="p">.</span><span class="nx">bottom</span> <span class="o">-</span> <span class="nx">size</span><span class="p">.</span><span class="nx">top</span><span class="o">;</span>
+                  <span class="kd">var</span> <span class="nx">oWidth</span> <span class="o">=</span> <span class="nx">size</span><span class="p">.</span><span class="nx">right</span> <span class="o">-</span> <span class="nx">size</span><span class="p">.</span><span class="nx">left</span><span class="o">;</span>
+		          <span class="nx">$D</span><span class="p">.</span><span class="nx">setXY</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">content</span><span class="o">,</span> <span class="p">[</span><span class="nx">vp</span><span class="p">.</span><span class="nx">left</span> <span class="o">+</span> <span class="p">((</span><span class="nx">vp</span><span class="p">.</span><span class="nx">width</span> <span class="o">-</span> <span class="nx">oWidth</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span><span class="o">,</span> <span class="nx">vp</span><span class="p">.</span><span class="nx">top</span> <span class="o">+</span> <span class="p">((</span><span class="nx">vp</span><span class="p">.</span><span class="nx">height</span> <span class="o">-</span> <span class="nx">oHeight</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)]);</span>
+	           <span class="p">}</span>
+		    <span class="p">}</span>
+		<span class="p">};</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">show</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">el</span><span class="p">)</span> <span class="p">{</span>
+		  <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">element</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="nx">_visible</span><span class="p">)</span> <span class="p">{</span>
+		    <span class="nx">_visible</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+			<span class="k">this</span><span class="p">.</span><span class="nx">backup</span> <span class="p">();</span>
+			<span class="k">this</span><span class="p">.</span><span class="nx">proxy</span> <span class="o">=</span> <span class="nx">el</span><span class="o">;</span> <span class="c">// use the mask over a certain element</span>
+			<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">proxy</span> <span class="o">||</span> <span class="nx">_defConf</span><span class="p">.</span><span class="nx">fullscreen</span><span class="p">)</span> <span class="p">{</span>
+				<span class="c">// cover the full viewport</span>
+		        <span class="nx">$D</span><span class="p">.</span><span class="nx">setStyle</span><span class="p">(</span><span class="nb">document</span><span class="p">.</span><span class="nx">documentElement</span><span class="o">,</span> <span class="s1">&#39;overflow&#39;</span><span class="o">,</span> <span class="s1">&#39;hidden&#39;</span><span class="p">);</span>
+				<span class="nx">$D</span><span class="p">.</span><span class="nx">setStyle</span><span class="p">(</span><span class="nb">document</span><span class="p">.</span><span class="nx">body</span><span class="o">,</span> <span class="s1">&#39;overflow&#39;</span><span class="o">,</span> <span class="s1">&#39;hidden&#39;</span><span class="p">);</span> <span class="c">// contrain the viewport to the actual size (prevent the scrolling)...</span>
+			<span class="p">}</span>
+			<span class="nx">$D</span><span class="p">.</span><span class="nx">setStyle</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">element</span><span class="o">,</span> <span class="s1">&#39;display&#39;</span><span class="o">,</span> <span class="s1">&#39;block&#39;</span><span class="p">);</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">_first</span><span class="p">)</span> <span class="p">{</span>
+			  <span class="nx">$B</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;repaint&#39;</span><span class="o">,</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">adjust</span><span class="o">,</span> <span class="nx">obj</span><span class="o">,</span> <span class="kc">true</span><span class="p">);</span>
+		    <span class="p">}</span>
+			<span class="nx">obj</span><span class="p">.</span><span class="nx">adjust</span> <span class="p">();</span>
+			<span class="c">// applying the effects if needed...</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">_defConf</span><span class="p">.</span><span class="nx">effect</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="nx">_first</span><span class="p">)</span> <span class="p">{</span>
+                <span class="c">// stopping the current animation</span>
+                <span class="k">if</span> <span class="p">((</span><span class="k">this</span><span class="p">.</span><span class="nx">anim</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">anim</span><span class="p">.</span><span class="nx">isAnimated</span><span class="p">()))</span> <span class="p">{</span> <span class="k">this</span><span class="p">.</span><span class="nx">anim</span><span class="p">.</span><span class="nx">stop</span><span class="p">();</span> <span class="p">}</span>
+    	        <span class="c">// starting a new animation</span>
+        		<span class="k">this</span><span class="p">.</span><span class="nx">anim</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">Anim</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">element</span><span class="o">,</span> <span class="p">{</span><span class="nx">opacity</span><span class="o">:</span> <span class="p">{</span> <span class="nx">to</span><span class="o">:</span> <span class="nx">_defConf</span><span class="p">.</span><span class="nx">opacity</span><span class="p">}</span> <span class="p">}</span><span class="o">,</span> <span class="mf">1.5</span><span class="o">,</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">Easing</span><span class="p">.</span><span class="nx">easeIn</span><span class="p">);</span>
+        		<span class="k">this</span><span class="p">.</span><span class="nx">anim</span><span class="p">.</span><span class="nx">onComplete</span><span class="p">.</span><span class="nx">subscribe</span><span class="p">(</span><span class="nx">_onShow</span><span class="p">);</span>
+        		<span class="k">this</span><span class="p">.</span><span class="nx">anim</span><span class="p">.</span><span class="nx">animate</span><span class="p">();</span>
+		    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+			    <span class="nx">_onShow</span><span class="p">();</span>
+		    <span class="p">}</span>
+		    <span class="k">if</span> <span class="p">(</span><span class="nx">_defConf</span><span class="p">.</span><span class="nx">closeOnDOMReady</span><span class="p">)</span> <span class="p">{</span>
+    		    <span class="nx">$E</span><span class="p">.</span><span class="nx">onDOMReady</span> <span class="p">(</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">hide</span><span class="o">,</span> <span class="nx">obj</span><span class="o">,</span> <span class="kc">true</span> <span class="p">);</span>
+		    <span class="p">}</span>
+		    <span class="k">if</span> <span class="p">(</span><span class="nx">_defConf</span><span class="p">.</span><span class="nx">closeOnLoad</span><span class="p">)</span> <span class="p">{</span>
+    		    <span class="nx">$E</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="nb">window</span><span class="o">,</span> <span class="s1">&#39;load&#39;</span><span class="o">,</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">hide</span><span class="o">,</span> <span class="nx">obj</span><span class="o">,</span> <span class="kc">true</span> <span class="p">);</span>
+		    <span class="p">}</span>
+			<span class="nb">window</span><span class="p">.</span><span class="nx">clearTimeout</span><span class="p">(</span><span class="nx">_timer</span><span class="p">);</span><span class="nx">_timer</span><span class="o">=</span><span class="kc">null</span><span class="o">;</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isNumber</span><span class="p">(</span><span class="nx">_defConf</span><span class="p">.</span><span class="nx">autodismissdelay</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">_defConf</span><span class="p">.</span><span class="nx">autodismissdelay</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">))</span> <span class="p">{</span>
+			  <span class="nx">_timer</span> <span class="o">=</span> <span class="nb">window</span><span class="p">.</span><span class="nx">setTimeout</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+				<span class="nx">obj</span><span class="p">.</span><span class="nx">hide</span><span class="p">();</span>
+			  <span class="p">}</span><span class="o">,</span> <span class="nb">Math</span><span class="p">.</span><span class="nx">abs</span><span class="p">(</span><span class="nx">_defConf</span><span class="p">.</span><span class="nx">autodismissdelay</span><span class="p">));</span>
+			<span class="p">}</span>
+		  <span class="p">}</span>
+		<span class="p">};</span>
+		<span class="c">/**</span>
+<span class="c">		* @method hide</span>
+<span class="c">		* @return void</span>
+<span class="c">		*/</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">hide</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+		  <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">element</span> <span class="o">&amp;&amp;</span> <span class="nx">_visible</span><span class="p">)</span> <span class="p">{</span>
+			<span class="c">// applying the effects if needed...</span>
+			<span class="nx">_visible</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">_defConf</span><span class="p">.</span><span class="nx">effect</span><span class="p">)</span> <span class="p">{</span>
+                <span class="c">// stopping the current animation</span>
+                <span class="k">if</span> <span class="p">((</span><span class="k">this</span><span class="p">.</span><span class="nx">anim</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">anim</span><span class="p">.</span><span class="nx">isAnimated</span><span class="p">()))</span> <span class="p">{</span> <span class="k">this</span><span class="p">.</span><span class="nx">anim</span><span class="p">.</span><span class="nx">stop</span><span class="p">();</span> <span class="p">}</span>
+    	         <span class="c">// starting a new animation</span>
+        		<span class="k">this</span><span class="p">.</span><span class="nx">anim</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">Anim</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">element</span><span class="o">,</span> <span class="p">{</span> <span class="nx">opacity</span><span class="o">:</span> <span class="p">{</span> <span class="nx">to</span><span class="o">:</span> <span class="mi">0</span><span class="p">}</span> <span class="p">}</span><span class="o">,</span> <span class="mf">1.5</span><span class="o">,</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">Easing</span><span class="p">.</span><span class="nx">easeOut</span><span class="p">);</span>
+        		<span class="k">this</span><span class="p">.</span><span class="nx">anim</span><span class="p">.</span><span class="nx">onComplete</span><span class="p">.</span><span class="nx">subscribe</span><span class="p">(</span><span class="nx">_onHide</span><span class="p">);</span>
+        		<span class="k">this</span><span class="p">.</span><span class="nx">anim</span><span class="p">.</span><span class="nx">animate</span><span class="p">();</span>
+		    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+			    <span class="nx">_onHide</span><span class="p">();</span>
+		    <span class="p">}</span>
+			<span class="nx">obj</span><span class="p">.</span><span class="nx">counter</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+			<span class="c">// restoring everything...</span>
+			<span class="nx">obj</span><span class="p">.</span><span class="nx">restore</span><span class="p">();</span>
+			<span class="c">// only the first time</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">_first</span><span class="p">)</span> <span class="p">{</span>
+				<span class="nx">_first</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+				<span class="nx">YAHOO</span><span class="p">.</span><span class="nx">Bubbling</span><span class="p">.</span><span class="nx">fire</span> <span class="p">(</span><span class="s1">&#39;onMaskReady&#39;</span><span class="o">,</span> <span class="p">{</span>
+					<span class="nx">element</span><span class="o">:</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">element</span><span class="o">,</span>
+					<span class="nx">content</span><span class="o">:</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">content</span><span class="o">,</span>
+					<span class="nx">config</span><span class="o">:</span> <span class="nx">_defConf</span>
+				<span class="p">});</span>
+			<span class="p">}</span>
+		  <span class="p">}</span>
+		<span class="p">};</span>
+		<span class="k">if</span> <span class="p">(</span><span class="nx">$D</span><span class="p">.</span><span class="nx">inDocument</span><span class="p">(</span><span class="nx">_handle</span><span class="p">))</span> <span class="p">{</span>
+            <span class="c">// this script was loaded after the element</span>
+            <span class="nx">obj</span><span class="p">.</span><span class="nx">init</span><span class="p">();</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    		<span class="nx">$E</span><span class="p">.</span><span class="nx">onContentReady</span> <span class="p">(</span> <span class="nx">_handle</span><span class="o">,</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">init</span><span class="o">,</span> <span class="nx">obj</span><span class="o">,</span> <span class="kc">true</span> <span class="p">);</span>
+    	<span class="p">}</span>
+		<span class="c">// getting the default configuration...</span>
+		<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">YAHOO</span><span class="p">.</span><span class="nx">widget</span><span class="p">.</span><span class="nx">_cLoading</span><span class="p">))</span> <span class="p">{</span>
+			<span class="nx">obj</span><span class="p">.</span><span class="nx">config</span><span class="p">(</span><span class="nx">YAHOO</span><span class="p">.</span><span class="nx">widget</span><span class="p">.</span><span class="nx">_cLoading</span><span class="p">);</span>
+		<span class="p">}</span>
+		<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">_defConf</span><span class="p">.</span><span class="nx">simple</span><span class="p">)</span> <span class="p">{</span>
+			<span class="nx">$B</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;onAsyncRequestStart&#39;</span><span class="o">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">layer</span><span class="o">,</span> <span class="nx">args</span><span class="p">)</span> <span class="p">{</span>
+				<span class="nx">obj</span><span class="p">.</span><span class="nx">counter</span><span class="o">++;</span>
+				<span class="nx">obj</span><span class="p">.</span><span class="nx">show</span><span class="p">(</span><span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">element</span><span class="p">);</span>
+			<span class="p">});</span>
+			<span class="nx">$B</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;onAsyncRequestEnd&#39;</span><span class="o">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">layer</span><span class="o">,</span> <span class="nx">args</span><span class="p">)</span> <span class="p">{</span>
+				<span class="nx">obj</span><span class="p">.</span><span class="nx">counter</span><span class="o">--;</span>
+				<span class="k">if</span> <span class="p">(</span><span class="nx">obj</span><span class="p">.</span><span class="nx">counter</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+					<span class="nx">obj</span><span class="p">.</span><span class="nx">hide</span><span class="p">();</span>
+					<span class="nx">obj</span><span class="p">.</span><span class="nx">counter</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+				<span class="p">}</span>
+			<span class="p">});</span>
+		<span class="p">}</span>
+		<span class="k">return</span> <span class="nx">obj</span><span class="o">;</span>
+	<span class="p">}();</span>
+<span class="p">})();</span>
+</pre></div>
+                    </div>
+			</div>
+		</div>
+		<div class="yui-b">
+            <div class="nav">
+
+                    <div id="moduleList" class="module">
+                        <h4>Modules</h4>
+                        <ul class="content">
+                                <li class=""><a href="module_accordion.html" title="accordion">accordion</a></li>
+                                <li class=""><a href="module_bubbling.html" title="bubbling">bubbling</a></li>
+                                <li class=""><a href="module_dispatcher.html" title="dispatcher">dispatcher</a></li>
+                                <li class="selected"><a href="module_lighter.html" title="lighter">lighter</a></li>
+                                <li class=""><a href="module_loading.html" title="loading">loading</a></li>
+                                <li class=""><a href="module_navigation.html" title="navigation">navigation</a></li>
+                                <li class=""><a href="module_tooltipmanager.html" title="tooltipmanager">tooltipmanager</a></li>
+                                <li class=""><a href="module_wizard.html" title="wizard">wizard</a></li>
+                        </ul>
+                    </div>
+
+                    <div id="classList" class="module">
+                        <h4>Classes</h4>
+                        <ul class="content">
+                                <li class=""><a href="YAHOO.plugin.Lighter.html" title="YAHOO.plugin.Lighter">YAHOO.plugin.Lighter</a></li>
+                        </ul>
+                    </div>
+
+                    <div id="fileList" class="module">
+                        <h4>Files</h4>
+                        <ul class="content">        
+                                <li class="selected"><a href="loading.js.html" title="loading.js">loading.js</a></li>
+                        </ul>
+                    </div>
+
+
+
+
+
+            </div>
+		</div>
+	</div>
+	<div id="ft">
+        <hr />
+        Copyright &copy; 2009 <a href="http://www.bubbling-library.com/" title="JavaScript Bubbling Library - YUI Extension">Bubbling Library</a>. All rights reserved.
+	</div>
+</div>
+<script type="text/javascript">
+    ALL_YUI_PROPS = [{"url": "YAHOO.plugin.Lighter.html#method_add", "access": "", "host": "YAHOO.plugin.Lighter", "type": "method", "name": "add"}, {"url": "YAHOO.plugin.Lighter.html#method_remove", "access": "", "host": "YAHOO.plugin.Lighter", "type": "method", "name": "remove"}];
+</script>
+</body>
+</html>

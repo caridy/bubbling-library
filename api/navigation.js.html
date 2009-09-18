@@ -1,0 +1,285 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html xmlns:yui="http://yuilibrary.com/rdf/1.0/yui.rdf#">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+	<title>API: loading   navigation.js  (YRegion Utility)</title>
+
+	<link rel="stylesheet" type="text/css" href="assets/reset-fonts-grids-min.css?stamp=" />
+	<link rel="stylesheet" type="text/css" href="assets/api.css?stamp=" />
+
+    <script type="text/javascript" src="assets/api-js?stamp="></script>
+    <script type="text/javascript" src="assets/ac-js?stamp="></script>
+</head>
+
+<body id="yahoo-com">
+
+<div id="doc3" class="yui-t2">
+	<div id="hd">
+        <h1><a href="http://www.bubbling-library.com/" title="JavaScript Bubbling Library - YUI Extension">JavaScript Bubbling Library - YUI Extension</a></h1>
+        <h3>loading&nbsp; <span class="subtitle">2.2</span></h3>
+        <a href="./index.html" title="JavaScript Bubbling Library">Bubbling</a> 
+            &gt; <a href="./module_loading.html" title="loading">loading</a>
+                
+                 &gt; navigation.js (source view) 
+        <form onsubmit="return false">
+            <div id="propertysearch">
+                Search: <input autocomplete="off" id="searchinput" />
+                <div id="searchresults">
+                    &nbsp;
+                </div>
+            </div>
+        </form>
+	</div>
+
+	<div id="bd">
+		<div id="yui-main">
+			<div class="yui-b">
+            <form action="#" name="yui-classopts-form" method="get" id="yui-classopts-form">
+                <fieldset>
+                    <legend>Filters</legend>
+                <span class="classopts"><input type="checkbox" name="show_private" id="show_private" /> <label for="show_private">Show Private</label></span>
+                <span class="classopts"><input type="checkbox" name="show_protected" id="show_protected" /> <label for="show_protected">Show Protected</label></span>
+                <span class="classopts"><input type="checkbox" name="show_deprecated" id="show_deprecated" /> <label for="show_deprecated">Show Deprecated</label></span>
+                </fieldset>
+            </form>
+
+                    <div id="srcout">
+                        <style>
+                            #doc3 .classopts { display:none; }
+                        </style>
+<div class="highlight"><pre><span class="c">/**</span>
+<span class="c"> * Navigation Manager Definition.</span>
+<span class="c"> * Navigation - Use this object to control the YUI History Manager...</span>
+<span class="c"> * Add your custom navigation entries to create the corresponding browser actions</span>
+<span class="c"> *</span>
+<span class="c"> * @namespace YAHOO.plugin</span>
+<span class="c"> * @module navigation</span>
+<span class="c"> * @requires yahoo</span>
+<span class="c"> * @requires bubbling</span>
+<span class="c"> * @requires history</span>
+<span class="c"> */</span>
+<span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">$B</span> <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">Bubbling</span><span class="o">,</span>
+  	  <span class="nx">$H</span> <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">History</span><span class="o">,</span>
+  	  <span class="nx">$L</span> <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">lang</span><span class="o">,</span>
+	  <span class="nx">$E</span> <span class="o">=</span> <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">Event</span><span class="o">;</span>
+
+	<span class="c">/**</span>
+<span class="c">	 * The Navigation Plugin</span>
+<span class="c">	 * @class Navigation</span>
+<span class="c">	 * @static</span>
+<span class="c">	 */</span>
+    <span class="nx">YAHOO</span><span class="p">.</span><span class="nx">plugin</span><span class="p">.</span><span class="nx">Navigation</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+		<span class="kd">var</span> <span class="nx">obj</span> <span class="o">=</span> <span class="p">{}</span><span class="o">,</span>
+		    <span class="nx">_id</span> <span class="o">=</span> <span class="s1">&#39;q&#39;</span><span class="o">,</span>
+			<span class="nx">_pages</span> <span class="o">=</span> <span class="p">{}</span><span class="o">,</span>
+			<span class="nx">_state</span> <span class="o">=</span> <span class="nx">$H</span><span class="p">.</span><span class="nx">getBookmarkedState</span><span class="p">(</span><span class="nx">_id</span><span class="p">)</span> <span class="o">||</span> <span class="s1">&#39;default&#39;</span><span class="o">,</span> <span class="c">// the default state...</span>
+			<span class="nx">_defaultBehavior</span> <span class="o">=</span> <span class="kc">null</span><span class="o">,</span>
+			<span class="nx">b64</span><span class="o">=</span><span class="s2">&quot;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/&quot;</span><span class="o">;</span>
+			
+		<span class="nx">$B</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;newRestorationEntry&#39;</span><span class="o">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">layer</span><span class="o">,</span> <span class="nx">args</span><span class="p">)</span> <span class="p">{</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">state</span><span class="p">)</span> <span class="p">{</span>
+				<span class="nx">obj</span><span class="p">.</span><span class="nx">add</span> <span class="p">(</span><span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">state</span><span class="o">,</span> <span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+			<span class="p">}</span>
+		<span class="p">});</span>
+		<span class="kd">function</span> <span class="nx">base64encode</span><span class="p">(</span><span class="nx">str</span><span class="p">){</span><span class="kd">var</span> <span class="nx">out</span><span class="o">,</span><span class="nx">i</span><span class="o">,</span><span class="nx">len</span><span class="o">;</span><span class="kd">var</span> <span class="nx">c1</span><span class="o">,</span><span class="nx">c2</span><span class="o">,</span><span class="nx">c3</span><span class="o">;</span><span class="nx">len</span><span class="o">=</span><span class="nx">str</span><span class="p">.</span><span class="nx">length</span><span class="o">;</span><span class="nx">i</span><span class="o">=</span><span class="mi">0</span><span class="o">;</span><span class="nx">out</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="o">;</span><span class="k">while</span><span class="p">(</span><span class="nx">i</span><span class="o">&lt;</span><span class="nx">len</span><span class="p">){</span><span class="nx">c1</span><span class="o">=</span><span class="nx">str</span><span class="p">.</span><span class="nx">charCodeAt</span><span class="p">(</span><span class="nx">i</span><span class="o">++</span><span class="p">)</span><span class="o">&amp;</span><span class="mh">0xff</span><span class="o">;</span><span class="k">if</span><span class="p">(</span><span class="nx">i</span><span class="o">==</span><span class="nx">len</span><span class="p">){</span><span class="nx">out</span><span class="o">+=</span><span class="nx">b64</span><span class="p">.</span><span class="nx">charAt</span><span class="p">(</span><span class="nx">c1</span><span class="o">&gt;&gt;</span><span class="mi">2</span><span class="p">);</span><span class="nx">out</span><span class="o">+=</span><span class="nx">b64</span><span class="p">.</span><span class="nx">charAt</span><span class="p">((</span><span class="nx">c1</span><span class="o">&amp;</span><span class="mh">0x3</span><span class="p">)</span><span class="o">&lt;&lt;</span><span class="mi">4</span><span class="p">);</span><span class="nx">out</span><span class="o">+=</span><span class="s2">&quot;==&quot;</span><span class="o">;</span><span class="k">break</span><span class="o">;</span><span class="p">}</span><span class="nx">c2</span><span class="o">=</span><span class="nx">str</span><span class="p">.</span><span class="nx">charCodeAt</span><span class="p">(</span><span class="nx">i</span><span class="o">++</span><span class="p">);</span><span class="k">if</span><span class="p">(</span><span class="nx">i</span><span class="o">==</span><span class="nx">len</span><span class="p">){</span><span class="nx">out</span><span class="o">+=</span><span class="nx">b64</span><span class="p">.</span><span class="nx">charAt</span><span class="p">(</span><span class="nx">c1</span><span class="o">&gt;&gt;</span><span class="mi">2</span><span class="p">);</span><span class="nx">out</span><span class="o">+=</span><span class="nx">b64</span><span class="p">.</span><span class="nx">charAt</span><span class="p">(((</span><span class="nx">c1</span><span class="o">&amp;</span><span class="mh">0x3</span><span class="p">)</span><span class="o">&lt;&lt;</span><span class="mi">4</span><span class="p">)</span><span class="o">|</span><span class="p">((</span><span class="nx">c2</span><span class="o">&amp;</span><span class="mh">0xF0</span><span class="p">)</span><span class="o">&gt;&gt;</span><span class="mi">4</span><span class="p">));</span><span class="nx">out</span><span class="o">+=</span><span class="nx">b64</span><span class="p">.</span><span class="nx">charAt</span><span class="p">((</span><span class="nx">c2</span><span class="o">&amp;</span><span class="mh">0xF</span><span class="p">)</span><span class="o">&lt;&lt;</span><span class="mi">2</span><span class="p">);</span><span class="nx">out</span><span class="o">+=</span><span class="s2">&quot;=&quot;</span><span class="o">;</span><span class="k">break</span><span class="o">;</span><span class="p">}</span><span class="nx">c3</span><span class="o">=</span><span class="nx">str</span><span class="p">.</span><span class="nx">charCodeAt</span><span class="p">(</span><span class="nx">i</span><span class="o">++</span><span class="p">);</span><span class="nx">out</span><span class="o">+=</span><span class="nx">b64</span><span class="p">.</span><span class="nx">charAt</span><span class="p">(</span><span class="nx">c1</span><span class="o">&gt;&gt;</span><span class="mi">2</span><span class="p">);</span><span class="nx">out</span><span class="o">+=</span><span class="nx">b64</span><span class="p">.</span><span class="nx">charAt</span><span class="p">(((</span><span class="nx">c1</span><span class="o">&amp;</span><span class="mh">0x3</span><span class="p">)</span><span class="o">&lt;&lt;</span><span class="mi">4</span><span class="p">)</span><span class="o">|</span><span class="p">((</span><span class="nx">c2</span><span class="o">&amp;</span><span class="mh">0xF0</span><span class="p">)</span><span class="o">&gt;&gt;</span><span class="mi">4</span><span class="p">));</span><span class="nx">out</span><span class="o">+=</span><span class="nx">b64</span><span class="p">.</span><span class="nx">charAt</span><span class="p">(((</span><span class="nx">c2</span><span class="o">&amp;</span><span class="mh">0xF</span><span class="p">)</span><span class="o">&lt;&lt;</span><span class="mi">2</span><span class="p">)</span><span class="o">|</span><span class="p">((</span><span class="nx">c3</span><span class="o">&amp;</span><span class="mh">0xC0</span><span class="p">)</span><span class="o">&gt;&gt;</span><span class="mi">6</span><span class="p">));</span><span class="nx">out</span><span class="o">+=</span><span class="nx">b64</span><span class="p">.</span><span class="nx">charAt</span><span class="p">(</span><span class="nx">c3</span><span class="o">&amp;</span><span class="mh">0x3F</span><span class="p">);}</span><span class="k">return</span> <span class="nx">out</span><span class="o">;</span><span class="p">}</span>
+		<span class="kd">function</span> <span class="nx">utf16to8</span><span class="p">(</span><span class="nx">str</span><span class="p">){</span><span class="kd">var</span> <span class="nx">out</span><span class="o">,</span><span class="nx">i</span><span class="o">,</span><span class="nx">len</span><span class="o">,</span><span class="nx">c</span><span class="o">;</span><span class="nx">out</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="o">;</span><span class="nx">len</span><span class="o">=</span><span class="nx">str</span><span class="p">.</span><span class="nx">length</span><span class="o">;</span><span class="k">for</span><span class="p">(</span><span class="nx">i</span><span class="o">=</span><span class="mi">0</span><span class="o">;</span><span class="nx">i</span><span class="o">&lt;</span><span class="nx">len</span><span class="o">;</span><span class="nx">i</span><span class="o">++</span><span class="p">){</span><span class="nx">c</span><span class="o">=</span><span class="nx">str</span><span class="p">.</span><span class="nx">charCodeAt</span><span class="p">(</span><span class="nx">i</span><span class="p">);</span><span class="k">if</span><span class="p">((</span><span class="nx">c</span><span class="o">&gt;=</span><span class="mh">0x0001</span><span class="p">)</span><span class="o">&amp;&amp;</span><span class="p">(</span><span class="nx">c</span><span class="o">&lt;=</span><span class="mh">0x007F</span><span class="p">)){</span><span class="nx">out</span><span class="o">+=</span><span class="nx">str</span><span class="p">.</span><span class="nx">charAt</span><span class="p">(</span><span class="nx">i</span><span class="p">);}</span><span class="k">else</span> <span class="k">if</span><span class="p">(</span><span class="nx">c</span><span class="o">&gt;</span><span class="mh">0x07FF</span><span class="p">){</span><span class="nx">out</span><span class="o">+=</span><span class="nb">String</span><span class="p">.</span><span class="nx">fromCharCode</span><span class="p">(</span><span class="mh">0xE0</span><span class="o">|</span><span class="p">((</span><span class="nx">c</span><span class="o">&gt;&gt;</span><span class="mi">12</span><span class="p">)</span><span class="o">&amp;</span><span class="mh">0x0F</span><span class="p">));</span><span class="nx">out</span><span class="o">+=</span><span class="nb">String</span><span class="p">.</span><span class="nx">fromCharCode</span><span class="p">(</span><span class="mh">0x80</span><span class="o">|</span><span class="p">((</span><span class="nx">c</span><span class="o">&gt;&gt;</span><span class="mi">6</span><span class="p">)</span><span class="o">&amp;</span><span class="mh">0x3F</span><span class="p">));</span><span class="nx">out</span><span class="o">+=</span><span class="nb">String</span><span class="p">.</span><span class="nx">fromCharCode</span><span class="p">(</span><span class="mh">0x80</span><span class="o">|</span><span class="p">((</span><span class="nx">c</span><span class="o">&gt;&gt;</span><span class="mi">0</span><span class="p">)</span><span class="o">&amp;</span><span class="mh">0x3F</span><span class="p">));}</span><span class="k">else</span><span class="p">{</span><span class="nx">out</span><span class="o">+=</span><span class="nb">String</span><span class="p">.</span><span class="nx">fromCharCode</span><span class="p">(</span><span class="mh">0xC0</span><span class="o">|</span><span class="p">((</span><span class="nx">c</span><span class="o">&gt;&gt;</span><span class="mi">6</span><span class="p">)</span><span class="o">&amp;</span><span class="mh">0x1F</span><span class="p">));</span><span class="nx">out</span><span class="o">+=</span><span class="nb">String</span><span class="p">.</span><span class="nx">fromCharCode</span><span class="p">(</span><span class="mh">0x80</span><span class="o">|</span><span class="p">((</span><span class="nx">c</span><span class="o">&gt;&gt;</span><span class="mi">0</span><span class="p">)</span><span class="o">&amp;</span><span class="mh">0x3F</span><span class="p">));}}</span><span class="k">return</span> <span class="nx">out</span><span class="o">;</span><span class="p">}</span>
+		
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">debug</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+		
+		<span class="c">/**</span>
+<span class="c">		 * @method init</span>
+<span class="c">		 * @description configure the history manager package</span>
+<span class="c">		 * @public</span>
+<span class="c">		 * @return void</span>
+<span class="c">		 */</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">init</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+			<span class="c">// Initialize the browser history management library.</span>
+			<span class="k">try</span> <span class="p">{</span>
+				<span class="nx">YAHOO</span><span class="p">.</span><span class="nx">util</span><span class="p">.</span><span class="nx">History</span><span class="p">.</span><span class="nx">initialize</span><span class="p">(</span><span class="s2">&quot;yui-history-field&quot;</span><span class="o">,</span> <span class="s2">&quot;yui-history-iframe&quot;</span><span class="p">);</span>
+			<span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+				<span class="c">// The only exception that gets thrown here is when the browser is</span>
+				<span class="c">// not supported (Opera, or not A-grade) Degrade gracefully.</span>
+				<span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+			<span class="p">}</span>
+			<span class="nx">$H</span><span class="p">.</span><span class="nx">register</span><span class="p">(</span><span class="nx">_id</span><span class="o">,</span> <span class="nx">_state</span><span class="o">,</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">restore</span><span class="p">);</span>
+			<span class="c">// defining the listeners</span>
+			<span class="nx">$B</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;onNavigate&#39;</span><span class="o">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">layer</span><span class="o">,</span> <span class="nx">args</span><span class="p">)</span> <span class="p">{</span>
+				<span class="k">if</span> <span class="p">(</span><span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">state</span><span class="p">)</span> <span class="p">{</span>
+					<span class="nx">obj</span><span class="p">.</span><span class="nx">navigate</span> <span class="p">(</span><span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">state</span><span class="o">,</span> <span class="nx">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+				<span class="p">}</span>
+			<span class="p">});</span>
+			<span class="c">// restoring the first entry</span>
+			<span class="c">// Use the Browser History Manager onReady method to restore the entry state.</span>
+			<span class="nx">$H</span><span class="p">.</span><span class="nx">onReady</span><span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+				<span class="kd">var</span> <span class="nx">currentState</span> <span class="o">=</span> <span class="nx">$H</span><span class="p">.</span><span class="nx">getCurrentState</span><span class="p">(</span><span class="nx">_id</span><span class="p">);</span>
+				<span class="c">// This is the tricky part... The onLoad event is fired when the user</span>
+				<span class="c">// comes back to the page using the back button. </span>
+				<span class="nx">obj</span><span class="p">.</span><span class="nx">restore</span><span class="p">(</span><span class="nx">currentState</span><span class="p">);</span>
+			<span class="p">});</span>
+		<span class="p">};</span>
+		<span class="c">/**</span>
+<span class="c">		* @method restore</span>
+<span class="c">		* @description restore a particular state based on the unique identifier</span>
+<span class="c">		* @public</span>
+<span class="c">		* @param {string} state			unique identifier for an state</span>
+<span class="c">		*/</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">restore</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">state</span><span class="p">)</span> <span class="p">{</span>
+			<span class="c">// This is called after calling YAHOO.util.History.navigate, or after the user</span>
+			<span class="c">// has trigerred the back/forward button. We cannot discrminate between</span>
+			<span class="c">// these two situations.</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">state</span> <span class="o">&amp;&amp;</span> <span class="nx">_pages</span><span class="p">.</span><span class="nx">hasOwnProperty</span><span class="p">(</span><span class="nx">state</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nx">$L</span><span class="p">.</span><span class="nx">isFunction</span><span class="p">(</span><span class="nx">_pages</span><span class="p">[</span><span class="nx">state</span><span class="p">].</span><span class="nx">restore</span><span class="p">))</span> <span class="p">{</span>
+				<span class="nx">_state</span> <span class="o">=</span> <span class="nx">state</span><span class="o">;</span> <span class="c">// keeping the track</span>
+				<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">_pages</span><span class="p">[</span><span class="nx">state</span><span class="p">].</span><span class="nx">active</span><span class="p">)</span> <span class="p">{</span>
+<span class="k">if</span> <span class="p">(</span><span class="nx">obj</span><span class="p">.</span><span class="nx">debug</span><span class="p">)</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="p">(</span><span class="s1">&#39;restore&#39;</span><span class="o">,</span> <span class="nx">state</span><span class="p">);</span>
+				  <span class="nx">_pages</span><span class="p">[</span><span class="nx">state</span><span class="p">].</span><span class="nx">restore</span><span class="p">.</span><span class="nx">call</span> <span class="p">(</span><span class="nx">_pages</span><span class="p">[</span><span class="nx">state</span><span class="p">]</span><span class="o">,</span> <span class="nx">state</span><span class="p">);</span>
+				<span class="p">}</span>
+				<span class="nx">_pages</span><span class="p">[</span><span class="nx">state</span><span class="p">].</span><span class="nx">active</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+			<span class="p">}</span>
+		<span class="p">};</span>
+		<span class="c">/**</span>
+<span class="c">		* @method navigate</span>
+<span class="c">		* @description add a new state to the history stack and navigate</span>
+<span class="c">		* @public</span>
+<span class="c">		* @param {string} state			unique identifier for an state</span>
+<span class="c">		* @param {object} userConfig	literal object with the configuration for the new state</span>
+<span class="c">		* @return boolean</span>
+<span class="c">		*/</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">navigate</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">state</span><span class="o">,</span> <span class="nx">userConfig</span> <span class="p">)</span> <span class="p">{</span>
+			<span class="c">// encripting the state</span>
+			<span class="nx">state</span> <span class="o">=</span> <span class="nx">base64encode</span><span class="p">(</span><span class="nx">utf16to8</span><span class="p">(</span><span class="nx">state</span><span class="p">));</span>
+			<span class="kd">var</span> <span class="nx">c</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">add</span><span class="p">(</span><span class="nx">state</span><span class="o">,</span> <span class="nx">userConfig</span><span class="p">);</span>
+			<span class="kd">var</span> <span class="nx">currentState</span> <span class="o">=</span> <span class="nx">$H</span><span class="p">.</span><span class="nx">getCurrentState</span><span class="p">(</span><span class="nx">_id</span><span class="p">);</span>
+            <span class="c">// The following test is crucial. Otherwise, we end up circling forever.</span>
+            <span class="c">// Indeed, YAHOO.util.History.navigate will call the module onStateChange</span>
+            <span class="c">// callback</span>
+			
+			<span class="c">// saving the state...</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">state</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">currentState</span> <span class="o">!=</span> <span class="nx">state</span><span class="p">))</span> <span class="p">{</span>
+<span class="k">if</span> <span class="p">(</span><span class="nx">obj</span><span class="p">.</span><span class="nx">debug</span><span class="p">)</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="p">(</span><span class="s1">&#39;Navigate&#39;</span><span class="o">,</span> <span class="nx">state</span><span class="p">);</span>
+			  <span class="nx">_pages</span><span class="p">[</span><span class="nx">state</span><span class="p">].</span><span class="nx">active</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+			  <span class="nx">$H</span><span class="p">.</span><span class="nx">navigate</span><span class="p">(</span><span class="nx">_id</span><span class="o">,</span> <span class="nx">state</span><span class="p">);</span>
+			  <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
+			<span class="p">}</span> 
+			<span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+		<span class="p">};</span>
+		<span class="c">/**</span>
+<span class="c">		* @method add</span>
+<span class="c">		* @description add a new callback method for a certain state</span>
+<span class="c">		* @public</span>
+<span class="c">		* @param {string} state			unique identifier for an state</span>
+<span class="c">		* @param {object} userConfig	literal object with the configuration for the new state</span>
+<span class="c">		* @return Object</span>
+<span class="c">		*/</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">add</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">state</span><span class="o">,</span> <span class="nx">userConfig</span> <span class="p">)</span> <span class="p">{</span>
+			<span class="kd">var</span> <span class="nx">c</span> <span class="o">=</span> <span class="p">{</span> <span class="nx">state</span><span class="o">:</span> <span class="nx">state</span> <span class="p">};</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">state</span> <span class="o">&amp;&amp;</span> <span class="nx">userConfig</span><span class="p">)</span> <span class="p">{</span>
+			  <span class="nx">$L</span><span class="p">.</span><span class="nx">augmentObject</span><span class="p">(</span><span class="nx">c</span><span class="o">,</span> <span class="nx">userConfig</span><span class="p">);</span>
+			  <span class="nx">_pages</span><span class="p">[</span><span class="nx">state</span><span class="p">]</span> <span class="o">=</span> <span class="nx">c</span><span class="o">;</span>
+<span class="k">if</span> <span class="p">(</span><span class="nx">obj</span><span class="p">.</span><span class="nx">debug</span><span class="p">)</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="p">(</span><span class="s1">&#39;Add&#39;</span><span class="o">,</span> <span class="nx">state</span><span class="p">);</span>
+			<span class="p">}</span> 
+			<span class="k">return</span> <span class="nx">c</span><span class="o">;</span>
+		<span class="p">};</span>
+		<span class="c">/**</span>
+<span class="c">		* @method setDefaultState</span>
+<span class="c">		* @description registering a tabview object in the navigation routine</span>
+<span class="c">		* @public</span>
+<span class="c">		* @param {function} default routine for the default state...</span>
+<span class="c">		*/</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">setDefaultState</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">f</span> <span class="p">)</span> <span class="p">{</span>
+			<span class="k">if</span> <span class="p">(</span><span class="nx">$L</span><span class="p">.</span><span class="nx">isFunction</span><span class="p">(</span><span class="nx">f</span><span class="p">))</span> <span class="p">{</span>
+				<span class="k">this</span><span class="p">.</span><span class="nx">add</span> <span class="p">(</span><span class="s1">&#39;default&#39;</span><span class="o">,</span> <span class="p">{</span>
+					<span class="nx">state</span><span class="o">:</span> <span class="s1">&#39;default&#39;</span><span class="o">,</span>
+					<span class="nx">restore</span><span class="o">:</span> <span class="nx">f</span>
+				<span class="p">});</span>
+				<span class="nx">_defaultBehavior</span> <span class="o">=</span> <span class="nx">f</span><span class="o">;</span>				   
+			<span class="p">}</span>
+		<span class="p">}</span>
+		<span class="c">/**</span>
+<span class="c">		* @method tabView</span>
+<span class="c">		* @description registering a tabview object in the navigation routine</span>
+<span class="c">		* @public</span>
+<span class="c">		* @param {object} oTabview Reference to a tabview object</span>
+<span class="c">		*/</span>
+		<span class="nx">obj</span><span class="p">.</span><span class="nx">tabView</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span> <span class="nx">oTabview</span> <span class="p">)</span> <span class="p">{</span>
+			<span class="c">// creating the tab entries for restoration</span>
+			<span class="kd">var</span> <span class="nx">tabs</span> <span class="o">=</span> <span class="nx">oTabview</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;tabs&#39;</span><span class="p">)</span><span class="o">,</span> <span class="nx">i</span><span class="o">,</span> <span class="nx">len</span><span class="o">,</span> <span class="nx">oTab</span><span class="o">,</span> <span class="nx">s</span><span class="o">;</span>
+            <span class="k">for</span> <span class="p">(</span><span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">,</span> <span class="nx">len</span> <span class="o">=</span> <span class="nx">tabs</span><span class="p">.</span><span class="nx">length</span><span class="o">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">len</span><span class="o">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nx">oTab</span> <span class="o">=</span> <span class="nx">tabs</span><span class="p">[</span><span class="nx">i</span><span class="p">];</span>
+				<span class="nx">s</span> <span class="o">=</span> <span class="s1">&#39;tabview-&#39;</span><span class="o">+</span><span class="nx">oTabview</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;element&#39;</span><span class="p">).</span><span class="nx">id</span><span class="o">+</span><span class="s1">&#39;-tab-&#39;</span><span class="o">+</span><span class="nx">i</span><span class="o">;</span>
+				<span class="k">this</span><span class="p">.</span><span class="nx">add</span> <span class="p">(</span><span class="nx">s</span><span class="o">,</span> <span class="p">{</span>
+					<span class="nx">state</span><span class="o">:</span> <span class="nx">s</span><span class="o">,</span>
+					<span class="nx">tab</span><span class="o">:</span> <span class="nx">i</span><span class="o">,</span>
+					<span class="nx">restore</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span> 
+					   <span class="nx">oTabView</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s2">&quot;activeIndex&quot;</span><span class="o">,</span> <span class="nx">i</span><span class="p">);</span>
+					<span class="p">}</span>
+				<span class="p">});</span>
+			<span class="p">}</span>
+			<span class="c">// creating the tabview callback to register all the navigation clicks on the tabs</span>
+			<span class="nx">oTabview</span><span class="p">.</span><span class="nx">addListener</span><span class="p">(</span><span class="s2">&quot;activeTabChange&quot;</span><span class="o">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+				<span class="kd">var</span> <span class="nx">iTab</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">getTabIndex</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">newValue</span><span class="p">);</span>
+				<span class="nx">YAHOO</span><span class="p">.</span><span class="nx">plugin</span><span class="p">.</span><span class="nx">Navigation</span><span class="p">.</span><span class="nx">navigate</span> <span class="p">(</span><span class="s1">&#39;tabview-&#39;</span><span class="o">+</span><span class="nx">oTabview</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;element&#39;</span><span class="p">).</span><span class="nx">id</span><span class="o">+</span><span class="s1">&#39;-tab-&#39;</span><span class="o">+</span><span class="nx">iTab</span><span class="o">,</span> <span class="p">{</span>
+					<span class="nx">restore</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span> 
+					   <span class="nx">oTabview</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s2">&quot;activeIndex&quot;</span><span class="o">,</span> <span class="nx">iTab</span><span class="p">);</span>
+					<span class="p">}</span><span class="o">,</span>
+					<span class="nx">tab</span><span class="o">:</span> <span class="nx">iTab</span><span class="o">,</span>
+					<span class="nx">tabview</span><span class="o">:</span> <span class="nx">oTabview</span>
+				<span class="p">});</span>			
+			<span class="p">});</span>
+		<span class="p">};</span>		
+		<span class="nx">$E</span><span class="p">.</span><span class="nx">onDOMReady</span> <span class="p">(</span><span class="nx">obj</span><span class="p">.</span><span class="nx">init</span><span class="o">,</span> <span class="nx">obj</span><span class="o">,</span> <span class="kc">true</span><span class="p">);</span>
+		<span class="k">return</span> <span class="nx">obj</span><span class="o">;</span>
+    <span class="p">}();</span>
+<span class="p">})();</span>
+</pre></div>
+                    </div>
+			</div>
+		</div>
+		<div class="yui-b">
+            <div class="nav">
+
+                    <div id="moduleList" class="module">
+                        <h4>Modules</h4>
+                        <ul class="content">
+                                <li class=""><a href="module_accordion.html" title="accordion">accordion</a></li>
+                                <li class=""><a href="module_bubbling.html" title="bubbling">bubbling</a></li>
+                                <li class=""><a href="module_dispatcher.html" title="dispatcher">dispatcher</a></li>
+                                <li class=""><a href="module_lighter.html" title="lighter">lighter</a></li>
+                                <li class="selected"><a href="module_loading.html" title="loading">loading</a></li>
+                                <li class=""><a href="module_navigation.html" title="navigation">navigation</a></li>
+                                <li class=""><a href="module_tooltipmanager.html" title="tooltipmanager">tooltipmanager</a></li>
+                                <li class=""><a href="module_wizard.html" title="wizard">wizard</a></li>
+                        </ul>
+                    </div>
+
+                    <div id="classList" class="module">
+                        <h4>Classes</h4>
+                        <ul class="content">
+                                <li class=""><a href="YAHOO.widget.Loading.html" title="YAHOO.widget.Loading">YAHOO.widget.Loading</a></li>
+                        </ul>
+                    </div>
+
+                    <div id="fileList" class="module">
+                        <h4>Files</h4>
+                        <ul class="content">        
+                                <li class="selected"><a href="navigation.js.html" title="navigation.js">navigation.js</a></li>
+                        </ul>
+                    </div>
+
+
+
+
+
+            </div>
+		</div>
+	</div>
+	<div id="ft">
+        <hr />
+        Copyright &copy; 2009 <a href="http://www.bubbling-library.com/" title="JavaScript Bubbling Library - YUI Extension">Bubbling Library</a>. All rights reserved.
+	</div>
+</div>
+<script type="text/javascript">
+    ALL_YUI_PROPS = [{"url": "YAHOO.widget.Loading.html#method_hide", "access": "", "host": "YAHOO.widget.Loading", "type": "method", "name": "hide"}];
+</script>
+</body>
+</html>

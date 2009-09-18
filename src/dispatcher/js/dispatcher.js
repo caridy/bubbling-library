@@ -1,5 +1,5 @@
 /**
- * Dispatcher Definition.
+ * Dispatcher Definition
  *
  * @namespace YAHOO.plugin
  * @module dispatcher
@@ -16,10 +16,8 @@ YAHOO.namespace("plugin");
 	  $D = YAHOO.util.Dom,
 	  $  = YAHOO.util.Dom.get,
 	  
-	  /**
-	   * Constants
-	   */
-  	  constants = { 
+	  // Constants
+	  constants = { 
 		  LOADING: 1, 
 		  DISPATCHED: 2, 
 		  ERROR: 3, 
@@ -39,8 +37,10 @@ YAHOO.namespace("plugin");
 	  reURI = new RegExp('^((?:http|https)://)((?:\\w+[\.|-]?)*\\w+)(/.*)$', 'i');  // full url: [http://www.domain.com/path/file.html]
 
   /**
-  * @class Dispatcher
-  */
+   * The Dispatcher Plugin
+   * @class Dispatcher
+   * @static
+   */
   YAHOO.plugin.Dispatcher = function () {
   	var obj = {},
 		_threads = {}, // each thread represent an area...
@@ -179,8 +179,9 @@ YAHOO.namespace("plugin");
 	}
 	// private stuff
 	/**
-	* Dispatching the next node of the handle
-	* @public
+	* @description Dispatching the next node of the handle
+	* @method _dispatch
+	* @private
 	* @param {Object} hd     		Thread's handle
 	* @param {Object} config    Used to pass the user configuration thru the chain of execution
 	* @return boolean
@@ -261,8 +262,9 @@ YAHOO.namespace("plugin");
 	}
 
 	/**
-	* Executing a javascript script segment
-	* @public
+	* @description Executing a javascript script segment
+	* @method _exec
+	* @private
 	* @param {Object} hd     		Thread's handle
 	* @param {string} c     		Content to execute
 	* @param {Object} config    User configuration (useful for future implementations)
@@ -304,8 +306,9 @@ YAHOO.namespace("plugin");
 	}
 
 	/**
-	* Display the content inside the element
-	* @public
+	* @description Display the content inside the element
+	* @method _display
+	* @private
 	* @param {Object} el    		Element reference
 	* @param {string} c     		Content to display
 	* @param {Object} config    User configuration (useful for future implementations)
@@ -339,8 +342,9 @@ YAHOO.namespace("plugin");
 		return true;
 	}
 	/**
-	* "Destroy Custom Event" will be fired before remove the innerHTML in the displaying process
-	* @public
+	* @description Destroy will be fired before remove the innerHTML in the displaying process
+	* @method _destroy
+	* @private
 	* @param {Object} el    	DOM Element reference
 	* @param {Object} config    User configuration (useful for future implementations)
 	* @return void
@@ -365,8 +369,9 @@ YAHOO.namespace("plugin");
 		// other subscribers can be add using: YAHOO.plugin.Dispatcher.destroyer.subscribe ( mySubscriber );
 	}
 	/**
-	* Parse the string, remove the script tags, and create the execution thread...
-	* @public
+	* @description Parse the string, remove the script tags, and create the execution thread...
+	* @method _parse
+	* @private
 	* @param {Object} hd    		Element reference
 	* @param {string} s     		String with the script tags inside...
 	* @return string
@@ -464,9 +469,10 @@ YAHOO.namespace("plugin");
 	obj.destroyer = null; // current destroyer, useful to add new subscriber during the execution...
 	// public methods
 	/**
-	* * Fetching a remote file that will be processed thru this object...
+	* @method fetch
+	* @description Fetching a remote file that will be processed thru this object...
 	* @public
-	* @param {object} el     	{HTMLElement | String | Object} The html element that represents the dynamic area.
+	* @param {Node} el     		{HTMLElement | String | Object} The html element that represents the dynamic area.
 	* @param {object} uri       Remote file that will be loaded using AJAX
 	* @param {object} config    Literal object with the user configuration vars
 	* @return object  Reference to the connection handle
@@ -515,9 +521,10 @@ YAHOO.namespace("plugin");
 	   return null;
 	};
 	/**
-	* * Starting the process for a content...
+	* @method process
+	* @description Starting the process for a content...
 	* @public
-	* @param {object} el     		{HTMLElement | String | Object} The html element that represents the dynamic area.
+	* @param {Node} el     			{HTMLElement | String | Object} The html element that represents the dynamic area.
 	* @param {string} content       Content to be processed
 	* @param {object} config    	Literal object with the user configuration vars
 	* @param {boolean} flag    	    If the call was internal or external
@@ -543,7 +550,8 @@ YAHOO.namespace("plugin");
 		return hd;
 	};
 	/**
-	* * TABVIEW: delegate the set content method...
+	* @method delegate
+	* @description delegate the set content method...
 	* @public
 	* @param {object} tab		reference to the tab...
 	* @param {object} tabview   reference to the tabview...
@@ -580,7 +588,8 @@ YAHOO.namespace("plugin");
 		}
 	};
 	/**
-	* * addUnit: delegate the addUnit layout method...
+	* @method addUnit
+	* @description delegate the addUnit layout method...
 	* @public
 	* @param {object} unit         reference to the unit...
 	* @param {object} layout       reference to the layout...
@@ -626,7 +635,8 @@ YAHOO.namespace("plugin");
 		return c.unit;
 	};
 	/**
-	* * Injecting CSS in the current page
+	* @method applyCSS
+	* @description Injecting CSS in the current page
 	* @public
 	* @param {string} cssCode   CSS content that will be injected
 	* @param {object} params    Literal object with the tag configuration params
@@ -679,7 +689,8 @@ YAHOO.namespace("plugin");
 	    return true;
 	};
 	/**
-	* * Fetching a remote javascript file that will be processed thru this object...
+	* @method jsLoader
+	* @description Fetching a remote javascript file that will be processed thru this object...
 	* @public
 	* @param {object} uri       Remote js file that will be loaded using AJAX
 	* @param {object} config    Literal object with the user configuration vars
@@ -705,7 +716,8 @@ YAHOO.namespace("plugin");
 	   return null;
 	};
 	/**
-	* * Fetching a remote CSS file that will be processed thru this object...
+	* @method cssLoader
+	* @description Fetching a remote CSS file that will be processed thru this object...
 	* @public
 	* @param {object} uri       Remote CSS file that will be loaded using AJAX
 	* @param {object} config    Literal object with the user configuration vars
@@ -731,7 +743,8 @@ YAHOO.namespace("plugin");
 	   return null;
 	};
 	/**
-	* * Verify if the a process is still alive
+	* @method isAlive
+	* @description Verify if the a process is still alive
 	* @public
 	* @param {object} hd   Process handle
 	* @return boolean
@@ -740,7 +753,8 @@ YAHOO.namespace("plugin");
 		return (hd && $L.isObject(_threads[hd]) && (_threads[hd].chunks.length > 0));
 	};
 	/**
-	* * Kill a process...
+	* @method kill
+	* @description Kill a process...
 	* @public
 	* @param {object} handle   Process handle
 	* @return void
@@ -753,7 +767,8 @@ YAHOO.namespace("plugin");
 		}
 	};
 	/**
-	* * destroy an area...
+	* @method destroy
+	* @description Destroy an area...
 	* @public
 	* @param {object} handle   Process handle
 	* @return void
@@ -764,11 +779,15 @@ YAHOO.namespace("plugin");
 			_threads[hd].destroyer.fire( $(hd), {} );
 		}
 	};
-	/* * onDestroy - subscribe a new destroyer for a certain area...
-	* @public
-	* @param {object} handle   Process handle
-	* @return boolean
-	*/
+	/**
+	 * @method onDestroy
+	 * @description subscribe a new destroyer for a certain area...
+	 * @public
+	 * @param {string} hd   	Unique id for the area to be monitored
+	 * @param {function} bh   	Listener
+	 * @param {object} scope   	Execution scope
+	 * @return boolean
+	 */
 	obj.onDestroy = function ( hd, bh, scope ) {
         var params = (scope?[bh, scope, true]:[bh]); // params for scope corrections
         if ($L.isObject(_threads[hd]) && $L.isObject(_threads[hd].destroyer)) {
@@ -781,13 +800,21 @@ YAHOO.namespace("plugin");
 		}
 		return false;
 	};
+	/**
+	 * @method init
+	 * @description Initialization routine (optional)
+	 * @public
+	 * @param {object} c   	default configuration object
+	 * @return void
+	 */
 	obj.init = function (c) {
 		c = c || {};
 		c.relative = c.relative || false;
 		_oDefaultConfig = c;
 	};
 	/**
-	* Analyze the uri before start the downloading process (if the uri isn't in over the current domain name, the dispatcher can use a proxy)
+	* @method firewall
+	* @description Analyze the uri before start the downloading process (if the uri isn't in over the current domain name, the dispatcher can use a proxy)
 	* @public
 	* @param {String} uri     	  Remote URL
 	* @param {Object} config      Used to pass the user configuration thru the chain of execution
@@ -820,10 +847,11 @@ YAHOO.namespace("plugin");
 		}
 		return uri;
 	};
-  /**
-    * converting a literal object into a query string
+ 	/**
+    * @method obj2query
+	* @description converting a literal object into a query string
     * @public
-    * @param {object} params       Literal object to create the url querystring {'param1':'value1','param2':'value2'}
+    * @param {object} params       Literal object to create the url querystring
     * @return string
     */
     obj.obj2query = function( params ) {
@@ -838,11 +866,12 @@ YAHOO.namespace("plugin");
 		}
 		return u;
     };
-  /**
-    * augment an url with more parameters, overriding...
+    /**
+    * @description augment an url with more parameters, overriding...
+    * @method augmentURI
     * @public
-    * @param {string} url 
-    * @param {string|array} m   MoreParams: string: param1=value1&param2=value2 or array: {'param1':'value1','param2':'value2'}
+    * @param {string} url   url that should be expanded with new arguments
+    * @param {string|array} m   MoreParams: string: param1=value1&param2=value2 or associative array
     * @return string
     */
     obj.augmentURI = function( url, m ) {

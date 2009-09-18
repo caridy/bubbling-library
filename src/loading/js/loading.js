@@ -1,5 +1,5 @@
 /**
- * Loading Mask Definition.
+ * Loading Mask Definition: A transparent mask to avoids weird effects during the rendering and loading process for a page, also including support for AJAX requests.
  *
  * @namespace YAHOO.widget
  * @module loading
@@ -17,10 +17,10 @@
 	    $ =  YAHOO.util.Dom.get;
 
 	/**
-	* @class Loading
-	* Loading mask...
-	* @constructor
-	*/
+	 * The Loading Mask Widget
+	 * @class Loading
+	 * @static
+	 */
 	YAHOO.widget.Loading = function() {
 		var obj = {},
 			_handle = 'yui-cms-loading',
@@ -199,6 +199,10 @@
 			}
 		  }
 		};
+		/**
+		* @method hide
+		* @return void
+		*/
 		obj.hide = function () {
 		  if (this.element && _visible) {
 			// applying the effects if needed...
