@@ -1,8 +1,8 @@
 /**
- * Lighter Definition.
+ * The Lighter will monitoring the areas using the className value and will highlighting the yui-cms-item areas on mouseover.
  *
  * @namespace YAHOO.plugin
- * @module ligther
+ * @module lighter
  * @requires yahoo
  * @requires event
  * @requires dom
@@ -16,10 +16,10 @@
 	    $D = YAHOO.util.Dom;
 
 	/**
-	* @singleton Lighter (Former Selector) - The Lighter will monitoring the areas using the className value and will highlighting the "yui-cms-item" areas on mouseover.
-	* Apply visual enhanced to an area
-	* @constructor
-	*/
+	 * The Lighter Plugin
+	 * @class Lighter
+	 * @static
+	 */
 	YAHOO.plugin.Lighter = function() {
 		var obj = {},
 			_areas = {},
@@ -27,7 +27,7 @@
 			_itemClass = 'yui-cms-item',
 			_selector = 'selected',
 			_defConf   = {
-							persistent: false, // true if you want to keep an item selected even when the mouse it´s out of the area
+							persistent: false, // true if you want to keep an item selected even when the mouse is out of the area
 							onReset: null,
 							onSelect: null
 						 };
@@ -76,10 +76,9 @@
 		  }
 	    });
 
-		// public vars
-		// public methods
 		/**
-		* * add new area to the monitoring list...
+		* @method add
+		* @description add new class to the monitoring list...
 		* @public
 		* @param {string} className
 		* @param {object} conf        Configuration params for the areas with this classname
@@ -92,7 +91,8 @@
 			}
 		};
 		/**
-		* * Remove an area from the monitoring list...
+		* @method remove
+		* @description Remove a class from the monitoring list...
 		* @public
 		* @param {object} id	className
 		* @return void

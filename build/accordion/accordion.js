@@ -1,10 +1,13 @@
-/*
-Copyright (c) 2008, Bubbling Library Team. All rights reserved.
-Portions Copyright (c) 2008, Yahoo!, Inc. All rights reserved.
-Code licensed under the BSD License:
-http://www.bubbling-library.com/eng/licence
-version: 2.2
-*/
+/**
+ * Accordion Definition: Create expandable and collapsible elements based on the HTML markup and few CSS rules.
+ *
+ * @namespace YAHOO.widget
+ * @module accordion
+ * @requires yahoo
+ * @requires event
+ * @requires dom
+ * @requires bubbling
+ */
 (function() {
 
     var $B = YAHOO.Bubbling,
@@ -13,10 +16,10 @@ version: 2.2
 	    $D = YAHOO.util.Dom;
 
 	/**
-	* @singleton Accordion Manager - Creating accordion controls based on the markup.
-	* Apply visual enhanced to an area
-	* @constructor
-	*/
+	 * The Accordion Manager Widget
+	 * @class AccordionManager
+	 * @static
+	 */
 	YAHOO.widget.AccordionManager = function() {
 		var obj = {},
 		    _selector = 'selected',
@@ -338,12 +341,11 @@ version: 2.2
 	        return false;
         }
 
-		// public vars
-		// public methods
 		/**
-		* * Expanding all the elements in the accordion...
+		* @method expand
+		* @description Expanding all the elements in the accordion...
 		* @public
-		* @param {object} el   DOM reference
+		* @param {Node} el   DOM reference
 		* @return boolean
 		*/
 		obj.expand = function ( el ) {
@@ -353,9 +355,10 @@ version: 2.2
 		    }
 		};
 		/**
-		* * Collapsing all the elements in the accordion...
+		* @method collapse
+		* @description Collapsing all the elements in the accordion...
 		* @public
-		* @param {object} el   DOM reference
+		* @param {Node} el   DOM reference
 		* @return boolean
 		*/
 		obj.collapse = function ( el ) {
@@ -365,9 +368,10 @@ version: 2.2
 		    }
 		};
 		/**
-		* * Open a certain item inside an area...
+		* @method open
+		* @description Open a certain item inside an area...
 		* @public
-		* @param {object} el   DOM reference
+		* @param {Node} el   DOM reference
 		* @return boolean
 		*/
 		obj.open = function ( el ) {
@@ -377,9 +381,10 @@ version: 2.2
 		    }
 		};
 		/**
-		* * Close a certain item inside an area...
+		* @method close
+		* @description Close a certain item inside an area...
 		* @public
-		* @param {object} el   DOM reference
+		* @param {Node} el   DOM reference
 		* @return boolean
 		*/
 		obj.close = function ( el ) {
@@ -392,9 +397,10 @@ version: 2.2
 		    }
 		};
 		/**
-		* * toggle a certain item inside an area...
+		* @method toggle
+		* @description toggle a certain item inside an area...
 		* @public
-		* @param {object} el   DOM reference
+		* @param {Node} el   DOM reference
 		* @return boolean
 		*/
 		obj.toggle = function ( el ) {
@@ -407,9 +413,10 @@ version: 2.2
 		    }
 		};
 		/**
-		* * remove a certain item from the area...
+		* @method remove
+		* @description remove a certain item from the area...
 		* @public
-		* @param {object} el   DOM reference
+		* @param {Node} el   DOM reference
 		* @return boolean
 		*/
 		obj.remove = function ( el ) {
@@ -423,5 +430,4 @@ version: 2.2
 		return obj;
 	}();
 })();
-YAHOO.register("accordion", YAHOO.widget.AccordionManager, {version: "2.2", build: "222"});
 YAHOO.register("accordion", YAHOO.widget.AccordionManager, {version: "@VERSION@", build: "@BUILD@"});

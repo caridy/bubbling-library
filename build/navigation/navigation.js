@@ -1,5 +1,7 @@
 /**
  * Navigation Manager Definition.
+ * Navigation - Use this object to control the YUI History Manager...
+ * Add your custom navigation entries to create the corresponding browser actions
  *
  * @namespace YAHOO.plugin
  * @module navigation
@@ -14,10 +16,10 @@
 	  $E = YAHOO.util.Event;
 
 	/**
-	* @singleton Navigation - Use this object to control the YUI History Manager...
-	* Add your custom navigation entries to create the corresponding browser actions
-	* @constructor
-	*/
+	 * The Navigation Plugin
+	 * @class Navigation
+	 * @static
+	 */
     YAHOO.plugin.Navigation = function() {
 		var obj = {},
 		    _id = 'q',
@@ -33,14 +35,15 @@
 		});
 		function base64encode(str){var out,i,len;var c1,c2,c3;len=str.length;i=0;out="";while(i<len){c1=str.charCodeAt(i++)&0xff;if(i==len){out+=b64.charAt(c1>>2);out+=b64.charAt((c1&0x3)<<4);out+="==";break;}c2=str.charCodeAt(i++);if(i==len){out+=b64.charAt(c1>>2);out+=b64.charAt(((c1&0x3)<<4)|((c2&0xF0)>>4));out+=b64.charAt((c2&0xF)<<2);out+="=";break;}c3=str.charCodeAt(i++);out+=b64.charAt(c1>>2);out+=b64.charAt(((c1&0x3)<<4)|((c2&0xF0)>>4));out+=b64.charAt(((c2&0xF)<<2)|((c3&0xC0)>>6));out+=b64.charAt(c3&0x3F);}return out;}
 		function utf16to8(str){var out,i,len,c;out="";len=str.length;for(i=0;i<len;i++){c=str.charCodeAt(i);if((c>=0x0001)&&(c<=0x007F)){out+=str.charAt(i);}else if(c>0x07FF){out+=String.fromCharCode(0xE0|((c>>12)&0x0F));out+=String.fromCharCode(0x80|((c>>6)&0x3F));out+=String.fromCharCode(0x80|((c>>0)&0x3F));}else{out+=String.fromCharCode(0xC0|((c>>6)&0x1F));out+=String.fromCharCode(0x80|((c>>0)&0x3F));}}return out;}
-		// public vars
+		
 		obj.debug = false;
-		// public methods
+		
 		/**
-		* * configure the history manager package
-		* @publicf
-		* @return void
-		*/
+		 * @method init
+		 * @description configure the history manager package
+		 * @public
+		 * @return void
+		 */
 		obj.init = function () {
 			// Initialize the browser history management library.
 			try {
@@ -66,6 +69,12 @@
 				obj.restore(currentState);
 			});
 		};
+		/**
+		* @method restore
+		* @description restore a particular state based on the unique identifier
+		* @public
+		* @param {string} state			unique identifier for an state
+		*/
 		obj.restore = function (state) {
 			// This is called after calling YAHOO.util.History.navigate, or after the user
 			// has trigerred the back/forward button. We cannot discrminate between
@@ -80,10 +89,11 @@ if (obj.debug) console.log ('restore', state);
 			}
 		};
 		/**
-		* * add a new state to the history stack and navigate
+		* @method navigate
+		* @description add a new state to the history stack and navigate
 		* @public
-		* @param {string} state
-		* @param {object} userConfig
+		* @param {string} state			unique identifier for an state
+		* @param {object} userConfig	literal object with the configuration for the new state
 		* @return boolean
 		*/
 		obj.navigate = function ( state, userConfig ) {
@@ -105,10 +115,11 @@ if (obj.debug) console.log ('Navigate', state);
 			return false;
 		};
 		/**
-		* * add a new callback method for a certain state
+		* @method add
+		* @description add a new callback method for a certain state
 		* @public
-		* @param {string} state
-		* @param {object} userConfig
+		* @param {string} state			unique identifier for an state
+		* @param {object} userConfig	literal object with the configuration for the new state
 		* @return Object
 		*/
 		obj.add = function ( state, userConfig ) {
@@ -121,10 +132,10 @@ if (obj.debug) console.log ('Add', state);
 			return c;
 		};
 		/**
-		* * registering a tabview object in the navigation routine
+		* @method setDefaultState
+		* @description registering a tabview object in the navigation routine
 		* @public
-		* @param {function} default functionality for the default state...
-		* @
+		* @param {function} default routine for the default state...
 		*/
 		obj.setDefaultState = function ( f ) {
 			if ($L.isFunction(f)) {
@@ -134,12 +145,12 @@ if (obj.debug) console.log ('Add', state);
 				});
 				_defaultBehavior = f;				   
 			}
-		} 
+		}
 		/**
-		* * registering a tabview object in the navigation routine
+		* @method tabView
+		* @description registering a tabview object in the navigation routine
 		* @public
-		* @param {object} oTabview
-		* @
+		* @param {object} oTabview Reference to a tabview object
 		*/
 		obj.tabView = function ( oTabview ) {
 			// creating the tab entries for restoration

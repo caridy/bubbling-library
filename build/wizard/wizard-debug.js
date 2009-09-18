@@ -1,5 +1,6 @@
 /**
  * Wizard Manager Definition.
+ * Use this plugin to management your dynamic areas.
  *
  * @namespace YAHOO.plugin
  * @module wizard
@@ -18,10 +19,10 @@
 	  $DP = YAHOO.plugin.Dispatcher;
 
 	/**
-	* @singleton WizardManager - Use this object to management your wizards...
-	* Apply dynamic functionality to a wizard widget
-	* @constructor
-	*/
+	 * The Wizard Manager Plugin
+	 * @class WizardManager
+	 * @static
+	 */
     YAHOO.plugin.WizardManager = function() {
 		var obj = {},
 			_area = null,
@@ -239,12 +240,11 @@
 				area.onReady.apply ( area, [area.values] );
 			}
 		};
-		// public vars
-		// public methods
 		/**
-		* * get the current status of the wizard
+		* @method getStatus
+		* @description get the current status of the wizard
 		* @public
-		* @param {string} id   area Id
+		* @param {string} id   Unique Id for the area
 		* @return string
 		*/
 		obj.getStatus = function ( id ) {
@@ -254,9 +254,10 @@
 			return false;
 		};
 		/**
-		* * get the values for the current wizard
+		* @method getValues
+		* @description get the values for the current wizard
 		* @public
-		* @param {string} id   area Id
+		* @param {string} id   Unique Id for the area
 		* @return boolean
 		*/
 		obj.getValues = function ( id ) {
@@ -266,9 +267,10 @@
 			return false;
 		};
 		/**
-		* * set the values for the current wizard
+		* @method setValues
+		* @description set the values for the current wizard
 		* @public
-		* @param {string} id   area Id
+		* @param {string} id   Unique Id for the area
 		* @param {string} enc  json encoded string
 		* @return Object
 		*/
@@ -286,7 +288,8 @@
 			return null;
 		};
 		/**
-		* * add more values for the current area
+		* @method valuer
+		* @description add more values for the current area
 		* @public
 		* @param {string|object} values  json encoded string or a literal object
 		* @return Object
@@ -307,17 +310,19 @@
 			return area.values;
 		};
 		/**
-		* * mark the current wizard as finished
+		* @method finisher
+		* @description mark the current wizard as finished
 		* @public
 		* @return void
 		*/
 		obj.finisher = function () {
 			if (this._area) {
-				this._area.done = true;/* marking the area as DONE */
+				this._area.done = true; /* marking the area as DONE */
 			}
 		};
 		/**
-		* * use the jump method to manually jump to new uri
+		* @method jump
+		* @description use the jump method to manually jump to new uri
 		* @public
 		* @param {string} id   area Id
 		* @param {string} uri  url for the next step
@@ -331,8 +336,9 @@
 			return false;
 		};
 		/**
-		* * configure the area properties
-		* @publicf
+		* @method init
+		* @description configure the area properties
+		* @public
 		* @param {string} id
 		* @param {object} userConfig
 		* @return Object
@@ -363,10 +369,11 @@
 			return c;
 		};
 		/**
-		* * add a new area to the list
+		* @method add
+		* @description add a new area to the list
 		* @public
-		* @param {string} id
-		* @param {object} userConfig
+		* @param {string} id  			Unique Id for the area
+		* @param {object} userConfig	Literal object with the configuration for the new area
 		* @return Object
 		*/
 		obj.add = function ( id, userConfig ) {
@@ -388,10 +395,11 @@
 			return _areas[id];
 		};
 		/**
-		* * adopt an area with the content inside and add to the list
+		* @method adopt
+		* @description adopt an area with the content inside and add to the list
 		* @public
-		* @param {string} id
-		* @param {object} userConfig
+		* @param {string} id  			Unique Id for the area
+		* @param {object} userConfig	Literal object with the configuration for the new area
 		* @return Object
 		*/
 		obj.adopt = function ( id, userConfig ) {
@@ -414,7 +422,8 @@
 			return _areas[id];
 		};
 		/**
-		* * TABVIEW: delegate the set content method...
+		* @method delegate
+		* @description delegate the set content method...
 		* @public
 		* @param {object} tab		reference to the tab...
 		* @param {object} tabview   reference to the tabview (optional)...
@@ -461,9 +470,10 @@
 			}
 		};
 		/**
-		* * Remove an area from the stock...
+		* @method remove
+		* @description Remove an area from the stock...
 		* @public
-		* @param {object} id	className
+		* @param {string} id  			Unique Id for the area
 		* @return void
 		*/
 		obj.remove = function ( id ) {
@@ -477,9 +487,11 @@
 			_areas[id] = [];
 		};
 		/**
-		* * Reload an area...
+		* @method reload
+		* @description Reload an area...
 		* @public
-		* @param {object} id	className
+		* @param {string} id  			Unique Id for the area
+		* @param {string} uri  			url for the next step
 		* @return void
 		*/
 		obj.reload = function ( id, uri ) {

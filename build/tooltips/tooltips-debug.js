@@ -1,5 +1,5 @@
 /**
- * Tooltip Manager Definition.
+ * Tooltip Manager Definition: Create floating element to display hints/information based on the trigger element.
  *
  * @namespace YAHOO.widget
  * @module tooltipmanager
@@ -17,10 +17,10 @@
 	    $ =  YAHOO.util.Dom.get;
 
 	/**
-	* @class Tips
-	* Tooltips manager object...
-	* @constructor
-	*/
+	 * The Tooltips Manager Widget
+	 * @class TooltipManager
+	 * @static 
+	 */
 	YAHOO.widget.TooltipManager = function() {
 		var obj = {},
 			_areas = {},
@@ -76,7 +76,7 @@
 			    reClearUri = /#.*/,
 				uri = path || '',
 				current = new String(document.location);
-			// discarting the #part....
+			// discarding the #part....
 			uri = uri.replace (reClearUri, '');
 			current = current.replace (reClearUri, '');
 			var m = uri.match(reURI); // checking the RE to verify if the url is internal...
@@ -86,10 +86,10 @@
 				uri = ((uri == current)?'':m[3]);
 			}
 			if (!uri || (uri.indexOf('javascript:') === 0) || (uri == '/')) {
-			  uri = ''; // remove the anchor links if it´s empty or null
+			  uri = ''; // remove the anchor links if empty or null
 			}
 			else {
-			  uri = (uri.length > limit ? uri.substring(0,limit)+"..." : uri); // remove the anchor links if it´s empty or null
+			  uri = (uri.length > limit ? uri.substring(0,limit)+"..." : uri); // trimming long strings
 			}
 			return uri;
 		};
@@ -118,12 +118,24 @@
 			_defConf.opacity = ($L.isNumber(c.opacity)?c.opacity:_defConf.opacity);
 			_defConf.showdelay = ($L.isNumber(c.showdelay)?c.showdelay:_defConf.showdelay);
 		};
+		/**
+		 * @method init
+		 * @description Initialization process (optional).
+		 * @return void
+		 */
 		obj.init = function () {
 			if (!_ready) {
 				_ready = true;
 				$B.on('rollover', actionControl);
 			}
 		};
+		/**
+		 * @method check
+		 * @description Analyzing the event and the target
+		 * @param {Event} 			e DOM Event
+		 * @param {HTMLElement} 	el DOM Element
+		 * @return void
+		 */
 		obj.check = function( e, el ) {
 			this.init();
 		    // Remove any existing mouseover/mouseout listeners from the old element and restoring the values
@@ -157,6 +169,11 @@
 			  obj.delay();
 		    }
 		};
+		/**
+		 * @method render
+		 * @description Rendering the current tooltip.
+		 * @return void
+		 */
 		obj.render = function () {
 		    if ($L.isObject(this.handleOverlay) && (this.destructible)) {
 			   this.handleOverlay.destroy();
@@ -214,6 +231,11 @@
 			}
 			obj.show ();
 		};
+		/**
+		 * @method dismiss
+		 * @description Hiding the current tooltip
+		 * @return void
+		 */
 		obj.dismiss = function () {
 		    $E.removeListener(obj.element, "mouseout", obj.dismiss);
 			window.clearTimeout(_timer);
@@ -223,6 +245,11 @@
 			  obj.hide();
 			}
 		};
+		/**
+		 * @method delay
+		 * @description Delay the tooltip show action few miliseconds
+		 * @return void
+		 */
 		obj.delay = function () {
 		   // applying the delay before show the tooltip...
 		   window.clearTimeout(_timer);
@@ -239,6 +266,11 @@
 		        }, _defConf.showdelay);
 		   }
 		};
+		/**
+		 * @method show
+		 * @description Show the current tooltip
+		 * @return void
+		 */
 		obj.show = function () {
 		  if (this.handleOverlay && this.element) {
 		  	this.destructible = false;
@@ -252,14 +284,32 @@
 			}
 		  }
 		};
+		/**
+		 * @method hide
+		 * @description Hide the current tooltip
+		 * @return void
+		 */
 		obj.hide = function () {
 		  if ((this.handleOverlay) && (this.element)) {
 			this.handleOverlay.hide();
 		  }
 		};
+		/**
+		 * @method compilePath
+		 * @description Analyze a path 
+		 * @param {String} uri   	url that should be analyzed
+		 * @param {Number} limit 	maximum number of characters 
+		 * @return {String}
+		 */
 		obj.compilePath = function ( uri, limit ) {
 			return _generatePath(uri, limit);
 		};
+		/**
+		 * @method compileBody
+		 * @description Analyze a dom element, and build the body of the tooltip based on the title, access-key and title
+		 * @param {Node} el 	DOM Element
+		 * @return void
+		 */
 		obj.compileBody = function ( el ) {
 			var path = this.compilePath( el.getAttribute('href',2) ),
 				access = ( el.accessKey ? " ["+el.accessKey+"]" : "" ),
@@ -267,6 +317,12 @@
 			tip = (tip?tip + '<br />' : '' );
 			this.body = (tip+access+path !== ''?tip+'<em>'+access+'</em><strong>'+path+'</strong>':'');
 		};
+		/**
+		 * @method finder
+		 * @description Returns a node element that represent the first parent with the class yui-tip or null.
+		 * @param {Node} el		DOM Element
+		 * @return {Node}
+		 */
 		obj.finder = function ( el ) {
 		    return $B.getOwnerByClassName( el, 'yui-tip' );
 		};

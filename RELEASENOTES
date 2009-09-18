@@ -14,6 +14,13 @@
   * Wizard: adding a new classname to control which elements should be transformed
     into YUI elements, and which elements should be preserved. 
     classname="yui-cms-preserve" 
+    
+  * Reorganizing the structure to work with yuidoc and yuibuilder
+  
+  * Bugfix in bubbling to support multiselect and empty select elements
+  
+  * Adding "liquid" class as a property for accordions to reset the hight or 
+    width to 100% after the animation ends
 
 *** version 2.1 *** (Tested over YUI 2.7.0) (github tag: v2-1)
 
