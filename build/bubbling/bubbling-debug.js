@@ -94,9 +94,9 @@ YAHOO.namespace("plugin","behavior");
 			tagName: (newRef&&newRef.tagName?newRef.tagName.toUpperCase():null),
 			oldValue: (newRef?newRef.value:null)
 		};
-		if (tn=='SELECT'&&!newRef.multiple) { 
+		if ((tn=='SELECT') && !newRef.multiple) { 
 			// select element (hack for safari: default attribute)
-			_target.oldValue = (YAHOO.env.ua.webkit?newRef.getAttribute('default'):newRef[newRef.selectedIndex].value);
+			_target.oldValue = ((YAHOO.env.ua.webkit || (newRef.selectedIndex == -1))?newRef.getAttribute('default'):newRef[newRef.selectedIndex].value);
 		}
 	}
 
@@ -267,7 +267,7 @@ YAHOO.namespace("plugin","behavior");
 		  if (conf.input) {
 				conf.value = conf.input.getAttribute('value');
 				conf.rel = conf.input.getAttribute('rel');
-		  } else if (conf.select && !conf.select.multiple && conf.select.selectedIndex) {
+		  } else if (conf.select && !conf.select.multiple && conf.select.selectedIndex && (conf.select.selectedIndex != -1)) {
 				conf.value = conf.select[conf.select.selectedIndex].value;
 				conf.rel = conf.select.getAttribute('rel');
 		  }
