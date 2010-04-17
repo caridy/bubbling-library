@@ -101,14 +101,14 @@
 			return items;
 		}
 		function check (area) {
-			var items = [], sName, bt, label, oForm, c;
+			var items = [], bt, label, oForm, c, k, len;
 			if ($L.isObject(area) && $L.isObject(area.element) && $L.isObject(YAHOO.widget.Button)) {
 			    if (!area.overheat) {
 				  // analysing the content of the area...
 			  	  // searching for buttons elements
 				  items = _getFormElements(area.element, 'button');
 				  // Loop through each result
-				  for(var k = 0, len = items.length; k < len; k++) {
+				  for(k = 0, len = items.length; k < len; k++) {
 					if (!$D.getAncestorByClassName(items[k], 'yui-button') && !$D.getAncestorByClassName(items[k], 'yui-cms-preserve')) {
 	                    // YUI buttons are incompletes, that's why I introduce a new level with class="i" to include icons in radios and checkbox
 	                    // Create a Button using an existing <input> element as a data source
@@ -118,7 +118,7 @@
 				  // searching submit buttons
 				  items = _getFormElements(area.element, 'input');
 				  // Loop through each result
-				  for(var k = 0, len = items.length; k < len; k++) {
+				  for(k = 0, len = items.length; k < len; k++) {
 					bt = items[k].getAttribute('type').toLowerCase();
 	                label = items[k].getAttribute('value');
 					if (!$D.getAncestorByClassName(items[k], 'yui-cms-preserve') && ((bt == 'submit') || (bt == 'reset') || (bt == 'button'))) {
@@ -132,7 +132,7 @@
 			  	// searching forms
 				items = _getFormElements(area.element, 'form');
 	            // Loop through each result
-				for(var k = 0, len = items.length; k < len; k++) {
+				for(k = 0, len = items.length; k < len; k++) {
 					oForm = items[k];
 					// if the form was already manipulated, just let it pass
 					if (!$D.hasClass(oForm, _formClass)) {
@@ -144,6 +144,7 @@
 							failure: callback.failure,
 							argument: { area:area }
 						};
+						// TODO: move this function outside of the form (to make JSlink happy)
 						// applying the correct event for each form...
 						$E.on(oForm, "submit", function (e) {
 							var f = this,
@@ -157,25 +158,30 @@
 									$C.appendPostData (sName+'='+area.morePostData[sName]);
 								}
 							}
-							onSubmit (area);
-							// hacking the YUI Button Submit - To include the submit button values (deprecated after the 2.3.1)
-							if ($L.isObject(YAHOO.widget.Button)) {
-							  YAHOO.widget.Button.addHiddenFieldsToForm(f);
-							}
-							// workaround to save the editor instances before the submit process
-							if ($L.isObject(YAHOO.widget.EditorInfo)) {
-								YAHOO.widget.EditorInfo.saveAll();
-							}
-							
-							if (!$D.hasClass(f, 'yui-cms-simpleform')) {
-								// adding the get params...
-								uri = $DP.augmentURI (uri, area.moreGetData);
-								// adding the form params
-								$C.setForm(f, $D.hasClass(f, 'yui-cms-upload'));
-								fetch (area, m, uri, cc);
+							// now you can validate the form before submitting it...
+							if (onSubmit (area, f)) {
+								// hacking the YUI Button Submit - To include the submit button values (deprecated after the 2.3.1)
+								if ($L.isObject(YAHOO.widget.Button)) {
+								  YAHOO.widget.Button.addHiddenFieldsToForm(f);
+								}
+								// workaround to save the editor instances before the submit process
+								if ($L.isObject(YAHOO.widget.EditorInfo)) {
+									YAHOO.widget.EditorInfo.saveAll();
+								}
+								
+								if (!$D.hasClass(f, 'yui-cms-simpleform')) {
+									// adding the get params...
+									uri = $DP.augmentURI (uri, area.moreGetData);
+									// adding the form params
+									$C.setForm(f, $D.hasClass(f, 'yui-cms-upload'));
+									fetch (area, m, uri, cc);
+									$E.stopEvent(e);
+								}
 								// Hack: clear the YUI Connection Manager...
-								// if we leave the form linked to the connection manager object, all the futher call will have all this values...
+								// if we leave the form linked to the connection manager object, all the further call will have all this values...
 								$C.resetFormState();
+							} else {
+								// stopping the event if validation fails
 								$E.stopEvent(e);
 							}
 						});
@@ -188,7 +194,7 @@
 		}
 		function reset (area, uri) {
 			var i, m = '', data;
-			uri = new String($L.isString(uri)?uri:area.uri);
+			uri = ($L.isString(uri)?uri:area.uri).toString();
 			uri += ((uri.indexOf('?') == -1)?'?':'&')+_form_control+'='+area.id;
 			uri = $DP.augmentURI (uri, area.moreGetData);
 			data = $DP.obj2query (area.morePostData);
@@ -215,10 +221,15 @@
 			}
 		}
 
-	    var onSubmit = function ( area ) {
-			if ($L.isFunction(area.onSubmit)) {
+	    var onSubmit = function ( area, f ) {
+	    	var r = true;
+	    	if ($L.isFunction(area.onBeforeSubmit)) {
+				r = area.onBeforeSubmit.apply ( area, [f] );
+			}
+			if (r && $L.isFunction(area.onSubmit)) {
 				area.onSubmit.apply ( area, [area.values] );
 			}
+			return r;
 	    };
 	    var onFinish = function ( area ) {
 			if ($L.isFunction(area.onFinish)) {
